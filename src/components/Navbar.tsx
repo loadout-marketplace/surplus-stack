@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { HardHat, Search, Plus, User, LogOut } from "lucide-react";
+import { Search, Plus, User, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import logo from "@/assets/logo.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,11 +23,9 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="p-2 bg-primary rounded-lg">
-            <HardHat className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="font-bold text-xl">LoadOut</span>
+        <Link to="/" className="flex items-center space-x-3">
+          <img src={logo} alt="LoadOut Marketplace" className="h-8 w-8" />
+          <span className="font-bold text-xl">LoadOut Marketplace</span>
         </Link>
 
         <div className="flex items-center space-x-4">
