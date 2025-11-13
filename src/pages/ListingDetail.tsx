@@ -38,6 +38,12 @@ const ListingDetail = () => {
     fetchListing();
   }, [slug]);
 
+  useEffect(() => {
+    if (listing?.price_type === "auction") {
+      fetchBids();
+    }
+  }, [listing]);
+
   const fetchListing = async () => {
     setLoading(true);
     const { data, error } = await supabase
