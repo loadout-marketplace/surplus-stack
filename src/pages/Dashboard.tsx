@@ -164,7 +164,6 @@ const Dashboard = () => {
                   Archived ({archivedListings.length})
                 </TabsTrigger>
               </TabsList>
-              </Tabs>
 
               <TabsContent value="active" className="mt-4">
                 {loading ? (
@@ -268,7 +267,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
-export default Dashboard;
 
 export default Dashboard;
