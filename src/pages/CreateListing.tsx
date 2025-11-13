@@ -17,6 +17,18 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { z } from "zod";
+
+// Validation schema for listing creation
+const listingSchema = z.object({
+  title: z.string().trim().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters"),
+  description: z.string().trim().min(10, "Description must be at least 10 characters").max(5000, "Description must be less than 5000 characters"),
+  price: z.number().positive("Price must be positive").max(1000000, "Price seems unrealistic"),
+  quantity: z.number().positive("Quantity must be positive").int("Quantity must be a whole number").max(10000, "Quantity seems unrealistic"),
+  city: z.string().trim().min(1, "City is required").max(50, "City name too long"),
+  state: z.string().trim().length(2, "State must be 2 letters"),
+  zip: z.string().trim().regex(/^\d{5}$/, "ZIP must be 5 digits"),
+});
 
 const CreateListing = () => {
   const { user, loading: authLoading } = useAuth();
@@ -49,44 +61,74 @@ const CreateListing = () => {
 
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const title = formData.get("title") as string;
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Date.now();
+    try {
+      const formData = new FormData(e.currentTarget);
+      const title = formData.get("title") as string;
+      const description = formData.get("description") as string;
+      const price = parseFloat(formData.get("price") as string);
+      const quantity = parseFloat(formData.get("quantity") as string);
+      const city = formData.get("city") as string;
+      const state = formData.get("state") as string;
+      const zip = formData.get("zip") as string;
 
-    const listingData = {
-      seller_id: user.id,
-      title,
-      slug,
-      description: formData.get("description") as string,
-      category_id: formData.get("category") as string,
-      condition: formData.get("condition") as string,
-      quantity: parseFloat(formData.get("quantity") as string),
-      unit: formData.get("unit") as string,
-      fixed_price: parseFloat(formData.get("price") as string),
-      location_city: formData.get("city") as string,
-      location_state: formData.get("state") as string,
-      location_zip: formData.get("zip") as string,
-      pickup_only: formData.get("pickupOnly") === "on",
-      shipping_available: formData.get("shippingAvailable") === "on",
-      price_type: "fixed",
-      status: "active",
-    };
+      // Validate input data
+      const validation = listingSchema.safeParse({
+        title,
+        description,
+        price,
+        quantity,
+        city,
+        state,
+        zip,
+      });
 
-    const { data, error } = await supabase
-      .from("listings")
-      .insert(listingData)
-      .select()
-      .single();
+      if (!validation.success) {
+        const firstError = validation.error.errors[0];
+        toast.error(firstError.message);
+        setLoading(false);
+        return;
+      }
 
-    if (error) {
-      toast.error("Failed to create listing");
+      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Date.now();
+
+      const listingData = {
+        seller_id: user.id,
+        title: validation.data.title,
+        slug,
+        description: validation.data.description,
+        category_id: formData.get("category") as string,
+        condition: formData.get("condition") as "new" | "like_new" | "good" | "fair" | "salvage",
+        quantity: validation.data.quantity,
+        unit: formData.get("unit") as string,
+        fixed_price: validation.data.price,
+        location_city: validation.data.city,
+        location_state: validation.data.state,
+        location_zip: validation.data.zip,
+        pickup_only: formData.get("pickupOnly") === "on",
+        shipping_available: formData.get("shippingAvailable") === "on",
+        price_type: "fixed" as const,
+        status: "active" as const,
+      };
+
+      const { data, error } = await supabase
+        .from("listings")
+        .insert(listingData)
+        .select()
+        .single();
+
+      if (error) {
+        toast.error("Failed to create listing");
+        console.error(error);
+      } else {
+        toast.success("Listing created successfully!");
+        navigate(`/listings/${data.slug}`);
+      }
+    } catch (error) {
+      toast.error("An error occurred while creating the listing");
       console.error(error);
-    } else {
-      toast.success("Listing created successfully!");
-      navigate(`/listings/${data.slug}`);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   if (authLoading) {

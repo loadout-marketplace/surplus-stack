@@ -8,6 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
+
+// Validation schema for messages
+const messageSchema = z.object({
+  body: z.string().trim().min(1, "Message cannot be empty").max(5000, "Message must be less than 5000 characters"),
+});
 
 interface Message {
   id: string;
@@ -95,13 +101,21 @@ const MessageThread = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !user || !id) return;
+    if (!user || !id) return;
+
+    // Validate message input
+    const validation = messageSchema.safeParse({ body: newMessage });
+    
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
 
     setSending(true);
     const { error } = await supabase.from("messages").insert({
       thread_id: id,
       sender_id: user.id,
-      body: newMessage.trim(),
+      body: validation.data.body,
     });
 
     if (error) {
