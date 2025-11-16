@@ -35,6 +35,7 @@ const CreateListing = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -110,24 +111,64 @@ const CreateListing = () => {
         status: "active" as const,
       };
 
-      const { data, error } = await supabase
+      const { data: listing, error } = await supabase
         .from("listings")
         .insert(listingData)
         .select()
         .single();
 
-      if (error) {
-        toast.error("Failed to create listing");
-        console.error(error);
-      } else {
-        toast.success("Listing created successfully!");
-        navigate(`/listings/${data.slug}`);
+      if (error) throw error;
+
+      // Upload images if any
+      if (uploadedImages.length > 0) {
+        const imageUploadPromises = uploadedImages.map(async (file, index) => {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${user.id}/${listing.id}/${Date.now()}-${index}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('listing-images')
+            .upload(fileName, file);
+
+          if (uploadError) throw uploadError;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('listing-images')
+            .getPublicUrl(fileName);
+
+          return {
+            listing_id: listing.id,
+            url: publicUrl,
+            display_order: index,
+          };
+        });
+
+        const imageRecords = await Promise.all(imageUploadPromises);
+
+        const { error: imagesError } = await supabase
+          .from('listing_images')
+          .insert(imageRecords);
+
+        if (imagesError) throw imagesError;
       }
-    } catch (error) {
-      toast.error("An error occurred while creating the listing");
+
+      toast.success("Listing created successfully!");
+      navigate(`/listings/${listing.slug}`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create listing");
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      if (files.length > 10) {
+        toast.error("Maximum 10 images allowed");
+        return;
+      }
+      setUploadedImages(files);
     }
   };
 
@@ -255,6 +296,39 @@ const CreateListing = () => {
                     required
                   />
                 </div>
+              </div>
+
+              {/* Images */}
+              <div>
+                <Label htmlFor="images">Images</Label>
+                <Input
+                  id="images"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageChange}
+                  className="cursor-pointer"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Upload up to 10 images (JPG, PNG, WEBP)
+                </p>
+                {uploadedImages.length > 0 && (
+                  <p className="text-sm text-primary mt-1">
+                    {uploadedImages.length} image(s) selected
+                  </p>
+                )}
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label htmlFor="description">Description *</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="Provide details about the material, its condition, dimensions, and any other relevant information..."
+                  rows={6}
+                  required
+                />
               </div>
 
               {/* Location */}
