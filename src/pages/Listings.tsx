@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Search, MapPin, Package } from "lucide-react";
 import { toast } from "sonner";
+import zipcodes from "zipcodes";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Listing {
   id: string;
@@ -24,6 +26,7 @@ interface Listing {
   condition: string;
   location_city: string;
   location_state: string;
+  location_zip: string | null;
   quantity: number;
   unit: string;
   created_at: string;
@@ -32,16 +35,36 @@ interface Listing {
 }
 
 const Listings = () => {
+  const { user } = useAuth();
   const [listings, setListings] = useState<Listing[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchRadius, setSearchRadius] = useState<string>("25");
+  const [userZipCode, setUserZipCode] = useState<string>("");
 
   useEffect(() => {
     fetchCategories();
     fetchListings();
-  }, [selectedCategory]);
+    fetchUserZipCode();
+  }, [selectedCategory, user]);
+
+  const fetchUserZipCode = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("user_zip")
+      .eq("id", user.id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching user ZIP code:", error);
+    } else if (data?.user_zip) {
+      setUserZipCode(data.user_zip);
+    }
+  };
 
   const fetchCategories = async () => {
     const { data, error } = await supabase
@@ -84,9 +107,44 @@ const Listings = () => {
     setLoading(false);
   };
 
-  const filteredListings = listings.filter((listing) =>
-    listing.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const calculateDistance = (zip1: string, zip2: string): number => {
+    if (!zip1 || !zip2) return Infinity;
+    
+    const location1 = zipcodes.lookup(zip1);
+    const location2 = zipcodes.lookup(zip2);
+    
+    if (!location1 || !location2) return Infinity;
+    
+    // Haversine formula to calculate distance in miles
+    const R = 3959; // Earth's radius in miles
+    const lat1 = location1.latitude * Math.PI / 180;
+    const lat2 = location2.latitude * Math.PI / 180;
+    const dLat = (location2.latitude - location1.latitude) * Math.PI / 180;
+    const dLon = (location2.longitude - location1.longitude) * Math.PI / 180;
+    
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    
+    return distance;
+  };
+
+  const filteredListings = listings.filter((listing) => {
+    // Filter by search query
+    const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Filter by distance if user has a ZIP code
+    let withinRadius = true;
+    if (userZipCode && listing.location_zip) {
+      const distance = calculateDistance(userZipCode, listing.location_zip);
+      const radiusMiles = parseInt(searchRadius);
+      withinRadius = distance <= radiusMiles;
+    }
+    
+    return matchesSearch && withinRadius;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -120,6 +178,19 @@ const Listings = () => {
                 ))}
               </SelectContent>
             </Select>
+
+            {userZipCode && (
+              <Select value={searchRadius} onValueChange={setSearchRadius}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="Search Radius" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">Within 5 miles</SelectItem>
+                  <SelectItem value="10">Within 10 miles</SelectItem>
+                  <SelectItem value="25">Within 25 miles</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </div>
 
