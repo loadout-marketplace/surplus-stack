@@ -26,7 +26,7 @@ const Auth = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const name = formData.get("name") as string;
+    const username = formData.get("username") as string;
     const email = formData.get("signup-email") as string;
     const password = formData.get("signup-password") as string;
     const confirmPassword = formData.get("confirm-password") as string;
@@ -43,7 +43,7 @@ const Auth = () => {
       return;
     }
 
-    const { error } = await signUp(email, password, name);
+    const { error } = await signUp(email, password, username);
 
     if (error) {
       toast.error(error.message || "Failed to sign up");
@@ -124,15 +124,15 @@ const Auth = () => {
               </form>
             </TabsContent>
 
-            <TabsContent value="signup">
+              <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
+                  <Label htmlFor="username">Username</Label>
                   <Input
-                    id="name"
-                    name="name"
+                    id="username"
+                    name="username"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="johndoe"
                     required
                   />
                 </div>
