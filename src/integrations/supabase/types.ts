@@ -380,6 +380,7 @@ export type Database = {
           name: string | null
           phone: string | null
           updated_at: string | null
+          user_zip: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -390,6 +391,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           updated_at?: string | null
+          user_zip?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -400,6 +402,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           updated_at?: string | null
+          user_zip?: string | null
         }
         Relationships: []
       }

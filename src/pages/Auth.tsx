@@ -30,6 +30,7 @@ const Auth = () => {
     const email = formData.get("signup-email") as string;
     const password = formData.get("signup-password") as string;
     const confirmPassword = formData.get("confirm-password") as string;
+    const zipcode = formData.get("zipcode") as string;
 
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
@@ -43,7 +44,7 @@ const Auth = () => {
       return;
     }
 
-    const { error } = await signUp(email, password, username);
+    const { error } = await signUp(email, password, username, zipcode);
 
     if (error) {
       toast.error(error.message || "Failed to sign up");
@@ -164,6 +165,18 @@ const Auth = () => {
                     type="password"
                     placeholder="••••••••"
                     required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="zipcode">ZIP Code</Label>
+                  <Input
+                    id="zipcode"
+                    name="zipcode"
+                    type="text"
+                    placeholder="12345"
+                    required
+                    maxLength={5}
+                    pattern="[0-9]{5}"
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
