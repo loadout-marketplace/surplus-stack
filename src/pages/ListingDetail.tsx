@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Package, Calendar, User } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { BidDialog } from "@/components/BidDialog";
 
 interface ListingDetail {
   id: string;
@@ -43,6 +44,7 @@ const ListingDetail = () => {
   const [highestBid, setHighestBid] = useState<number | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [extending, setExtending] = useState(false);
+  const [bidDialogOpen, setBidDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchListing();
@@ -333,7 +335,11 @@ const ListingDetail = () => {
               )}
               
               {user ? (
-                <Button size="lg" className="w-full">
+                <Button 
+                  size="lg" 
+                  className="w-full"
+                  onClick={() => listing.price_type === 'auction' ? setBidDialogOpen(true) : null}
+                >
                   {listing.price_type === 'auction' ? 'Place Bid' : 'Contact Seller'}
                 </Button>
               ) : (
@@ -361,6 +367,19 @@ const ListingDetail = () => {
           </div>
         )}
       </div>
+
+      {/* Bid Dialog */}
+      {listing.price_type === 'auction' && (
+        <BidDialog
+          open={bidDialogOpen}
+          onOpenChange={setBidDialogOpen}
+          listingId={listing.id}
+          listingTitle={listing.title}
+          currentHighestBid={highestBid}
+          startingBid={listing.starting_bid}
+          onBidPlaced={fetchListing}
+        />
+      )}
     </div>
   );
 };
