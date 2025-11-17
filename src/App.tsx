@@ -14,6 +14,7 @@ import Messages from "./pages/Messages";
 import MessageThread from "./pages/MessageThread";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import { ChatBot } from "@/components/ChatBot";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <ChatBot />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Landing />} />

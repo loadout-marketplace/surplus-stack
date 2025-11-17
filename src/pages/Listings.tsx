@@ -42,6 +42,7 @@ const Listings = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchRadius, setSearchRadius] = useState<string>("25");
+  const [customRadius, setCustomRadius] = useState<string>("");
   const [userZipCode, setUserZipCode] = useState<string>("");
 
   useEffect(() => {
@@ -139,8 +140,8 @@ const Listings = () => {
     let withinRadius = true;
     if (userZipCode && listing.location_zip) {
       const distance = calculateDistance(userZipCode, listing.location_zip);
-      const radiusMiles = parseInt(searchRadius);
-      withinRadius = distance <= radiusMiles;
+      const radiusToUse = searchRadius === "custom" ? parseInt(customRadius) || 25 : parseInt(searchRadius);
+      withinRadius = distance <= radiusToUse;
     }
     
     return matchesSearch && withinRadius;
@@ -176,20 +177,36 @@ const Listings = () => {
                     {cat.name}
                   </SelectItem>
                 ))}
+                <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
 
             {userZipCode && (
-              <Select value={searchRadius} onValueChange={setSearchRadius}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="Search Radius" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">Within 5 miles</SelectItem>
-                  <SelectItem value="10">Within 10 miles</SelectItem>
-                  <SelectItem value="25">Within 25 miles</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2 w-full md:w-auto">
+                <Select value={searchRadius} onValueChange={setSearchRadius}>
+                  <SelectTrigger className="w-full md:w-48">
+                    <SelectValue placeholder="Search Radius" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">Within 5 miles</SelectItem>
+                    <SelectItem value="10">Within 10 miles</SelectItem>
+                    <SelectItem value="25">Within 25 miles</SelectItem>
+                    <SelectItem value="50">Within 50 miles</SelectItem>
+                    <SelectItem value="100">Within 100 miles</SelectItem>
+                    <SelectItem value="custom">Custom distance</SelectItem>
+                  </SelectContent>
+                </Select>
+                {searchRadius === "custom" && (
+                  <Input
+                    type="number"
+                    placeholder="Miles"
+                    value={customRadius}
+                    onChange={(e) => setCustomRadius(e.target.value)}
+                    className="w-24"
+                    min="1"
+                  />
+                )}
+              </div>
             )}
           </div>
         </div>
