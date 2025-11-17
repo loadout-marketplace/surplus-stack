@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -23,11 +24,25 @@ import { z } from "zod";
 const listingSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters"),
   description: z.string().trim().min(10, "Description must be at least 10 characters").max(5000, "Description must be less than 5000 characters"),
-  price: z.number().positive("Price must be positive").max(1000000, "Price seems unrealistic"),
+  priceType: z.enum(["fixed", "auction"]),
+  fixedPrice: z.number().positive("Price must be positive").max(1000000, "Price seems unrealistic").optional(),
+  startingBid: z.number().positive("Starting bid must be positive").max(1000000, "Starting bid seems unrealistic").optional(),
+  buyNowPrice: z.number().positive("Buy now price must be positive").max(1000000, "Buy now price seems unrealistic").optional(),
   quantity: z.number().positive("Quantity must be positive").int("Quantity must be a whole number").max(10000, "Quantity seems unrealistic"),
   city: z.string().trim().min(1, "City is required").max(50, "City name too long"),
   state: z.string().trim().length(2, "State must be 2 letters"),
   zip: z.string().trim().regex(/^\d{5}$/, "ZIP must be 5 digits"),
+}).refine((data) => {
+  if (data.priceType === "fixed") {
+    return data.fixedPrice !== undefined && data.fixedPrice > 0;
+  }
+  if (data.priceType === "auction") {
+    return data.startingBid !== undefined && data.startingBid > 0;
+  }
+  return false;
+}, {
+  message: "Price is required",
+  path: ["fixedPrice"],
 });
 
 const CreateListing = () => {
@@ -36,6 +51,7 @@ const CreateListing = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [priceType, setPriceType] = useState<"fixed" | "auction">("fixed");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -66,7 +82,10 @@ const CreateListing = () => {
       const formData = new FormData(e.currentTarget);
       const title = formData.get("title") as string;
       const description = formData.get("description") as string;
-      const price = parseFloat(formData.get("price") as string);
+      const selectedPriceType = formData.get("priceType") as "fixed" | "auction";
+      const fixedPrice = formData.get("fixedPrice") ? parseFloat(formData.get("fixedPrice") as string) : undefined;
+      const startingBid = formData.get("startingBid") ? parseFloat(formData.get("startingBid") as string) : undefined;
+      const buyNowPrice = formData.get("buyNowPrice") ? parseFloat(formData.get("buyNowPrice") as string) : undefined;
       const quantity = parseFloat(formData.get("quantity") as string);
       const city = formData.get("city") as string;
       const state = formData.get("state") as string;
@@ -76,7 +95,10 @@ const CreateListing = () => {
       const validation = listingSchema.safeParse({
         title,
         description,
-        price,
+        priceType: selectedPriceType,
+        fixedPrice,
+        startingBid,
+        buyNowPrice,
         quantity,
         city,
         state,
@@ -101,13 +123,15 @@ const CreateListing = () => {
         condition: formData.get("condition") as "new" | "like_new" | "good" | "fair" | "salvage",
         quantity: validation.data.quantity,
         unit: formData.get("unit") as string,
-        fixed_price: validation.data.price,
+        fixed_price: validation.data.priceType === "fixed" ? validation.data.fixedPrice : null,
+        starting_bid: validation.data.priceType === "auction" ? validation.data.startingBid : null,
+        buy_now_price: validation.data.priceType === "auction" ? validation.data.buyNowPrice : null,
         location_city: validation.data.city,
         location_state: validation.data.state,
         location_zip: validation.data.zip,
         pickup_only: formData.get("pickupOnly") === "on",
         shipping_available: formData.get("shippingAvailable") === "on",
-        price_type: "fixed" as const,
+        price_type: validation.data.priceType,
         status: "active" as const,
       };
 
@@ -252,8 +276,8 @@ const CreateListing = () => {
                 </div>
               </div>
 
-              {/* Quantity & Pricing */}
-              <div className="grid md:grid-cols-3 gap-4">
+              {/* Quantity & Unit */}
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="quantity">Quantity *</Label>
                   <Input
@@ -283,19 +307,79 @@ const CreateListing = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
 
-                <div>
-                  <Label htmlFor="price">Price ($) *</Label>
-                  <Input
-                    id="price"
-                    name="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="500"
-                    required
-                  />
-                </div>
+              {/* Pricing Type */}
+              <div className="space-y-4">
+                <h3 className="font-semibold">Pricing</h3>
+                <RadioGroup 
+                  name="priceType" 
+                  value={priceType} 
+                  onValueChange={(value: "fixed" | "auction") => setPriceType(value)}
+                  className="flex gap-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="fixed" id="fixed" />
+                    <Label htmlFor="fixed" className="font-normal cursor-pointer">
+                      Fixed Price
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="auction" id="auction" />
+                    <Label htmlFor="auction" className="font-normal cursor-pointer">
+                      Auction
+                    </Label>
+                  </div>
+                </RadioGroup>
+
+                {priceType === "fixed" && (
+                  <div>
+                    <Label htmlFor="fixedPrice">Price ($) *</Label>
+                    <Input
+                      id="fixedPrice"
+                      name="fixedPrice"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="500"
+                      required
+                    />
+                  </div>
+                )}
+
+                {priceType === "auction" && (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="startingBid">Starting Bid ($) *</Label>
+                      <Input
+                        id="startingBid"
+                        name="startingBid"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="100"
+                        required
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Minimum price to start bidding
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="buyNowPrice">Buy Now Price ($)</Label>
+                      <Input
+                        id="buyNowPrice"
+                        name="buyNowPrice"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="500"
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Optional instant purchase price
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Images */}
