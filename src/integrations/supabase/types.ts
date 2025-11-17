@@ -114,6 +114,7 @@ export type Database = {
       }
       listings: {
         Row: {
+          auction_end_time: string | null
           buy_now_price: number | null
           category_id: string | null
           condition: Database["public"]["Enums"]["listing_condition"]
@@ -141,6 +142,7 @@ export type Database = {
           views_count: number | null
         }
         Insert: {
+          auction_end_time?: string | null
           buy_now_price?: number | null
           category_id?: string | null
           condition: Database["public"]["Enums"]["listing_condition"]
@@ -168,6 +170,7 @@ export type Database = {
           views_count?: number | null
         }
         Update: {
+          auction_end_time?: string | null
           buy_now_price?: number | null
           category_id?: string | null
           condition?: Database["public"]["Enums"]["listing_condition"]

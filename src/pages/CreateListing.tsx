@@ -114,6 +114,15 @@ const CreateListing = () => {
 
       const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Date.now();
 
+      // Calculate auction end time if it's an auction
+      let auctionEndTime = null;
+      if (selectedPriceType === "auction") {
+        const durationDays = parseInt(formData.get("auctionDuration") as string);
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + durationDays);
+        auctionEndTime = endDate.toISOString();
+      }
+
       const listingData = {
         seller_id: user.id,
         title: validation.data.title,
@@ -126,6 +135,7 @@ const CreateListing = () => {
         fixed_price: validation.data.priceType === "fixed" ? validation.data.fixedPrice : null,
         starting_bid: validation.data.priceType === "auction" ? validation.data.startingBid : null,
         buy_now_price: validation.data.priceType === "auction" ? validation.data.buyNowPrice : null,
+        auction_end_time: auctionEndTime,
         location_city: validation.data.city,
         location_state: validation.data.state,
         location_zip: validation.data.zip,
@@ -348,34 +358,54 @@ const CreateListing = () => {
                 )}
 
                 {priceType === "auction" && (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="startingBid">Starting Bid ($) *</Label>
-                      <Input
-                        id="startingBid"
-                        name="startingBid"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="100"
-                        required
-                      />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Minimum price to start bidding
-                      </p>
+                  <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="startingBid">Starting Bid ($) *</Label>
+                        <Input
+                          id="startingBid"
+                          name="startingBid"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="100"
+                          required
+                        />
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Minimum price to start bidding
+                        </p>
+                      </div>
+                      <div>
+                        <Label htmlFor="buyNowPrice">Buy Now Price ($)</Label>
+                        <Input
+                          id="buyNowPrice"
+                          name="buyNowPrice"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="500"
+                        />
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Optional instant purchase price
+                        </p>
+                      </div>
                     </div>
                     <div>
-                      <Label htmlFor="buyNowPrice">Buy Now Price ($)</Label>
-                      <Input
-                        id="buyNowPrice"
-                        name="buyNowPrice"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="500"
-                      />
+                      <Label htmlFor="auctionDuration">Auction Duration *</Label>
+                      <Select name="auctionDuration" required>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select duration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1 Day</SelectItem>
+                          <SelectItem value="3">3 Days</SelectItem>
+                          <SelectItem value="5">5 Days</SelectItem>
+                          <SelectItem value="7">7 Days</SelectItem>
+                          <SelectItem value="14">14 Days</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Optional instant purchase price
+                        How long the auction will run
                       </p>
                     </div>
                   </div>
