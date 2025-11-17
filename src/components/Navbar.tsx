@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationBell } from "./NotificationBell";
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
@@ -44,6 +45,8 @@ const Navbar = () => {
                   List Item
                 </Button>
               </Link>
+
+              <NotificationBell />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
