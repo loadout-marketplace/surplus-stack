@@ -14,6 +14,10 @@ interface ListingDetail {
   title: string;
   description: string;
   fixed_price: number;
+  price_type: string;
+  starting_bid: number | null;
+  current_highest_bid: number | null;
+  auction_end_time: string | null;
   condition: string;
   quantity: number;
   unit: string;
@@ -22,6 +26,8 @@ interface ListingDetail {
   location_zip: string;
   pickup_only: boolean;
   shipping_available: boolean;
+  seller_id: string;
+  status: string;
   created_at: string;
   listing_images: { url: string }[];
   categories: { name: string } | null;
@@ -33,10 +39,44 @@ const ListingDetail = () => {
   const { user } = useAuth();
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bidsCount, setBidsCount] = useState(0);
+  const [highestBid, setHighestBid] = useState<number | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
+  const [extending, setExtending] = useState(false);
 
   useEffect(() => {
     fetchListing();
   }, [slug]);
+
+  useEffect(() => {
+    if (listing?.price_type === 'auction' && listing.auction_end_time) {
+      const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const end = new Date(listing.auction_end_time!).getTime();
+        const distance = end - now;
+
+        if (distance < 0) {
+          setTimeRemaining("Auction ended");
+          clearInterval(timer);
+        } else {
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+          if (days > 0) {
+            setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
+          } else if (hours > 0) {
+            setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
+          } else {
+            setTimeRemaining(`${minutes}m ${seconds}s`);
+          }
+        }
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [listing]);
 
   const fetchListing = async () => {
     setLoading(true);
@@ -56,8 +96,68 @@ const ListingDetail = () => {
       console.error(error);
     } else {
       setListing(data);
+      
+      // Fetch bids if it's an auction
+      if (data?.price_type === 'auction') {
+        const { data: bidsData, error: bidsError } = await supabase
+          .from("bids")
+          .select("amount")
+          .eq("listing_id", data.id)
+          .order("amount", { ascending: false });
+
+        if (!bidsError && bidsData) {
+          setBidsCount(bidsData.length);
+          if (bidsData.length > 0) {
+            setHighestBid(bidsData[0].amount);
+          }
+        }
+      }
     }
     setLoading(false);
+  };
+
+  const handleExtendAuction = async () => {
+    if (!listing) return;
+
+    setExtending(true);
+    try {
+      // Extend by 24 hours
+      const newEndTime = new Date(listing.auction_end_time!);
+      newEndTime.setHours(newEndTime.getHours() + 24);
+
+      const { error } = await supabase
+        .from("listings")
+        .update({ auction_end_time: newEndTime.toISOString() })
+        .eq("id", listing.id);
+
+      if (error) throw error;
+
+      toast.success("Auction extended by 24 hours");
+      fetchListing();
+    } catch (error) {
+      console.error("Error extending auction:", error);
+      toast.error("Failed to extend auction");
+    } finally {
+      setExtending(false);
+    }
+  };
+
+  const canExtendAuction = () => {
+    if (!listing || !user) return false;
+    if (listing.seller_id !== user.id) return false;
+    if (listing.price_type !== 'auction') return false;
+    if (listing.status !== 'active') return false;
+    if (!listing.auction_end_time) return false;
+    
+    const now = new Date().getTime();
+    const end = new Date(listing.auction_end_time).getTime();
+    if (now >= end) return false;
+
+    // Allow extension if no bids or highest bid is below starting bid
+    if (bidsCount === 0) return true;
+    if (highestBid && listing.starting_bid && highestBid < listing.starting_bid) return true;
+
+    return false;
   };
 
   if (loading) {
@@ -121,9 +221,40 @@ const ListingDetail = () => {
                   {listing.categories.name}
                 </Badge>
               )}
-              <div className="text-3xl font-bold text-primary mb-4">
-                ${listing.fixed_price}
-              </div>
+              
+              {listing.price_type === 'auction' ? (
+                <div className="space-y-2 mb-4">
+                  <div className="text-xl font-semibold text-muted-foreground">
+                    {highestBid && highestBid >= (listing.starting_bid || 0) ? (
+                      <>
+                        <div className="text-sm">Current Bid</div>
+                        <div className="text-3xl font-bold text-primary">
+                          ${highestBid.toLocaleString()}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-sm">Starting Bid</div>
+                        <div className="text-3xl font-bold text-primary">
+                          ${listing.starting_bid?.toLocaleString()}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Badge variant={timeRemaining === "Auction ended" ? "destructive" : "default"}>
+                      {timeRemaining || "Calculating..."}
+                    </Badge>
+                    <span className="text-muted-foreground">
+                      {bidsCount} {bidsCount === 1 ? "bid" : "bids"}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-3xl font-bold text-primary mb-4">
+                  ${listing.fixed_price?.toLocaleString()}
+                </div>
+              )}
             </div>
 
             <Card>
@@ -188,17 +319,31 @@ const ListingDetail = () => {
               </CardContent>
             </Card>
 
-            {user ? (
-              <Button size="lg" className="w-full">
-                Contact Seller
-              </Button>
-            ) : (
-              <Link to="/auth">
-                <Button size="lg" className="w-full">
-                  Sign In to Contact Seller
+            <div className="space-y-3">
+              {canExtendAuction() && (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleExtendAuction}
+                  disabled={extending}
+                >
+                  {extending ? "Extending..." : "Extend Auction by 24 Hours"}
                 </Button>
-              </Link>
-            )}
+              )}
+              
+              {user ? (
+                <Button size="lg" className="w-full">
+                  {listing.price_type === 'auction' ? 'Place Bid' : 'Contact Seller'}
+                </Button>
+              ) : (
+                <Link to="/auth">
+                  <Button size="lg" className="w-full">
+                    Sign In to {listing.price_type === 'auction' ? 'Place Bid' : 'Contact Seller'}
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 
