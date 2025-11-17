@@ -3,78 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, DollarSign, Package, Shield, TrendingUp } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
 const Landing = () => {
-  const [stats, setStats] = useState({
-    materialsSold: 0,
-    activeListings: 0,
-    contractors: 0,
-    avgSavings: "8%"
-  });
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      // Get count of completed orders
-      const { count: completedOrders } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'completed');
-
-      // Get total value of completed orders
-      const { data: orderData } = await supabase
-        .from('orders')
-        .select('total_price')
-        .eq('status', 'completed');
-      
-      const totalSales = orderData?.reduce((sum, order) => sum + Number(order.total_price), 0) || 0;
-
-      // Get count of active listings
-      const { count: activeListings } = await supabase
-        .from('listings')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
-
-      // Get count of all users (contractors)
-      const { count: contractors } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-
-      setStats({
-        materialsSold: totalSales,
-        activeListings: activeListings || 0,
-        contractors: contractors || 0,
-        avgSavings: "8%"
-      });
-    };
-
-    fetchStats();
-
-    // Set up realtime subscription for listings
-    const channel = supabase
-      .channel('stats-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'listings' },
-        () => fetchStats()
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'profiles' },
-        () => fetchStats()
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
-        () => fetchStats()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
 
   return (
     <div className="min-h-screen">
@@ -104,29 +34,25 @@ const Landing = () => {
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto">
+          {/* Features */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl mx-auto">
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-primary">
-                ${stats.materialsSold.toLocaleString()}
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Shield className="h-6 w-6 text-primary" />
               </div>
-              <div className="text-sm text-muted-foreground mt-1">Materials Sold</div>
+              <h3 className="font-semibold text-lg">Verified Sellers</h3>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-primary">
-                {stats.activeListings.toLocaleString()}
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Package className="h-6 w-6 text-primary" />
               </div>
-              <div className="text-sm text-muted-foreground mt-1">Active Listings</div>
+              <h3 className="font-semibold text-lg">Local Pickup or Shipping</h3>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-primary">
-                {stats.contractors.toLocaleString()}
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <CheckCircle className="h-6 w-6 text-primary" />
               </div>
-              <div className="text-sm text-muted-foreground mt-1">Contractors</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-primary">{stats.avgSavings}</div>
-              <div className="text-sm text-muted-foreground mt-1">Platform Fee</div>
+              <h3 className="font-semibold text-lg">Fast, Secure Transactions</h3>
             </div>
           </div>
         </div>
