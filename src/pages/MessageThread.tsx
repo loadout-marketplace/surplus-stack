@@ -6,9 +6,20 @@ import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, Ban } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Validation schema for messages
 const messageSchema = z.object({
@@ -47,6 +58,8 @@ const MessageThread = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [blocking, setBlocking] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,6 +73,7 @@ const MessageThread = () => {
     if (user && id) {
       fetchThread();
       fetchMessages();
+      checkIfBlocked();
     }
   }, [user, id]);
 
@@ -99,6 +113,21 @@ const MessageThread = () => {
     } else {
       setMessages(data || []);
     }
+  };
+
+  const checkIfBlocked = async () => {
+    if (!user || !thread) return;
+
+    const otherUserId = thread.buyer_id === user.id ? thread.seller_id : thread.buyer_id;
+
+    const { data } = await supabase
+      .from("blocked_users")
+      .select("id")
+      .eq("blocker_id", otherUserId)
+      .eq("blocked_id", user.id)
+      .single();
+
+    setIsBlocked(!!data);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -180,6 +209,29 @@ const MessageThread = () => {
     setUpdating(false);
   };
 
+  const handleBlockUser = async () => {
+    if (!thread || !user) return;
+
+    const userToBlock = thread.buyer_id === user.id ? thread.seller_id : thread.buyer_id;
+
+    setBlocking(true);
+    const { error } = await supabase
+      .from("blocked_users")
+      .insert({
+        blocker_id: user.id,
+        blocked_id: userToBlock
+      });
+
+    if (error) {
+      toast.error("Failed to block user");
+      console.error(error);
+    } else {
+      toast.success("User blocked successfully");
+      navigate("/messages");
+    }
+    setBlocking(false);
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -212,9 +264,35 @@ const MessageThread = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="cursor-pointer hover:underline" onClick={() => navigate(`/listings/${thread.listings.slug}`)}>
-              {thread.listings.title}
-            </CardTitle>
+            <div className="flex items-start justify-between">
+              <CardTitle className="cursor-pointer hover:underline flex-1" onClick={() => navigate(`/listings/${thread.listings.slug}`)}>
+                {thread.listings.title}
+              </CardTitle>
+              {thread.status === 'accepted' && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" disabled={blocking}>
+                      <Ban className="h-4 w-4 mr-2" />
+                      Block User
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Block this user?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This user will no longer be able to send you message requests. You can unblock them later from your settings.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleBlockUser}>
+                        Block User
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
             {thread.status === 'pending' && user?.id === thread.seller_id && (
               <div className="flex gap-2 mt-4">
                 <Button 
@@ -245,6 +323,13 @@ const MessageThread = () => {
               <div className="mt-4 p-4 bg-destructive/10 rounded-lg">
                 <p className="text-sm text-destructive">
                   This message request was rejected by the seller.
+                </p>
+              </div>
+            )}
+            {isBlocked && (
+              <div className="mt-4 p-4 bg-destructive/10 rounded-lg">
+                <p className="text-sm text-destructive">
+                  You have been blocked by this user and cannot send messages.
                 </p>
               </div>
             )}

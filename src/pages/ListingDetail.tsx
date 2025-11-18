@@ -151,6 +151,20 @@ const ListingDetail = () => {
     
     setContactingSeller(true);
     try {
+      // Check if user is blocked
+      const { data: blockData } = await supabase
+        .from("blocked_users")
+        .select("id")
+        .eq("blocker_id", listing.seller_id)
+        .eq("blocked_id", user.id)
+        .single();
+
+      if (blockData) {
+        toast.error("You are unable to message this seller");
+        setContactingSeller(false);
+        return;
+      }
+
       // Check if thread already exists
       const { data: existingThread } = await supabase
         .from("message_threads")
