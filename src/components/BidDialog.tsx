@@ -12,6 +12,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { z } from "zod";
+
+// Bid validation schema
+const bidSchema = z.object({
+  amount: z.number()
+    .positive('Bid must be positive')
+    .min(0.01, 'Minimum bid is $0.01')
+    .max(10000000, 'Bid amount exceeds maximum')
+    .refine((val) => {
+      // Ensure 2 decimal places max
+      return Number(val.toFixed(2)) === val;
+    }, 'Bid must have at most 2 decimal places')
+});
 
 interface BidDialogProps {
   open: boolean;
@@ -45,9 +58,21 @@ export const BidDialog = ({
     e.preventDefault();
     setLoading(true);
 
-    const amount = parseFloat(bidAmount);
+    const parsedAmount = parseFloat(bidAmount);
 
-    if (isNaN(amount) || amount < minimumBid) {
+    // Validate with Zod schema
+    const validation = bidSchema.safeParse({ amount: parsedAmount });
+    
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      setLoading(false);
+      return;
+    }
+
+    const amount = validation.data.amount;
+
+    // Check minimum bid requirement
+    if (amount < minimumBid) {
       toast.error(`Bid must be at least $${minimumBid.toFixed(2)}`);
       setLoading(false);
       return;
