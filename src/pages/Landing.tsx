@@ -177,7 +177,7 @@ const Landing = () => {
       <footer className="border-t py-8 bg-background">
         <div className="container max-w-6xl">
           <div className="text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 LoadOut Marketplace. All rights reserved.</p>
+            <p>&copy; 2025 LoadOut Marketplace. All rights reserved. | <a href="/Loadout_Marketplace_Terms_of_Service.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-foreground underline">Terms of Service</a></p>
           </div>
         </div>
       </footer>
