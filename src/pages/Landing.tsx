@@ -120,7 +120,7 @@ const Landing = () => {
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                 <Shield className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2">Verified Contractors</h3>
+              <h3 className="font-semibold mb-2">Verified Sellers</h3>
               <p className="text-sm text-muted-foreground">
                 All sellers are verified. Review system ensures trust and quality.
               </p>
