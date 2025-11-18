@@ -18,7 +18,7 @@ const Landing = () => {
               Turn Leftover Materials Into Money
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-              Find deals up to 70% off retail. Buy and sell surplus construction materials.
+              Find deals up to 80% off retail. Buy and sell surplus construction materials.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link to="/listings">
@@ -132,7 +132,7 @@ const Landing = () => {
               </div>
               <h3 className="font-semibold mb-2">Best Prices</h3>
               <p className="text-sm text-muted-foreground">
-                Save up to 70% off retail on quality construction materials.
+                Save up to 80% off retail on quality construction materials.
               </p>
             </div>
 
