@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ interface ListingDetail {
 
 const ListingDetail = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +46,7 @@ const ListingDetail = () => {
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [extending, setExtending] = useState(false);
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
+  const [contactingSeller, setContactingSeller] = useState(false);
 
   useEffect(() => {
     fetchListing();
@@ -141,6 +143,47 @@ const ListingDetail = () => {
       toast.error("Failed to extend auction");
     } finally {
       setExtending(false);
+    }
+  };
+
+  const handleContactSeller = async () => {
+    if (!user || !listing) return;
+    
+    setContactingSeller(true);
+    try {
+      // Check if thread already exists
+      const { data: existingThread } = await supabase
+        .from("message_threads")
+        .select("id")
+        .eq("listing_id", listing.id)
+        .eq("buyer_id", user.id)
+        .single();
+
+      if (existingThread) {
+        navigate(`/messages/${existingThread.id}`);
+      } else {
+        // Create new thread with pending status
+        const { data: newThread, error } = await supabase
+          .from("message_threads")
+          .insert({
+            listing_id: listing.id,
+            buyer_id: user.id,
+            seller_id: listing.seller_id,
+            status: 'pending'
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        toast.success("Message request sent to seller");
+        navigate(`/messages/${newThread.id}`);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to send message request");
+    } finally {
+      setContactingSeller(false);
     }
   };
 
@@ -338,9 +381,14 @@ const ListingDetail = () => {
                 <Button 
                   size="lg" 
                   className="w-full"
-                  onClick={() => listing.price_type === 'auction' ? setBidDialogOpen(true) : null}
+                  onClick={() => listing.price_type === 'auction' ? setBidDialogOpen(true) : handleContactSeller()}
+                  disabled={contactingSeller}
                 >
-                  {listing.price_type === 'auction' ? 'Place Bid' : 'Contact Seller'}
+                  {listing.price_type === 'auction' 
+                    ? 'Place Bid' 
+                    : contactingSeller 
+                      ? 'Sending Request...' 
+                      : 'Request to Message Seller'}
                 </Button>
               ) : (
                 <Link to="/auth">
