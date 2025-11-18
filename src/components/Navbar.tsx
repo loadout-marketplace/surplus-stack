@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationBell } from "./NotificationBell";
+import { MessagesBadge } from "./MessagesBadge";
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
@@ -45,6 +46,8 @@ const Navbar = () => {
                   List Item
                 </Button>
               </Link>
+
+              <MessagesBadge />
 
               <NotificationBell />
 
