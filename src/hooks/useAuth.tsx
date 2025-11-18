@@ -54,14 +54,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     // Update profile with ZIP code if signup was successful
     if (!error && data.user && zipCode) {
-      const { error: profileError } = await supabase
+      await supabase
         .from("profiles")
         .update({ user_zip: zipCode })
         .eq("id", data.user.id);
-      
-      if (profileError) {
-        console.error("Error updating profile with ZIP code:", profileError);
-      }
     }
     
     return { error };
