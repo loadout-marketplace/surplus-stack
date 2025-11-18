@@ -15,7 +15,7 @@ const Landing = () => {
         <div className="container max-w-6xl">
           <div className="text-center space-y-6">
             <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-              Turn Leftover Materials Into Money
+              Sell Your Surplus. Find Deals. Build Smarter.
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
               Find deals up to 80% off retail. Buy and sell surplus construction materials.
