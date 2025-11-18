@@ -8,6 +8,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import loadoutLogo from "@/assets/loadout-logo.png";
+import { z } from "zod";
+
+// Validation schemas
+const signUpSchema = z.object({
+  email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
+  confirmPassword: z.string(),
+  username: z.string().trim().min(2, "Username must be at least 2 characters").max(50, "Username must be less than 50 characters"),
+  zipcode: z.string().regex(/^\d{5}$/, "ZIP code must be exactly 5 digits")
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+const signInSchema = z.object({
+  email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  password: z.string().min(1, "Password is required")
+});
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -26,25 +47,24 @@ const Auth = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const username = formData.get("username") as string;
-    const email = formData.get("signup-email") as string;
-    const password = formData.get("signup-password") as string;
-    const confirmPassword = formData.get("confirm-password") as string;
-    const zipcode = formData.get("zipcode") as string;
+    const data = {
+      username: formData.get("username") as string,
+      email: formData.get("signup-email") as string,
+      password: formData.get("signup-password") as string,
+      confirmPassword: formData.get("confirm-password") as string,
+      zipcode: formData.get("zipcode") as string
+    };
 
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+    // Validate with zod schema
+    const validation = signUpSchema.safeParse(data);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
       setLoading(false);
       return;
     }
 
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      setLoading(false);
-      return;
-    }
-
-    const { error } = await signUp(email, password, username, zipcode);
+    const { error } = await signUp(data.email, data.password, data.username, data.zipcode);
 
     if (error) {
       toast.error(error.message || "Failed to sign up");
@@ -61,10 +81,21 @@ const Auth = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("signin-email") as string;
-    const password = formData.get("signin-password") as string;
+    const data = {
+      email: formData.get("signin-email") as string,
+      password: formData.get("signin-password") as string
+    };
 
-    const { error } = await signIn(email, password);
+    // Validate with zod schema
+    const validation = signInSchema.safeParse(data);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await signIn(data.email, data.password);
 
     if (error) {
       toast.error(error.message || "Failed to sign in");
