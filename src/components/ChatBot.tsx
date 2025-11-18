@@ -32,8 +32,19 @@ export const ChatBot = () => {
     setIsLoading(true);
 
     try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        toast.error("You must be logged in to use the chat support");
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke("chat-support", {
         body: { messages: [...messages, userMessage] },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) throw error;
