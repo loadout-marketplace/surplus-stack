@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, MapPin, Package } from "lucide-react";
+import { Search, MapPin, Package, Star } from "lucide-react";
 import { toast } from "sonner";
 import zipcodes from "zipcodes";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,8 +30,10 @@ interface Listing {
   quantity: number;
   unit: string;
   created_at: string;
+  seller_id: string;
   listing_images: { url: string }[];
   categories: { name: string } | null;
+  sellerRating?: number;
 }
 
 const Listings = () => {
@@ -103,7 +105,25 @@ const Listings = () => {
       toast.error("Failed to load listings");
       console.error(error);
     } else {
-      setListings(data || []);
+      // Fetch seller ratings for all listings
+      const listingsWithRatings = await Promise.all(
+        (data || []).map(async (listing) => {
+          const { data: reviews } = await supabase
+            .from("reviews")
+            .select("rating")
+            .eq("reviewed_user_id", listing.seller_id);
+
+          let sellerRating = 0;
+          if (reviews && reviews.length > 0) {
+            const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+            sellerRating = avgRating;
+          }
+
+          return { ...listing, sellerRating };
+        })
+      );
+      
+      setListings(listingsWithRatings);
     }
     setLoading(false);
   };
@@ -259,7 +279,13 @@ const Listings = () => {
                         <Package className="h-12 w-12 text-muted-foreground" />
                       </div>
                     )}
-                    <div className="absolute top-2 right-2">
+                    <div className="absolute top-2 right-2 flex gap-2">
+                      {listing.sellerRating && listing.sellerRating >= 4.5 && (
+                        <Badge className="bg-yellow-400 text-yellow-900 hover:bg-yellow-500 flex items-center gap-1">
+                          <Star className="h-3 w-3 fill-current" />
+                          Top Rated
+                        </Badge>
+                      )}
                       <Badge variant="secondary" className="capitalize">
                         {listing.condition.replace("_", " ")}
                       </Badge>
