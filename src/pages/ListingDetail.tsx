@@ -9,6 +9,7 @@ import { MapPin, Package, Calendar, User } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { BidDialog } from "@/components/BidDialog";
+import { SellerRating } from "@/components/SellerRating";
 
 interface ListingDetail {
   id: string;
@@ -428,6 +429,14 @@ const ListingDetail = () => {
             </Card>
           </div>
         )}
+
+        {/* Seller Rating */}
+        <div className="mt-8">
+          <SellerRating 
+            sellerId={listing.seller_id}
+            sellerName={listing.profiles?.name || "Seller"}
+          />
+        </div>
       </div>
 
       {/* Bid Dialog */}
