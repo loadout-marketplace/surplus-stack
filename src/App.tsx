@@ -11,6 +11,7 @@ import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
 import CreateListing from "./pages/CreateListing";
 import Dashboard from "./pages/Dashboard";
+import Orders from "./pages/Orders";
 import Messages from "./pages/Messages";
 import MessageThread from "./pages/MessageThread";
 import Admin from "./pages/Admin";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/listings/:slug" element={<ListingDetail />} />
             <Route path="/listings/new" element={<CreateListing />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/orders" element={<Orders />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/messages/:id" element={<MessageThread />} />
             <Route path="/admin" element={<Admin />} />
