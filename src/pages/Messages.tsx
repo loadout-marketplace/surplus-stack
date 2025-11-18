@@ -14,6 +14,7 @@ interface MessageThread {
   buyer_id: string;
   seller_id: string;
   created_at: string;
+  status: string;
   listings: {
     title: string;
     slug: string;
@@ -123,6 +124,14 @@ const Messages = () => {
                           <Badge variant="outline">
                             {role === "buyer" ? "Buying" : "Selling"}
                           </Badge>
+                          {thread.status === 'pending' && (
+                            <Badge variant="secondary">
+                              {role === "seller" ? "Request Pending" : "Awaiting Approval"}
+                            </Badge>
+                          )}
+                          {thread.status === 'rejected' && (
+                            <Badge variant="destructive">Rejected</Badge>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           With: {otherUser.name || "Unknown"}
