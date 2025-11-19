@@ -15,6 +15,7 @@ import Orders from "./pages/Orders";
 import Messages from "./pages/Messages";
 import MessageThread from "./pages/MessageThread";
 import Admin from "./pages/Admin";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 import { ChatBot } from "@/components/ChatBot";
 
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/messages" element={<Messages />} />
             <Route path="/messages/:id" element={<MessageThread />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
