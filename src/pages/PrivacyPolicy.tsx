@@ -113,7 +113,7 @@ const PrivacyPolicy = () => {
       <footer className="border-t py-8 bg-background mt-12">
         <div className="container max-w-6xl">
           <div className="text-center text-sm text-muted-foreground">
-            <p>&copy; 2025 LoadOut Marketplace. All rights reserved.</p>
+            <p>&copy; 2025 Loadout Marketplace. All rights reserved.</p>
           </div>
         </div>
       </footer>
