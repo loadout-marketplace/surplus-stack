@@ -69,7 +69,7 @@ const Auth = () => {
     if (error) {
       toast.error(error.message || "Failed to sign up");
     } else {
-      toast.success("Account created! Welcome to LoadOut.");
+      toast.success("Account created! Welcome to Loadout.");
       navigate("/");
     }
 
@@ -114,11 +114,11 @@ const Auth = () => {
           <div className="flex justify-center mb-4">
             <img 
               src={loadoutLogo} 
-              alt="LoadOut Marketplace" 
+              alt="Loadout Marketplace" 
               className="h-16 w-auto"
             />
           </div>
-          <CardTitle className="text-2xl font-bold">LoadOut Marketplace</CardTitle>
+          <CardTitle className="text-2xl font-bold">Loadout Marketplace</CardTitle>
           <CardDescription>
             Sign in or create an account to start buying and selling construction materials
           </CardDescription>
