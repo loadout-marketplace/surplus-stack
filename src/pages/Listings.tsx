@@ -69,6 +69,10 @@ const Listings = () => {
       console.error("Error fetching user ZIP code:", error);
     } else if (data?.user_zip) {
       setUserZipCode(data.user_zip);
+      // Set as default search ZIP if user hasn't entered one
+      if (!searchZipCode) {
+        setSearchZipCode(data.user_zip);
+      }
     }
   };
 
