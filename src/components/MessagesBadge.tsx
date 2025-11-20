@@ -54,8 +54,7 @@ export const MessagesBadge = () => {
   return (
     <Link to="/messages">
       <Button variant="ghost" size="sm" className="relative">
-        <MessageSquare className="h-4 w-4 mr-2" />
-        Messages
+        <MessageSquare className="h-4 w-4" />
         {pendingCount > 0 && (
           <Badge 
             variant="destructive" 
