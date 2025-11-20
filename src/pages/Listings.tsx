@@ -259,24 +259,26 @@ const Listings = () => {
           <p className="text-sm text-muted-foreground">
             {filteredListings.length} listing{filteredListings.length !== 1 ? "s" : ""} found
           </p>
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid className="h-4 w-4 mr-2" />
-              Grid
-            </Button>
-            <Button
-              variant={viewMode === 'map' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('map')}
-            >
-              <Map className="h-4 w-4 mr-2" />
-              Map
-            </Button>
-          </div>
+          {filteredListings.length > 0 && (
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+              >
+                <Grid className="h-4 w-4 mr-2" />
+                Grid
+              </Button>
+              <Button
+                variant={viewMode === 'map' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('map')}
+              >
+                <Map className="h-4 w-4 mr-2" />
+                Map
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Map View */}
