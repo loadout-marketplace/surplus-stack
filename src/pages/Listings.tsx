@@ -153,21 +153,30 @@ const Listings = () => {
     return distance;
   };
 
-  const filteredListings = listings.filter((listing) => {
-    // Filter by search query
-    const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Filter by distance if user has a ZIP code
-    let withinRadius = true;
-    const zipToUse = searchZipCode || userZipCode;
-    if (zipToUse && listing.location_zip) {
-      const distance = calculateDistance(zipToUse, listing.location_zip);
-      const radiusToUse = searchRadius === "custom" ? parseInt(customRadius) || 25 : parseInt(searchRadius);
-      withinRadius = distance <= radiusToUse;
-    }
-    
-    return matchesSearch && withinRadius;
-  });
+  const filteredListings = listings
+    .map((listing) => {
+      const zipToUse = searchZipCode || userZipCode;
+      let distance: number | null = null;
+      
+      if (zipToUse && listing.location_zip) {
+        distance = calculateDistance(zipToUse, listing.location_zip);
+      }
+      
+      return { ...listing, distance };
+    })
+    .filter((listing) => {
+      // Filter by search query
+      const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Filter by distance if user has a ZIP code
+      let withinRadius = true;
+      if (listing.distance !== null) {
+        const radiusToUse = searchRadius === "custom" ? parseInt(customRadius) || 25 : parseInt(searchRadius);
+        withinRadius = listing.distance <= radiusToUse;
+      }
+      
+      return matchesSearch && withinRadius;
+    });
 
   return (
     <div className="min-h-screen bg-background">
@@ -314,6 +323,11 @@ const Listings = () => {
                     <div className="flex items-center text-sm text-muted-foreground mb-2">
                       <MapPin className="h-4 w-4 mr-1" />
                       {listing.location_city}, {listing.location_state}
+                      {listing.distance !== null && (
+                        <span className="ml-2 text-xs font-medium text-primary">
+                          • {listing.distance.toFixed(1)} mi
+                        </span>
+                      )}
                     </div>
 
                     <p className="text-sm text-muted-foreground">
