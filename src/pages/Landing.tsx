@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, DollarSign, Package, Shield, TrendingUp } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
+import { WelcomeStats } from "@/components/WelcomeStats";
 
 const Landing = () => {
   const { user } = useAuth();
@@ -59,6 +60,9 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* Welcome Stats for logged-in users */}
+      {user && <WelcomeStats />}
 
       {/* How It Works */}
       <section className="py-20 bg-background">
