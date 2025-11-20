@@ -45,9 +45,13 @@ All colors MUST be HSL.
     
     /* Custom Design Tokens */
     --hero-bg: 222 84% 5%;
+    --hero-bg-end: 222 47% 11%;
     --hero-fg: 0 0% 100%;
     --construction-yellow: 45 93% 47%;
     --slate-dark: 222 47% 11%;
+    
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg-end)) 100%);
 
     --sidebar-background: 0 0% 98%;
 
