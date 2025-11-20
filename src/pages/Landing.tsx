@@ -11,11 +11,8 @@ const Landing = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative text-hero-fg py-20 md:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,hsl(var(--hero-bg))_0%,hsl(var(--hero-bg-end))_100%)]" />
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_50%,hsl(var(--primary))_0%,transparent_50%),radial-gradient(circle_at_80%_80%,hsl(var(--primary))_0%,transparent_50%)]" />
-        <div className="absolute inset-0 opacity-5 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,hsl(var(--hero-fg))_10px,hsl(var(--hero-fg))_11px)]" />
-        <div className="container max-w-6xl relative z-10">
+      <section className="bg-hero-bg text-hero-fg py-20 md:py-32">
+        <div className="container max-w-6xl">
           <div className="text-center space-y-6">
             <h1 className="text-4xl md:text-6xl font-bold leading-tight">
               Sell Your Surplus. Find Deals. Build Smarter.
