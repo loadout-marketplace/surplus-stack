@@ -124,16 +124,11 @@ const Navbar = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <>
-                <Link to="/auth">
-                  <Button variant="ghost" size="sm">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link to="/auth">
-                  <Button size="sm" className="hidden sm:inline-flex">Get Started</Button>
-                </Link>
-              </>
+              <Link to="/auth">
+                <Button size="sm">
+                  Log in/Sign Up
+                </Button>
+              </Link>
             )}
           </div>
         )}
