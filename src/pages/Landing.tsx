@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, DollarSign, Package, Shield, TrendingUp } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/hooks/useAuth";
 
 const Landing = () => {
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen">
@@ -159,11 +161,13 @@ const Landing = () => {
             Join thousands of contractors buying and selling materials every day.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/auth">
-              <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                Create Free Account
-              </Button>
-            </Link>
+            {!user && (
+              <Link to="/auth">
+                <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                  Create Free Account
+                </Button>
+              </Link>
+            )}
             <Link to="/listings">
               <Button size="lg" variant="outline" className="w-full sm:w-auto bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
                 Browse Materials
