@@ -44,6 +44,7 @@ const Listings = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [customCategory, setCustomCategory] = useState<string>("");
   const [searchRadius, setSearchRadius] = useState<string>("25");
   const [customRadius, setCustomRadius] = useState<string>("");
   const [userZipCode, setUserZipCode] = useState<string>("");
@@ -174,6 +175,13 @@ const Listings = () => {
       // Filter by search query
       const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase());
       
+      // Filter by custom category text if "other" is selected
+      let matchesCategory = true;
+      if (selectedCategory === "other" && customCategory.trim()) {
+        const categoryName = listing.categories?.name?.toLowerCase() || "";
+        matchesCategory = categoryName.includes(customCategory.toLowerCase().trim());
+      }
+      
       // Filter by distance if user has a ZIP code
       let withinRadius = true;
       if (listing.distance !== null) {
@@ -181,7 +189,7 @@ const Listings = () => {
         withinRadius = listing.distance <= radiusToUse;
       }
       
-      return matchesSearch && withinRadius;
+      return matchesSearch && matchesCategory && withinRadius;
     });
 
   return (
@@ -203,20 +211,31 @@ const Listings = () => {
               />
             </div>
 
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full md:w-64">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-2">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full md:w-64">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              {selectedCategory === "other" && (
+                <Input
+                  type="text"
+                  placeholder="Type category to search..."
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  className="w-full md:w-64"
+                />
+              )}
+            </div>
 
             <div className="flex gap-2 w-full md:w-auto">
               <Input
