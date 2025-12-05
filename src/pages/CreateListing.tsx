@@ -52,6 +52,8 @@ const CreateListing = () => {
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [priceType, setPriceType] = useState<"fixed" | "auction">("fixed");
+  const [selectedUnit, setSelectedUnit] = useState<string>("");
+  const [customUnit, setCustomUnit] = useState<string>("");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -131,7 +133,7 @@ const CreateListing = () => {
         category_id: formData.get("category") as string,
         condition: formData.get("condition") as "new" | "like_new" | "good" | "fair" | "salvage",
         quantity: validation.data.quantity,
-        unit: formData.get("unit") as string,
+        unit: selectedUnit === "other" ? customUnit : selectedUnit,
         fixed_price: validation.data.priceType === "fixed" ? validation.data.fixedPrice : null,
         starting_bid: validation.data.priceType === "auction" ? validation.data.startingBid : null,
         buy_now_price: validation.data.priceType === "auction" ? validation.data.buyNowPrice : null,
@@ -303,7 +305,12 @@ const CreateListing = () => {
 
                 <div>
                   <Label htmlFor="unit">Unit *</Label>
-                  <Select name="unit" required>
+                  <Select 
+                    name="unit" 
+                    value={selectedUnit}
+                    onValueChange={setSelectedUnit}
+                    required
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select unit" />
                     </SelectTrigger>
@@ -314,8 +321,19 @@ const CreateListing = () => {
                       <SelectItem value="tons">Tons</SelectItem>
                       <SelectItem value="lbs">Pounds</SelectItem>
                       <SelectItem value="pallets">Pallets</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
+                  {selectedUnit === "other" && (
+                    <Input
+                      id="customUnit"
+                      value={customUnit}
+                      onChange={(e) => setCustomUnit(e.target.value)}
+                      placeholder="Enter custom unit (e.g., yards, boxes)"
+                      className="mt-2"
+                      required
+                    />
+                  )}
                 </div>
               </div>
 
