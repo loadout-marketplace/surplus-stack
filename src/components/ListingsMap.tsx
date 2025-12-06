@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,39 +18,72 @@ interface ListingsMapProps {
   userZipCode?: string;
 }
 
+// Cache for Mapbox token and geocoded coordinates
+let cachedToken: string | null = null;
+const geocodeCache = new Map<string, [number, number]>();
+
 const ListingsMap = ({ listings, userZipCode }: ListingsMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mapReady, setMapReady] = useState(false);
+
+  // Get or fetch the Mapbox token
+  const getToken = useCallback(async () => {
+    if (cachedToken) return cachedToken;
+    
+    const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+    if (error) throw error;
+    if (!data?.token) throw new Error('No token received');
+    
+    cachedToken = data.token;
+    return cachedToken;
+  }, []);
+
+  // Geocode a ZIP code with caching
+  const geocodeZip = useCallback(async (zip: string, token: string): Promise<[number, number] | null> => {
+    if (geocodeCache.has(zip)) {
+      return geocodeCache.get(zip)!;
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${zip}.json?types=postcode&country=US&access_token=${token}`
+      );
+      const data = await response.json();
+
+      if (data.features && data.features.length > 0) {
+        const coords: [number, number] = data.features[0].center;
+        geocodeCache.set(zip, coords);
+        return coords;
+      }
+    } catch (error) {
+      console.error(`Error geocoding ${zip}:`, error);
+    }
+    return null;
+  }, []);
 
   useEffect(() => {
     const initMap = async () => {
       if (!mapContainer.current) return;
 
       try {
-        // Fetch Mapbox token from edge function
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        
-        if (error) throw error;
-        if (!data?.token) throw new Error('No token received');
+        const token = await getToken();
+        mapboxgl.accessToken = token;
 
-        mapboxgl.accessToken = data.token;
-
-        // Initialize map centered on US
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/streets-v12',
-          center: [-98.5795, 39.8283], // Center of US
+          center: [-98.5795, 39.8283],
           zoom: 4,
         });
 
-        // Add navigation controls
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
         map.current.on('load', () => {
           setLoading(false);
-          updateMarkers();
+          setMapReady(true);
         });
 
       } catch (error) {
@@ -66,90 +99,87 @@ const ListingsMap = ({ listings, userZipCode }: ListingsMapProps) => {
       markers.current.forEach(marker => marker.remove());
       map.current?.remove();
     };
-  }, []);
+  }, [getToken]);
 
+  // Update markers when listings change or map is ready
   useEffect(() => {
-    if (map.current && !loading) {
-      updateMarkers();
-    }
-  }, [listings, loading]);
+    if (!map.current || !mapReady) return;
 
-  const updateMarkers = async () => {
-    if (!map.current) return;
+    const updateMarkers = async () => {
+      // Remove existing markers
+      markers.current.forEach(marker => marker.remove());
+      markers.current = [];
 
-    // Remove existing markers
-    markers.current.forEach(marker => marker.remove());
-    markers.current = [];
+      const token = mapboxgl.accessToken;
+      const bounds = new mapboxgl.LngLatBounds();
+      let hasValidCoordinates = false;
 
-    // Add new markers for each listing with valid coordinates
-    const bounds = new mapboxgl.LngLatBounds();
-    let hasValidCoordinates = false;
+      // Filter listings with ZIP codes and geocode in parallel
+      const listingsWithZip = listings.filter(l => l.location_zip);
+      
+      const geocodePromises = listingsWithZip.map(listing => 
+        geocodeZip(listing.location_zip!, token)
+          .then(coords => ({ listing, coords }))
+      );
 
-    for (const listing of listings) {
-      if (!listing.location_zip) continue;
+      const results = await Promise.all(geocodePromises);
 
-      try {
-        // Use Mapbox Geocoding API to get coordinates from zip code
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${listing.location_zip}.json?types=postcode&country=US&access_token=${mapboxgl.accessToken}`
-        );
-        const data = await response.json();
+      // Create markers for successfully geocoded listings
+      for (const { listing, coords } of results) {
+        if (!coords) continue;
 
-        if (data.features && data.features.length > 0) {
-          const [lng, lat] = data.features[0].center;
-          
-          // Create popup content
-          const popupContent = `
-            <div class="p-2">
-              <h3 class="font-semibold text-sm mb-1">${listing.title}</h3>
-              <p class="text-xs text-gray-600 mb-1">$${listing.fixed_price}</p>
-              ${listing.distance !== null ? `<p class="text-xs text-primary font-medium">${listing.distance.toFixed(1)} mi away</p>` : ''}
-              <a href="/listings/${listing.slug}" class="text-xs text-primary hover:underline">View Details</a>
-            </div>
-          `;
+        const [lng, lat] = coords;
 
-          const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent);
+        const popupContent = `
+          <div class="p-2">
+            <h3 class="font-semibold text-sm mb-1">${listing.title}</h3>
+            <p class="text-xs text-gray-600 mb-1">$${listing.fixed_price}</p>
+            ${listing.distance !== null ? `<p class="text-xs text-primary font-medium">${listing.distance.toFixed(1)} mi away</p>` : ''}
+            <a href="/listings/${listing.slug}" class="text-xs text-primary hover:underline">View Details</a>
+          </div>
+        `;
 
-          // Create marker
-          const el = document.createElement('div');
-          el.className = 'custom-marker';
-          el.style.width = '30px';
-          el.style.height = '30px';
-          el.style.borderRadius = '50%';
-          el.style.backgroundColor = listing.distance !== null ? '#0EA5E9' : '#64748B';
-          el.style.border = '2px solid white';
-          el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-          el.style.cursor = 'pointer';
-          el.style.display = 'flex';
-          el.style.alignItems = 'center';
-          el.style.justifyContent = 'center';
-          el.style.fontSize = '12px';
-          el.style.color = 'white';
-          el.style.fontWeight = 'bold';
-          el.textContent = '$';
+        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupContent);
 
-          const marker = new mapboxgl.Marker(el)
-            .setLngLat([lng, lat])
-            .setPopup(popup)
-            .addTo(map.current!);
+        const el = document.createElement('div');
+        el.className = 'custom-marker';
+        el.style.cssText = `
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          background-color: ${listing.distance !== null ? '#0EA5E9' : '#64748B'};
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          color: white;
+          font-weight: bold;
+        `;
+        el.textContent = '$';
 
-          markers.current.push(marker);
-          bounds.extend([lng, lat]);
-          hasValidCoordinates = true;
-        }
-      } catch (error) {
-        console.error(`Error geocoding ${listing.location_zip}:`, error);
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([lng, lat])
+          .setPopup(popup)
+          .addTo(map.current!);
+
+        markers.current.push(marker);
+        bounds.extend([lng, lat]);
+        hasValidCoordinates = true;
       }
-    }
 
-    // Fit map to show all markers
-    if (hasValidCoordinates && !bounds.isEmpty()) {
-      map.current.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 12,
-      });
-    }
-  };
+      if (hasValidCoordinates && !bounds.isEmpty()) {
+        map.current!.fitBounds(bounds, {
+          padding: 50,
+          maxZoom: 12,
+        });
+      }
+    };
+
+    updateMarkers();
+  }, [listings, mapReady, geocodeZip]);
 
   return (
     <div className="relative w-full h-[600px] rounded-lg overflow-hidden border border-border">
