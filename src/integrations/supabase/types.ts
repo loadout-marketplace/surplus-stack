@@ -148,6 +148,7 @@ export type Database = {
           location_city: string | null
           location_state: string | null
           location_zip: string | null
+          min_quantity_increment: number | null
           pickup_only: boolean | null
           price_type: Database["public"]["Enums"]["price_type"]
           quantity: number
@@ -176,6 +177,7 @@ export type Database = {
           location_city?: string | null
           location_state?: string | null
           location_zip?: string | null
+          min_quantity_increment?: number | null
           pickup_only?: boolean | null
           price_type?: Database["public"]["Enums"]["price_type"]
           quantity?: number
@@ -204,6 +206,7 @@ export type Database = {
           location_city?: string | null
           location_state?: string | null
           location_zip?: string | null
+          min_quantity_increment?: number | null
           pickup_only?: boolean | null
           price_type?: Database["public"]["Enums"]["price_type"]
           quantity?: number

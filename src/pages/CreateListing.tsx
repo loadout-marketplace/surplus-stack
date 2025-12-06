@@ -54,6 +54,8 @@ const CreateListing = () => {
   const [priceType, setPriceType] = useState<"fixed" | "auction">("fixed");
   const [selectedUnit, setSelectedUnit] = useState<string>("");
   const [customUnit, setCustomUnit] = useState<string>("");
+  const [allowPartialQuantity, setAllowPartialQuantity] = useState(false);
+  const [minQuantityIncrement, setMinQuantityIncrement] = useState<string>("");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -125,6 +127,24 @@ const CreateListing = () => {
         auctionEndTime = endDate.toISOString();
       }
 
+      // Validate partial quantity increment if enabled
+      const minIncrement = allowPartialQuantity && minQuantityIncrement 
+        ? parseFloat(minQuantityIncrement) 
+        : null;
+      
+      if (allowPartialQuantity && minIncrement) {
+        if (minIncrement <= 0) {
+          toast.error("Minimum quantity increment must be greater than 0");
+          setLoading(false);
+          return;
+        }
+        if (minIncrement > validation.data.quantity) {
+          toast.error("Minimum increment cannot exceed total quantity");
+          setLoading(false);
+          return;
+        }
+      }
+
       const listingData = {
         seller_id: user.id,
         title: validation.data.title,
@@ -145,6 +165,7 @@ const CreateListing = () => {
         shipping_available: formData.get("shippingAvailable") === "on",
         price_type: validation.data.priceType,
         status: "active" as const,
+        min_quantity_increment: minIncrement,
       };
 
       const { data: listing, error } = await supabase
@@ -335,6 +356,42 @@ const CreateListing = () => {
                     />
                   )}
                 </div>
+              </div>
+
+              {/* Partial Quantity Option */}
+              <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/30">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="allowPartialQuantity" 
+                    checked={allowPartialQuantity}
+                    onCheckedChange={(checked) => setAllowPartialQuantity(checked === true)}
+                  />
+                  <Label htmlFor="allowPartialQuantity" className="font-normal cursor-pointer">
+                    Allow bids/purchases on partial quantities
+                  </Label>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Enable this to let buyers bid on or purchase a portion of your total quantity
+                </p>
+                
+                {allowPartialQuantity && (
+                  <div>
+                    <Label htmlFor="minQuantityIncrement">Minimum Quantity Increment *</Label>
+                    <Input
+                      id="minQuantityIncrement"
+                      type="number"
+                      step="0.01"
+                      min="1"
+                      value={minQuantityIncrement}
+                      onChange={(e) => setMinQuantityIncrement(e.target.value)}
+                      placeholder="e.g., 5 (buyers can bid on 5, 10, 15... units)"
+                      required
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Buyers can bid/purchase in multiples of this amount
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Pricing Type */}
