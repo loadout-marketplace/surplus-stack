@@ -13,11 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, MapPin, Package, Star, Grid, Map } from "lucide-react";
+import { Search, MapPin, Package, Star } from "lucide-react";
 import { toast } from "sonner";
 import zipcodes from "zipcodes";
 import { useAuth } from "@/hooks/useAuth";
-import ListingsMap from "@/components/ListingsMap";
 
 interface Listing {
   id: string;
@@ -49,7 +48,6 @@ const Listings = () => {
   const [customRadius, setCustomRadius] = useState<string>("");
   const [userZipCode, setUserZipCode] = useState<string>("");
   const [searchZipCode, setSearchZipCode] = useState<string>("");
-  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
 
   useEffect(() => {
     fetchCategories();
@@ -273,40 +271,15 @@ const Listings = () => {
           </div>
         </div>
 
-        {/* Results Count and View Toggle */}
-        <div className="mb-4 flex items-center justify-between">
+        {/* Results Count */}
+        <div className="mb-4">
           <p className="text-sm text-muted-foreground">
             {filteredListings.length} listing{filteredListings.length !== 1 ? "s" : ""} found
           </p>
-          {filteredListings.length > 0 && (
-            <div className="flex gap-2">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                <Grid className="h-4 w-4 mr-2" />
-                Grid
-              </Button>
-              <Button
-                variant={viewMode === 'map' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('map')}
-              >
-                <Map className="h-4 w-4 mr-2" />
-                Map
-              </Button>
-            </div>
-          )}
         </div>
 
-        {/* Map View */}
-        {viewMode === 'map' && (
-          <ListingsMap listings={filteredListings} userZipCode={searchZipCode || userZipCode} />
-        )}
-
         {/* Listings Grid */}
-        {viewMode === 'grid' && loading ? (
+        {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <Card key={i} className="overflow-hidden">
@@ -318,7 +291,7 @@ const Listings = () => {
               </Card>
             ))}
           </div>
-        ) : viewMode === 'grid' && filteredListings.length === 0 ? (
+        ) : filteredListings.length === 0 ? (
           <div className="text-center py-12">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">No listings found</h3>
@@ -329,7 +302,7 @@ const Listings = () => {
               <Button>Create First Listing</Button>
             </Link>
           </div>
-        ) : viewMode === 'grid' ? (
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredListings.map((listing) => (
               <Link key={listing.id} to={`/listings/${listing.slug}`}>
@@ -394,7 +367,7 @@ const Listings = () => {
               </Link>
             ))}
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   );
