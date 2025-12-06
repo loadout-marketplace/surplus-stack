@@ -23,6 +23,7 @@ interface ListingDetail {
   condition: string;
   quantity: number;
   unit: string;
+  min_quantity_increment: number | null;
   location_city: string;
   location_state: string;
   location_zip: string;
@@ -336,6 +337,13 @@ const ListingDetail = () => {
                     <div className="text-sm text-muted-foreground">
                       {listing.quantity} {listing.unit}
                     </div>
+                    {listing.min_quantity_increment && (
+                      <div className="mt-1">
+                        <Badge variant="secondary" className="text-xs">
+                          Partial purchases available (min {listing.min_quantity_increment} {listing.unit})
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                 </div>
 
