@@ -56,6 +56,14 @@ const CreateListing = () => {
   const [customUnit, setCustomUnit] = useState<string>("");
   const [allowPartialQuantity, setAllowPartialQuantity] = useState(false);
   const [minQuantityIncrement, setMinQuantityIncrement] = useState<string>("");
+  const [fixedPriceValue, setFixedPriceValue] = useState<string>("");
+  const [startingBidValue, setStartingBidValue] = useState<string>("");
+
+  const calculateSellerReceives = (price: string) => {
+    const numPrice = parseFloat(price);
+    if (isNaN(numPrice) || numPrice <= 0) return null;
+    return (numPrice * 0.9).toFixed(2);
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -427,8 +435,15 @@ const CreateListing = () => {
                       step="0.01"
                       min="0"
                       placeholder="500"
+                      value={fixedPriceValue}
+                      onChange={(e) => setFixedPriceValue(e.target.value)}
                       required
                     />
+                    {calculateSellerReceives(fixedPriceValue) && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Seller receives <span className="font-semibold text-foreground">${calculateSellerReceives(fixedPriceValue)}</span> after fees
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -444,11 +459,18 @@ const CreateListing = () => {
                           step="0.01"
                           min="0"
                           placeholder="100"
+                          value={startingBidValue}
+                          onChange={(e) => setStartingBidValue(e.target.value)}
                           required
                         />
                         <p className="text-sm text-muted-foreground mt-1">
                           Minimum price to start bidding
                         </p>
+                        {calculateSellerReceives(startingBidValue) && (
+                          <p className="text-sm text-muted-foreground">
+                            Seller receives <span className="font-semibold text-foreground">${calculateSellerReceives(startingBidValue)}</span> after fees
+                          </p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="buyNowPrice">Buy Now Price ($)</Label>
