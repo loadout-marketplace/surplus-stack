@@ -312,8 +312,23 @@ const ListingDetail = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-3xl font-bold text-primary mb-4">
-                  ${listing.fixed_price?.toLocaleString()}
+                <div className="mb-4">
+                  <div className="text-sm text-muted-foreground">Listed Price</div>
+                  <div className="text-2xl font-bold text-primary">
+                    ${listing.fixed_price?.toLocaleString()}
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-border">
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Sales Tax (9.25%)</span>
+                      <span>${((listing.fixed_price || 0) * 0.0925).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span className="font-semibold">Total</span>
+                      <span className="text-xl font-bold text-primary">
+                        ${((listing.fixed_price || 0) * 1.0925).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
