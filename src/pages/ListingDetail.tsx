@@ -416,22 +416,37 @@ const ListingDetail = () => {
               )}
               
               {user ? (
-                <Button 
-                  size="lg" 
-                  className="w-full"
-                  onClick={() => listing.price_type === 'auction' ? setBidDialogOpen(true) : handleContactSeller()}
-                  disabled={contactingSeller}
-                >
-                  {listing.price_type === 'auction' 
-                    ? 'Place Bid' 
-                    : contactingSeller 
-                      ? 'Sending Request...' 
-                      : 'Request to Message Seller'}
-                </Button>
+                <>
+                  <Button 
+                    size="lg" 
+                    className="w-full"
+                    variant="outline"
+                    onClick={handleContactSeller}
+                    disabled={contactingSeller}
+                  >
+                    {contactingSeller ? 'Sending Request...' : 'Request to Message Seller'}
+                  </Button>
+                  {listing.price_type === 'auction' ? (
+                    <Button 
+                      size="lg" 
+                      className="w-full"
+                      onClick={() => setBidDialogOpen(true)}
+                    >
+                      Bid / Purchase
+                    </Button>
+                  ) : (
+                    <Button 
+                      size="lg" 
+                      className="w-full"
+                    >
+                      Purchase
+                    </Button>
+                  )}
+                </>
               ) : (
                 <Link to="/auth">
                   <Button size="lg" className="w-full">
-                    Sign In to {listing.price_type === 'auction' ? 'Place Bid' : 'Contact Seller'}
+                    Sign In to {listing.price_type === 'auction' ? 'Bid / Purchase' : 'Purchase'}
                   </Button>
                 </Link>
               )}
