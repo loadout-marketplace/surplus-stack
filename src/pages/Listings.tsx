@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, MapPin, Package, Star } from "lucide-react";
+import { Search, MapPin, Package, Star, User } from "lucide-react";
 import { toast } from "sonner";
 import zipcodes from "zipcodes";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,6 +33,7 @@ interface Listing {
   seller_id: string;
   listing_images: { url: string }[];
   categories: { name: string } | null;
+  profiles: { name: string | null; company_name: string | null } | null;
   sellerRating?: number;
 }
 
@@ -48,6 +49,7 @@ const Listings = () => {
   const [customRadius, setCustomRadius] = useState<string>("");
   const [userZipCode, setUserZipCode] = useState<string>("");
   const [searchZipCode, setSearchZipCode] = useState<string>("");
+  const [sellerSearch, setSellerSearch] = useState<string>("");
 
   useEffect(() => {
     fetchCategories();
@@ -95,11 +97,12 @@ const Listings = () => {
       .select(`
         *,
         listing_images (url),
-        categories (name)
+        categories (name),
+        profiles (name, company_name)
       `)
       .eq("status", "active")
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(50);
 
     if (selectedCategory && selectedCategory !== "all") {
       query = query.eq("category_id", selectedCategory);
@@ -180,6 +183,15 @@ const Listings = () => {
         matchesCategory = categoryName.includes(customCategory.toLowerCase().trim());
       }
       
+      // Filter by seller name/company
+      let matchesSeller = true;
+      if (sellerSearch.trim()) {
+        const sellerName = listing.profiles?.name?.toLowerCase() || "";
+        const companyName = listing.profiles?.company_name?.toLowerCase() || "";
+        const searchTerm = sellerSearch.toLowerCase().trim();
+        matchesSeller = sellerName.includes(searchTerm) || companyName.includes(searchTerm);
+      }
+      
       // Filter by distance if user has a ZIP code
       let withinRadius = true;
       if (listing.distance !== null) {
@@ -187,7 +199,7 @@ const Listings = () => {
         withinRadius = listing.distance <= radiusToUse;
       }
       
-      return matchesSearch && matchesCategory && withinRadius;
+      return matchesSearch && matchesCategory && matchesSeller && withinRadius;
     });
 
   return (
@@ -205,6 +217,16 @@ const Listings = () => {
                 placeholder="Search materials..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="relative w-full md:w-48">
+              <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search by seller..."
+                value={sellerSearch}
+                onChange={(e) => setSellerSearch(e.target.value)}
                 className="pl-10"
               />
             </div>
