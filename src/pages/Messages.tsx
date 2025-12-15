@@ -120,7 +120,7 @@ const Messages = () => {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold">{thread.listings.title}</h3>
+                          <h3 className="font-semibold">{thread.listings?.title || "Unknown Listing"}</h3>
                           <Badge variant="outline">
                             {role === "buyer" ? "Buying" : "Selling"}
                           </Badge>
@@ -134,7 +134,7 @@ const Messages = () => {
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          With: {otherUser.name || "Unknown"}
+                          With: {otherUser?.name || "Unknown"}
                         </p>
                       </div>
                       <MessageSquare className="h-5 w-5 text-muted-foreground" />
