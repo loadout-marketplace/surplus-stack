@@ -15,8 +15,9 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Star, Archive } from "lucide-react";
+import { Shield, Star, Archive, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 
 const Admin = () => {
   const { user, loading: authLoading } = useAuth();
@@ -106,6 +107,20 @@ const Admin = () => {
       toast.error("Failed to archive listing");
     } else {
       toast.success("Listing archived");
+      fetchData();
+    }
+  };
+
+  const toggleVerifiedBusiness = async (userId: string, currentStatus: boolean) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_verified_business: !currentStatus })
+      .eq("id", userId);
+
+    if (error) {
+      toast.error("Failed to update verification status");
+    } else {
+      toast.success(currentStatus ? "Removed verified status" : "Marked as Verified Business");
       fetchData();
     }
   };
@@ -220,27 +235,41 @@ const Admin = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
-                        <TableHead>Contractor</TableHead>
                         <TableHead>Company</TableHead>
+                        <TableHead>Verified Business</TableHead>
+                        <TableHead>Contractor</TableHead>
                         <TableHead>Roles</TableHead>
                         <TableHead>Joined</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {users.map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell className="font-medium">{user.name || "N/A"}</TableCell>
+                      {users.map((userData) => (
+                        <TableRow key={userData.id}>
+                          <TableCell className="font-medium">{userData.name || "N/A"}</TableCell>
+                          <TableCell>{userData.company_name || "-"}</TableCell>
                           <TableCell>
-                            {user.is_contractor ? (
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={userData.is_verified_business || false}
+                                onCheckedChange={() => 
+                                  toggleVerifiedBusiness(userData.id, userData.is_verified_business || false)
+                                }
+                              />
+                              {userData.is_verified_business && (
+                                <ShieldCheck className="h-4 w-4 text-blue-500" />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {userData.is_contractor ? (
                               <Badge variant="outline">Contractor</Badge>
                             ) : (
                               "-"
                             )}
                           </TableCell>
-                          <TableCell>{user.company_name || "-"}</TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              {user.user_roles?.map((ur: any) => (
+                              {userData.user_roles?.map((ur: any) => (
                                 <Badge key={ur.role} variant="secondary">
                                   {ur.role}
                                 </Badge>
@@ -248,7 +277,7 @@ const Admin = () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {new Date(user.created_at).toLocaleDateString()}
+                            {new Date(userData.created_at).toLocaleDateString()}
                           </TableCell>
                         </TableRow>
                       ))}
