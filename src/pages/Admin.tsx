@@ -127,6 +127,42 @@ const Admin = () => {
     }
   };
 
+  const toggleAdminRole = async (userId: string, isCurrentlyAdmin: boolean) => {
+    // Prevent admins from removing their own admin role
+    if (userId === user?.id && isCurrentlyAdmin) {
+      toast.error("You cannot remove your own admin role");
+      return;
+    }
+
+    if (isCurrentlyAdmin) {
+      // Remove admin role
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", "admin");
+
+      if (error) {
+        toast.error("Failed to revoke admin role");
+      } else {
+        toast.success("Admin role revoked");
+        fetchData();
+      }
+    } else {
+      // Grant admin role
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: "admin" });
+
+      if (error) {
+        toast.error("Failed to grant admin role");
+      } else {
+        toast.success("Admin role granted");
+        fetchData();
+      }
+    }
+  };
+
   if (authLoading || loading || !isAdmin) {
     return (
       <div className="min-h-screen bg-background">
@@ -252,7 +288,7 @@ const Admin = () => {
                         <TableHead>Company</TableHead>
                         <TableHead>Verified Business</TableHead>
                         <TableHead>Contractor</TableHead>
-                        <TableHead>Roles</TableHead>
+                        <TableHead>Admin</TableHead>
                         <TableHead>Joined</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -290,12 +326,17 @@ const Admin = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex gap-1">
-                              {userData.user_roles?.map((ur: any) => (
-                                <Badge key={ur.role} variant="secondary">
-                                  {ur.role}
-                                </Badge>
-                              ))}
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={userData.user_roles?.some((ur: any) => ur.role === "admin") || false}
+                                onCheckedChange={() => {
+                                  const isAdmin = userData.user_roles?.some((ur: any) => ur.role === "admin") || false;
+                                  toggleAdminRole(userData.id, isAdmin);
+                                }}
+                              />
+                              {userData.user_roles?.some((ur: any) => ur.role === "admin") && (
+                                <Shield className="h-4 w-4 text-primary" />
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
