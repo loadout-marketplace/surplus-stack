@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, User, LogOut, Menu } from "lucide-react";
+import { Search, Plus, User, LogOut, Menu, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/loadout-logo.png";
 import {
@@ -18,11 +18,31 @@ import {
 import { NotificationBell } from "./NotificationBell";
 import { MessagesBadge } from "./MessagesBadge";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      setIsAdmin(!!data);
+    };
+    checkAdminStatus();
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -68,6 +88,12 @@ const Navbar = () => {
                   <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/orders")}>
                     My Orders
                   </Button>
+                  {isAdmin && (
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/admin")}>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin
+                    </Button>
+                  )}
                   <Button variant="ghost" className="w-full justify-start text-destructive" onClick={handleSignOut}>
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
@@ -115,6 +141,15 @@ const Navbar = () => {
                     <DropdownMenuItem onClick={() => navigate("/orders")}>
                       My Orders
                     </DropdownMenuItem>
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => navigate("/admin")}>
+                          <Shield className="h-4 w-4 mr-2" />
+                          Admin Panel
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="h-4 w-4 mr-2" />
