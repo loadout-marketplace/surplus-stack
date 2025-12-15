@@ -15,9 +15,10 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Star, Archive, ShieldCheck } from "lucide-react";
+import { Shield, Star, Archive, ShieldCheck, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 
 const Admin = () => {
   const { user, loading: authLoading } = useAuth();
@@ -26,6 +27,7 @@ const Admin = () => {
   const [listings, setListings] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userSearch, setUserSearch] = useState("");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -227,7 +229,19 @@ const Admin = () => {
           <TabsContent value="users" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>All Users</CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <CardTitle>All Users</CardTitle>
+                  <div className="relative w-full sm:w-72">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Search by name or company..."
+                      value={userSearch}
+                      onChange={(e) => setUserSearch(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="rounded-md border">
@@ -243,7 +257,15 @@ const Admin = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {users.map((userData) => (
+                      {users
+                        .filter((userData) => {
+                          if (!userSearch.trim()) return true;
+                          const searchLower = userSearch.toLowerCase().trim();
+                          const nameMatch = userData.name?.toLowerCase().includes(searchLower);
+                          const companyMatch = userData.company_name?.toLowerCase().includes(searchLower);
+                          return nameMatch || companyMatch;
+                        })
+                        .map((userData) => (
                         <TableRow key={userData.id}>
                           <TableCell className="font-medium">{userData.name || "N/A"}</TableCell>
                           <TableCell>{userData.company_name || "-"}</TableCell>
