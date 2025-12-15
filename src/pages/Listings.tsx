@@ -375,6 +375,11 @@ const Listings = () => {
                       )}
                     </div>
 
+                    <div className="flex items-center text-sm text-muted-foreground mb-2">
+                      <User className="h-4 w-4 mr-1" />
+                      {listing.profiles?.company_name || listing.profiles?.name || "Unknown Seller"}
+                    </div>
+
                     <p className="text-sm text-muted-foreground">
                       Qty: {listing.quantity} {listing.unit}
                     </p>
