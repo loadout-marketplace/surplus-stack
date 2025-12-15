@@ -440,6 +440,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_contractor: boolean | null
+          is_verified_business: boolean | null
           name: string | null
           phone: string | null
           updated_at: string | null
@@ -451,6 +452,7 @@ export type Database = {
           created_at?: string | null
           id: string
           is_contractor?: boolean | null
+          is_verified_business?: boolean | null
           name?: string | null
           phone?: string | null
           updated_at?: string | null
@@ -462,6 +464,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_contractor?: boolean | null
+          is_verified_business?: boolean | null
           name?: string | null
           phone?: string | null
           updated_at?: string | null

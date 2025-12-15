@@ -7,12 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Package, Star, User, Calendar, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
+import { SellerBadges } from "@/components/SellerBadges";
 
 interface SellerData {
   id: string;
   name: string | null;
   company_name: string | null;
   created_at: string;
+  is_verified_business: boolean;
 }
 
 interface Review {
@@ -60,7 +62,7 @@ const SellerProfile = () => {
     // Fetch seller profile
     const { data: sellerData, error: sellerError } = await supabase
       .from("profiles")
-      .select("id, name, company_name, created_at")
+      .select("id, name, company_name, created_at, is_verified_business")
       .eq("id", id)
       .single();
 
@@ -225,12 +227,14 @@ const SellerProfile = () => {
                   </div>
                 </div>
 
-                {averageRating >= 4.5 && reviews.length > 0 && (
-                  <Badge className="mt-4 bg-yellow-400 text-yellow-900 hover:bg-yellow-500">
-                    <Star className="h-3 w-3 mr-1 fill-current" />
-                    Top Rated Seller
-                  </Badge>
-                )}
+                <div className="mt-4">
+                  <SellerBadges
+                    completedSales={completedSales}
+                    averageRating={averageRating}
+                    reviewCount={reviews.length}
+                    isVerifiedBusiness={seller.is_verified_business}
+                  />
+                </div>
               </div>
             </div>
           </CardContent>
