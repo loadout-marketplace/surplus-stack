@@ -382,10 +382,13 @@ const ListingDetail = () => {
                     <User className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <div className="font-medium">Seller</div>
-                      <div className="text-sm text-muted-foreground">
+                      <Link
+                        to={`/sellers/${listing.seller_id}`}
+                        className="text-sm text-muted-foreground hover:text-primary hover:underline"
+                      >
                         {listing.profiles.name}
                         {listing.profiles.company_name && ` • ${listing.profiles.company_name}`}
-                      </div>
+                      </Link>
                     </div>
                   </div>
                 )}
