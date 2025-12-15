@@ -375,9 +375,18 @@ const Listings = () => {
                       )}
                     </div>
 
-                    <div className="flex items-center text-sm text-muted-foreground mb-2">
+                    <div
+                      className="flex items-center text-sm text-muted-foreground mb-2 hover:text-primary cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.location.href = `/sellers/${listing.seller_id}`;
+                      }}
+                    >
                       <User className="h-4 w-4 mr-1" />
-                      {listing.profiles?.company_name || listing.profiles?.name || "Unknown Seller"}
+                      <span className="hover:underline">
+                        {listing.profiles?.company_name || listing.profiles?.name || "Unknown Seller"}
+                      </span>
                     </div>
 
                     <p className="text-sm text-muted-foreground">
