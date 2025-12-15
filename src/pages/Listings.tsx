@@ -13,10 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, MapPin, Package, Star, User } from "lucide-react";
+import { Search, MapPin, Package, User } from "lucide-react";
 import { toast } from "sonner";
 import zipcodes from "zipcodes";
 import { useAuth } from "@/hooks/useAuth";
+import { SellerBadges } from "@/components/SellerBadges";
 
 interface Listing {
   id: string;
@@ -33,8 +34,10 @@ interface Listing {
   seller_id: string;
   listing_images: { url: string }[];
   categories: { name: string } | null;
-  profiles: { name: string | null; company_name: string | null } | null;
+  profiles: { name: string | null; company_name: string | null; is_verified_business: boolean | null } | null;
   sellerRating?: number;
+  sellerReviewCount?: number;
+  sellerCompletedSales?: number;
 }
 
 const Listings = () => {
@@ -98,7 +101,7 @@ const Listings = () => {
         *,
         listing_images (url),
         categories (name),
-        profiles (name, company_name)
+        profiles (name, company_name, is_verified_business)
       `)
       .eq("status", "active")
       .order("created_at", { ascending: false })
@@ -114,21 +117,34 @@ const Listings = () => {
       toast.error("Failed to load listings");
       console.error(error);
     } else {
-      // Fetch seller ratings for all listings
+      // Fetch seller ratings and completed sales for all listings
       const listingsWithRatings = await Promise.all(
         (data || []).map(async (listing) => {
+          // Fetch reviews
           const { data: reviews } = await supabase
             .from("reviews")
             .select("rating")
             .eq("reviewed_user_id", listing.seller_id);
 
           let sellerRating = 0;
+          const sellerReviewCount = reviews?.length || 0;
           if (reviews && reviews.length > 0) {
-            const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-            sellerRating = avgRating;
+            sellerRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
           }
 
-          return { ...listing, sellerRating };
+          // Fetch completed sales count
+          const { count } = await supabase
+            .from("orders")
+            .select("id", { count: "exact", head: true })
+            .eq("seller_id", listing.seller_id)
+            .eq("status", "completed");
+
+          return { 
+            ...listing, 
+            sellerRating, 
+            sellerReviewCount,
+            sellerCompletedSales: count || 0 
+          };
         })
       );
       
@@ -329,30 +345,22 @@ const Listings = () => {
             {filteredListings.map((listing) => (
               <Link key={listing.id} to={`/listings/${listing.slug}`}>
                 <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
-                  <div className="relative h-48 bg-muted overflow-hidden">
-                    {listing.listing_images?.[0]?.url ? (
-                      <img
-                        src={listing.listing_images[0].url}
-                        alt={listing.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="h-12 w-12 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="absolute top-2 right-2 flex gap-2">
-                      {listing.sellerRating && listing.sellerRating >= 4.5 && (
-                        <Badge className="bg-yellow-400 text-yellow-900 hover:bg-yellow-500 flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-current" />
-                          Top Rated
+                    <div className="relative h-48 bg-muted overflow-hidden">
+                        {listing.listing_images?.[0]?.url ? (
+                          <img
+                            src={listing.listing_images[0].url}
+                            alt={listing.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="h-12 w-12 text-muted-foreground" />
+                          </div>
+                        )}
+                        <Badge variant="secondary" className="absolute top-2 right-2 capitalize">
+                          {listing.condition.replace("_", " ")}
                         </Badge>
-                      )}
-                      <Badge variant="secondary" className="capitalize">
-                        {listing.condition.replace("_", " ")}
-                      </Badge>
-                    </div>
-                  </div>
+                      </div>
 
                   <CardContent className="p-4">
                     <h3 className="font-semibold text-lg mb-2 line-clamp-2">
@@ -394,6 +402,16 @@ const Listings = () => {
                     </p>
                   </CardContent>
 
+                  <CardContent className="p-4 pt-0">
+                    <SellerBadges
+                      completedSales={listing.sellerCompletedSales || 0}
+                      averageRating={listing.sellerRating || 0}
+                      reviewCount={listing.sellerReviewCount || 0}
+                      isVerifiedBusiness={listing.profiles?.is_verified_business || false}
+                      variant="compact"
+                    />
+                  </CardContent>
+
                   <CardFooter className="p-4 pt-0">
                     <div className="text-2xl font-bold text-primary">
                       ${listing.fixed_price}
@@ -402,11 +420,11 @@ const Listings = () => {
                 </Card>
               </Link>
             ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </div>
-  );
-};
+        </div>
+      );
+    };
 
 export default Listings;
