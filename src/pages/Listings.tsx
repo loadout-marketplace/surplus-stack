@@ -236,11 +236,11 @@ const Listings = () => {
                 className="pl-10"
               />
             </div>
-            <div className="relative w-full md:w-48">
+            <div className="relative w-full md:w-56">
               <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search by seller..."
+                placeholder="Seller or company name..."
                 value={sellerSearch}
                 onChange={(e) => setSellerSearch(e.target.value)}
                 className="pl-10"
