@@ -230,7 +230,7 @@ const Listings = () => {
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search materials..."
+                placeholder="Search Materials..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -240,7 +240,7 @@ const Listings = () => {
               <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Seller or company name..."
+                placeholder="Seller or Company Name..."
                 value={sellerSearch}
                 onChange={(e) => setSellerSearch(e.target.value)}
                 className="pl-10"
