@@ -85,6 +85,9 @@ const Navbar = () => {
                     <User className="h-4 w-4 mr-2" />
                     Dashboard
                   </Button>
+                  <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/profile/edit")}>
+                    Edit Profile
+                  </Button>
                   <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/orders")}>
                     My Orders
                   </Button>
@@ -134,6 +137,9 @@ const Navbar = () => {
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                       Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/profile/edit")}>
+                      Edit Profile
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                       My Listings
