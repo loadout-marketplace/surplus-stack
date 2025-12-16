@@ -45,13 +45,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "bids_bidder_id_fkey"
-            columns: ["bidder_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "bids_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
@@ -244,13 +237,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "listings_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "listings_subcategory_id_fkey"
             columns: ["subcategory_id"]
             isOneToOne: false
@@ -296,13 +282,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "message_threads_buyer_id_fkey"
-            columns: ["buyer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "message_threads_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
@@ -314,13 +293,6 @@ export type Database = {
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "message_threads_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -356,13 +328,6 @@ export type Database = {
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
           {
@@ -453,13 +418,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "orders_buyer_id_fkey"
-            columns: ["buyer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "orders_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
@@ -471,13 +429,6 @@ export type Database = {
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -565,24 +516,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "reviews_reviewed_user_id_fkey"
-            columns: ["reviewed_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "reviews_reviewer_id_fkey"
             columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_reviewer_id_fkey"
-            columns: ["reviewer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_secure"
             referencedColumns: ["id"]
           },
         ]
@@ -700,45 +637,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      profiles_secure: {
-        Row: {
-          avatar_url: string | null
-          company_name: string | null
-          created_at: string | null
-          id: string | null
-          is_contractor: boolean | null
-          is_verified_business: boolean | null
-          name: string | null
-          phone: string | null
-          updated_at: string | null
-          user_zip: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          company_name?: string | null
-          created_at?: string | null
-          id?: string | null
-          is_contractor?: boolean | null
-          is_verified_business?: boolean | null
-          name?: string | null
-          phone?: never
-          updated_at?: string | null
-          user_zip?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          company_name?: string | null
-          created_at?: string | null
-          id?: string | null
-          is_contractor?: boolean | null
-          is_verified_business?: boolean | null
-          name?: string | null
-          phone?: never
-          updated_at?: string | null
-          user_zip?: string | null
-        }
-        Relationships: []
       }
     }
     Functions: {
