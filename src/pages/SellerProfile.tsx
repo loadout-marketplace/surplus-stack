@@ -8,11 +8,14 @@ import { Separator } from "@/components/ui/separator";
 import { MapPin, Package, Star, User, Calendar, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { SellerBadges } from "@/components/SellerBadges";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface SellerData {
   id: string;
   name: string | null;
   company_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
   created_at: string;
   is_verified_business: boolean;
 }
@@ -62,7 +65,7 @@ const SellerProfile = () => {
     // Fetch seller profile
     const { data: sellerData, error: sellerError } = await supabase
       .from("profiles")
-      .select("id, name, company_name, created_at, is_verified_business")
+      .select("id, name, company_name, avatar_url, bio, created_at, is_verified_business")
       .eq("id", id)
       .single();
 
@@ -193,15 +196,22 @@ const SellerProfile = () => {
         <Card className="mb-8">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6 items-start">
-              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
-                <User className="h-10 w-10 text-muted-foreground" />
-              </div>
+              <Avatar className="w-20 h-20">
+                <AvatarImage src={seller.avatar_url || undefined} alt={seller.company_name || seller.name || "Seller"} />
+                <AvatarFallback>
+                  <User className="h-10 w-10 text-muted-foreground" />
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1">
                 <h1 className="text-3xl font-bold mb-1">
                   {seller.company_name || seller.name || "Seller"}
                 </h1>
                 {seller.company_name && seller.name && (
                   <p className="text-muted-foreground">{seller.name}</p>
+                )}
+
+                {seller.bio && (
+                  <p className="text-muted-foreground mt-2 max-w-2xl">{seller.bio}</p>
                 )}
 
                 <div className="flex flex-wrap gap-4 mt-4">
