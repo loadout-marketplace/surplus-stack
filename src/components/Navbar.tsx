@@ -33,13 +33,10 @@ const Navbar = () => {
         setIsAdmin(false);
         return;
       }
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      setIsAdmin(!!data);
+      // Use the secure has_role RPC function (SECURITY DEFINER) for server-side validation
+      const { data: hasAdminRole } = await supabase
+        .rpc("has_role", { _user_id: user.id, _role: "admin" });
+      setIsAdmin(!!hasAdminRole);
     };
     checkAdminStatus();
   }, [user]);

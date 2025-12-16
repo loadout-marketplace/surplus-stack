@@ -45,14 +45,11 @@ const Admin = () => {
   const checkAdminStatus = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .single();
+    // Use the secure has_role RPC function (SECURITY DEFINER) for server-side validation
+    const { data: hasAdminRole, error } = await supabase
+      .rpc("has_role", { _user_id: user.id, _role: "admin" });
 
-    if (error || !data) {
+    if (error || !hasAdminRole) {
       toast.error("Access denied: Admin privileges required");
       navigate("/");
       return;
