@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { BidDialog } from "@/components/BidDialog";
 import { SellerRating } from "@/components/SellerRating";
+import SEO from "@/components/SEO";
 
 interface ListingDetail {
   id: string;
@@ -250,11 +251,54 @@ const ListingDetail = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+  const productStructuredData = listing ? {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": listing.title,
+    "description": listing.description || `${listing.title} - ${listing.condition.replace("_", " ")} condition`,
+    "image": listing.listing_images?.[0]?.url || "",
+    "url": `https://loadoutmarketplace.com/listings/${slug}`,
+    "category": listing.categories?.name || "Construction Materials",
+    "offers": {
+      "@type": "Offer",
+      "price": listing.price_type === 'auction' 
+        ? (highestBid || listing.starting_bid || 0) 
+        : listing.fixed_price,
+      "priceCurrency": "USD",
+      "availability": listing.status === 'active' 
+        ? "https://schema.org/InStock" 
+        : "https://schema.org/OutOfStock",
+      "itemCondition": listing.condition === 'new' 
+        ? "https://schema.org/NewCondition" 
+        : "https://schema.org/UsedCondition",
+      "seller": {
+        "@type": "Organization",
+        "name": listing.profiles?.company_name || listing.profiles?.name || "Loadout Marketplace Seller"
+      }
+    },
+    "brand": {
+      "@type": "Brand",
+      "name": "Loadout Marketplace"
+    }
+  } : null;
 
-      <div className="container max-w-6xl py-8">
+  return (
+    <>
+      {listing && (
+        <SEO 
+          title={`${listing.title} | Loadout Marketplace`}
+          description={listing.description?.slice(0, 155) || `Buy ${listing.title} - ${listing.condition.replace("_", " ")} condition, ${listing.quantity} ${listing.unit}. Located in ${listing.location_city}, ${listing.location_state}.`}
+          keywords={`${listing.title}, ${listing.categories?.name || 'construction materials'}, surplus materials, ${listing.location_city}, buy building supplies`}
+          canonicalUrl={`/listings/${slug}`}
+          ogType="product"
+          structuredData={productStructuredData || undefined}
+        />
+      )}
+      
+      <div className="min-h-screen bg-background">
+        <Navbar />
+
+        <main className="container max-w-6xl py-8">
         <div className="grid md:grid-cols-2 gap-8">
           {/* Images */}
           <div>
@@ -478,21 +522,22 @@ const ListingDetail = () => {
             sellerName={listing.profiles?.name || "Seller"}
           />
         </div>
-      </div>
+        </main>
 
-      {/* Bid Dialog */}
-      {listing.price_type === 'auction' && (
-        <BidDialog
-          open={bidDialogOpen}
-          onOpenChange={setBidDialogOpen}
-          listingId={listing.id}
-          listingTitle={listing.title}
-          currentHighestBid={highestBid}
-          startingBid={listing.starting_bid}
-          onBidPlaced={fetchListing}
-        />
-      )}
-    </div>
+        {/* Bid Dialog */}
+        {listing.price_type === 'auction' && (
+          <BidDialog
+            open={bidDialogOpen}
+            onOpenChange={setBidDialogOpen}
+            listingId={listing.id}
+            listingTitle={listing.title}
+            currentHighestBid={highestBid}
+            startingBid={listing.starting_bid}
+            onBidPlaced={fetchListing}
+          />
+        )}
+      </div>
+    </>
   );
 };
 
