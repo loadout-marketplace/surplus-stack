@@ -13,28 +13,43 @@ const Landing = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "name": "Loadout Marketplace - Surplus Construction Materials",
-    "description": "Buy & sell surplus building & DIY materials. Get bulk-price savings without bulk quantities—up to 80% off retail.",
+    "@id": "https://loadoutmarketplace.com/#webpage",
+    "name": "Loadout Marketplace - Buy & Sell Surplus Construction Materials",
+    "description": "Save up to 80% on surplus construction materials. Buy & sell lumber, roofing, tools, hardware from local contractors. Free to list.",
     "url": "https://loadoutmarketplace.com",
+    "isPartOf": {
+      "@type": "WebSite",
+      "@id": "https://loadoutmarketplace.com/#website"
+    },
+    "about": {
+      "@type": "Thing",
+      "name": "Surplus Construction Materials Marketplace"
+    },
     "mainEntity": {
       "@type": "ItemList",
-      "name": "Featured Categories",
+      "name": "Popular Construction Material Categories",
+      "numberOfItems": 6,
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Lumber & Wood" },
-        { "@type": "ListItem", "position": 2, "name": "Roofing Materials" },
-        { "@type": "ListItem", "position": 3, "name": "Tools & Equipment" },
-        { "@type": "ListItem", "position": 4, "name": "Hardware & Fasteners" },
-        { "@type": "ListItem", "position": 5, "name": "Plumbing Supplies" }
+        { "@type": "ListItem", "position": 1, "name": "Lumber & Wood", "url": "https://loadoutmarketplace.com/listings?category=lumber" },
+        { "@type": "ListItem", "position": 2, "name": "Roofing Materials", "url": "https://loadoutmarketplace.com/listings?category=roofing" },
+        { "@type": "ListItem", "position": 3, "name": "Tools & Equipment", "url": "https://loadoutmarketplace.com/listings?category=tools" },
+        { "@type": "ListItem", "position": 4, "name": "Hardware & Fasteners", "url": "https://loadoutmarketplace.com/listings?category=hardware" },
+        { "@type": "ListItem", "position": 5, "name": "Plumbing Supplies", "url": "https://loadoutmarketplace.com/listings?category=plumbing" },
+        { "@type": "ListItem", "position": 6, "name": "Electrical Supplies", "url": "https://loadoutmarketplace.com/listings?category=electrical" }
       ]
+    },
+    "speakable": {
+      "@type": "SpeakableSpecification",
+      "cssSelector": ["h1", ".hero-description"]
     }
   };
 
   return (
     <>
       <SEO 
-        title="Loadout Marketplace | Buy & Sell Surplus Construction Materials"
-        description="Buy & sell surplus building & DIY materials. Get bulk-price savings without bulk quantities—up to 80% off lumber, roofing, tools & more. Join thousands of contractors."
-        keywords="surplus construction materials, building materials marketplace, discount lumber, used construction supplies, contractor materials, DIY materials, construction surplus"
+        title="Loadout Marketplace | Buy & Sell Surplus Construction Materials Near You"
+        description="Save up to 80% on surplus construction materials. Buy & sell lumber, roofing, tools, hardware from local contractors. Free to list. Trusted by thousands of contractors nationwide."
+        keywords="surplus construction materials, building materials marketplace, discount lumber near me, used construction supplies, contractor materials, DIY materials, buy surplus lumber, sell leftover materials, construction deals"
         canonicalUrl="/"
         structuredData={structuredData}
       />
