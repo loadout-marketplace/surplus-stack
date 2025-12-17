@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import zipcodes from "zipcodes";
 import { useAuth } from "@/hooks/useAuth";
 import { SellerBadges } from "@/components/SellerBadges";
+import SEO from "@/components/SEO";
 
 interface Listing {
   id: string;
@@ -218,11 +219,47 @@ const Listings = () => {
       return matchesSearch && matchesCategory && matchesSeller && withinRadius;
     });
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+  const listingsStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Browse Surplus Construction Materials",
+    "description": "Find discounted lumber, tools, roofing, and building supplies from verified sellers. Save up to 80% off retail prices.",
+    "url": "https://loadoutmarketplace.com/listings",
+    "mainEntity": {
+      "@type": "ItemList",
+      "numberOfItems": filteredListings.length,
+      "itemListElement": filteredListings.slice(0, 10).map((listing, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "Product",
+          "name": listing.title,
+          "url": `https://loadoutmarketplace.com/listings/${listing.slug}`,
+          "offers": {
+            "@type": "Offer",
+            "price": listing.fixed_price,
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      }))
+    }
+  };
 
-      <div className="container max-w-7xl py-8">
+  return (
+    <>
+      <SEO 
+        title="Browse Surplus Construction Materials | Loadout Marketplace"
+        description="Find discounted lumber, tools, roofing, hardware and building supplies from verified sellers. Save up to 80% off retail on quality construction materials."
+        keywords="buy construction materials, discount building supplies, surplus lumber, used tools, construction equipment deals, building materials near me"
+        canonicalUrl="/listings"
+        structuredData={listingsStructuredData}
+      />
+      
+      <div className="min-h-screen bg-background">
+        <Navbar />
+
+        <main className="container max-w-7xl py-8">
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">
           <div className="flex flex-col md:flex-row gap-4">
@@ -422,8 +459,9 @@ const Listings = () => {
             ))}
               </div>
             )}
-          </div>
+          </main>
         </div>
+      </>
       );
     };
 
