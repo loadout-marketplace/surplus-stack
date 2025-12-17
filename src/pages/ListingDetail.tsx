@@ -251,11 +251,14 @@ const ListingDetail = () => {
   const productStructuredData = listing ? {
     "@context": "https://schema.org",
     "@type": "Product",
+    "@id": `https://loadoutmarketplace.com/listings/${slug}#product`,
     "name": listing.title,
-    "description": listing.description || `${listing.title} - ${listing.condition.replace("_", " ")} condition`,
-    "image": listing.listing_images?.[0]?.url || "",
+    "description": listing.description || `${listing.title} - ${listing.condition.replace("_", " ")} condition, ${listing.quantity} ${listing.unit}`,
+    "image": listing.listing_images?.map(img => img.url) || [],
     "url": `https://loadoutmarketplace.com/listings/${slug}`,
+    "sku": listing.id,
     "category": listing.categories?.name || "Construction Materials",
+    "material": listing.categories?.name || undefined,
     "offers": {
       "@type": "Offer",
       "price": listing.price_type === 'auction' 
@@ -271,24 +274,51 @@ const ListingDetail = () => {
       "seller": {
         "@type": "Organization",
         "name": listing.profiles?.company_name || listing.profiles?.name || "Loadout Marketplace Seller"
+      },
+      "priceValidUntil": listing.price_type === 'auction' && listing.auction_end_time 
+        ? listing.auction_end_time 
+        : undefined,
+      "areaServed": {
+        "@type": "Place",
+        "name": `${listing.location_city}, ${listing.location_state}`
       }
     },
     "brand": {
       "@type": "Brand",
       "name": "Loadout Marketplace"
-    }
+    },
+    "additionalProperty": [
+      {
+        "@type": "PropertyValue",
+        "name": "Quantity",
+        "value": `${listing.quantity} ${listing.unit}`
+      },
+      {
+        "@type": "PropertyValue",
+        "name": "Condition",
+        "value": listing.condition.replace("_", " ")
+      }
+    ]
   } : null;
+
+  const breadcrumbs = listing ? [
+    { name: "Home", url: "/" },
+    { name: "Browse Listings", url: "/listings" },
+    { name: listing.categories?.name || "Materials", url: "/listings" },
+    { name: listing.title.slice(0, 50), url: `/listings/${slug}` }
+  ] : [];
 
   return (
     <>
       {listing && (
         <SEO 
-          title={`${listing.title} | Loadout Marketplace`}
-          description={listing.description?.slice(0, 155) || `Buy ${listing.title} - ${listing.condition.replace("_", " ")} condition, ${listing.quantity} ${listing.unit}. Located in ${listing.location_city}, ${listing.location_state}.`}
-          keywords={`${listing.title}, ${listing.categories?.name || 'construction materials'}, surplus materials, ${listing.location_city}, buy building supplies`}
+          title={`${listing.title} for Sale | ${listing.location_city}, ${listing.location_state} | Loadout`}
+          description={listing.description?.slice(0, 150) || `Buy ${listing.title} - ${listing.condition.replace("_", " ")} condition. ${listing.quantity} ${listing.unit} available. Located in ${listing.location_city}, ${listing.location_state}. Save up to 80% off retail.`}
+          keywords={`${listing.title}, ${listing.categories?.name || 'construction materials'}, surplus materials ${listing.location_city}, buy building supplies ${listing.location_state}, discount ${listing.categories?.name || 'materials'}`}
           canonicalUrl={`/listings/${slug}`}
           ogType="product"
           structuredData={productStructuredData || undefined}
+          breadcrumbs={breadcrumbs}
         />
       )}
       

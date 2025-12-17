@@ -222,38 +222,57 @@ const Listings = () => {
   const listingsStructuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": "Browse Surplus Construction Materials",
-    "description": "Find discounted lumber, tools, roofing, and building supplies from verified sellers. Save up to 80% off retail prices.",
+    "@id": "https://loadoutmarketplace.com/listings#collectionpage",
+    "name": "Browse Surplus Construction Materials for Sale",
+    "description": "Find discounted lumber, tools, roofing, hardware and building supplies from verified local sellers. Save up to 80% off retail prices on quality construction materials.",
     "url": "https://loadoutmarketplace.com/listings",
+    "isPartOf": {
+      "@type": "WebSite",
+      "@id": "https://loadoutmarketplace.com/#website"
+    },
     "mainEntity": {
       "@type": "ItemList",
+      "name": "Available Construction Materials",
       "numberOfItems": filteredListings.length,
-      "itemListElement": filteredListings.slice(0, 10).map((listing, index) => ({
+      "itemListElement": filteredListings.slice(0, 20).map((listing, index) => ({
         "@type": "ListItem",
         "position": index + 1,
         "item": {
           "@type": "Product",
           "name": listing.title,
           "url": `https://loadoutmarketplace.com/listings/${listing.slug}`,
+          "image": listing.listing_images?.[0]?.url || undefined,
+          "description": `${listing.condition.replace("_", " ")} condition - ${listing.quantity} ${listing.unit}`,
+          "category": listing.categories?.name || "Construction Materials",
           "offers": {
             "@type": "Offer",
             "price": listing.fixed_price,
             "priceCurrency": "USD",
-            "availability": "https://schema.org/InStock"
+            "availability": "https://schema.org/InStock",
+            "seller": {
+              "@type": "Organization",
+              "name": listing.profiles?.company_name || listing.profiles?.name || "Verified Seller"
+            }
           }
         }
       }))
     }
   };
 
+  const breadcrumbs = [
+    { name: "Home", url: "/" },
+    { name: "Browse Listings", url: "/listings" }
+  ];
+
   return (
     <>
       <SEO 
-        title="Browse Surplus Construction Materials | Loadout Marketplace"
-        description="Find discounted lumber, tools, roofing, hardware and building supplies from verified sellers. Save up to 80% off retail on quality construction materials."
-        keywords="buy construction materials, discount building supplies, surplus lumber, used tools, construction equipment deals, building materials near me"
+        title="Browse Surplus Construction Materials for Sale | Loadout Marketplace"
+        description="Find discounted lumber, tools, roofing, hardware and building supplies from verified local sellers. Save up to 80% off retail on quality construction materials near you."
+        keywords="buy construction materials, discount building supplies, surplus lumber for sale, used tools near me, construction equipment deals, building materials marketplace, cheap lumber, contractor surplus"
         canonicalUrl="/listings"
         structuredData={listingsStructuredData}
+        breadcrumbs={breadcrumbs}
       />
       
       <div className="min-h-screen bg-background">

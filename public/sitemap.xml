@@ -1,23 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <!-- Homepage -->
   <url>
     <loc>https://loadoutmarketplace.com/</loc>
     <lastmod>2025-12-17</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
+  
+  <!-- Browse Listings - High Traffic Page -->
   <url>
     <loc>https://loadoutmarketplace.com/listings</loc>
     <lastmod>2025-12-17</lastmod>
     <changefreq>hourly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.95</priority>
   </url>
+  
+  <!-- Category Landing Pages -->
+  <url>
+    <loc>https://loadoutmarketplace.com/listings?category=lumber</loc>
+    <lastmod>2025-12-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://loadoutmarketplace.com/listings?category=roofing</loc>
+    <lastmod>2025-12-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://loadoutmarketplace.com/listings?category=tools</loc>
+    <lastmod>2025-12-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://loadoutmarketplace.com/listings?category=hardware</loc>
+    <lastmod>2025-12-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://loadoutmarketplace.com/listings?category=plumbing</loc>
+    <lastmod>2025-12-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://loadoutmarketplace.com/listings?category=electrical</loc>
+    <lastmod>2025-12-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  
+  <!-- Create Listing -->
+  <url>
+    <loc>https://loadoutmarketplace.com/listings/new</loc>
+    <lastmod>2025-12-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Authentication -->
   <url>
     <loc>https://loadoutmarketplace.com/auth</loc>
     <lastmod>2025-12-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  
+  <!-- Legal Pages -->
   <url>
     <loc>https://loadoutmarketplace.com/privacy-policy</loc>
     <lastmod>2025-12-17</lastmod>
