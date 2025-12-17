@@ -104,13 +104,10 @@ const ListingDetail = () => {
     } else {
       setListing(data);
       
-      // Fetch bids if it's an auction
+      // Fetch bids if it's an auction - use secure RPC to protect bidder identities
       if (data?.price_type === 'auction') {
         const { data: bidsData, error: bidsError } = await supabase
-          .from("bids")
-          .select("amount")
-          .eq("listing_id", data.id)
-          .order("amount", { ascending: false });
+          .rpc("get_listing_bids_for_seller", { p_listing_id: data.id });
 
         if (!bidsError && bidsData) {
           setBidsCount(bidsData.length);
