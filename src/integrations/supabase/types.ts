@@ -749,6 +749,15 @@ export type Database = {
     }
     Functions: {
       can_view_phone: { Args: { profile_user_id: string }; Returns: boolean }
+      get_listing_bids_for_seller: {
+        Args: { p_listing_id: string }
+        Returns: {
+          amount: number
+          created_at: string
+          id: string
+          listing_id: string
+        }[]
+      }
       get_profile_secure: {
         Args: { profile_id: string }
         Returns: {
