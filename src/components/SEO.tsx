@@ -13,7 +13,6 @@ interface SEOProps {
   ogImage?: string;
   ogType?: 'website' | 'article' | 'product';
   structuredData?: object;
-  noIndex?: boolean;
   breadcrumbs?: BreadcrumbItem[];
 }
 
@@ -25,7 +24,6 @@ const SEO = ({
   ogImage = 'https://storage.googleapis.com/gpt-engineer-file-uploads/WG7wJmAPLaTQ3GX71A4Zs8CYgCp2/social-images/social-1763430598234-Screenshot 2025-11-13 152439.png',
   ogType = 'website',
   structuredData,
-  noIndex = false,
   breadcrumbs,
 }: SEOProps) => {
   const siteUrl = 'https://loadoutmarketplace.com';
@@ -49,8 +47,8 @@ const SEO = ({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       <meta name="author" content="Loadout Marketplace" />
-      <meta name="robots" content={noIndex ? "noindex, nofollow" : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"} />
-      <meta name="googlebot" content={noIndex ? "noindex, nofollow" : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"} />
+      <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+      <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
       
       {/* Canonical URL */}
       <link rel="canonical" href={fullCanonicalUrl} />
