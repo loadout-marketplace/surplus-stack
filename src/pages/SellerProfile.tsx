@@ -62,9 +62,9 @@ const SellerProfile = () => {
   const fetchSellerData = async () => {
     setLoading(true);
 
-    // Fetch seller profile
+    // Fetch seller profile using secure view that masks phone numbers
     const { data: sellerData, error: sellerError } = await supabase
-      .from("profiles")
+      .from("profiles_secure")
       .select("id, name, company_name, avatar_url, bio, created_at, is_verified_business")
       .eq("id", id)
       .single();
