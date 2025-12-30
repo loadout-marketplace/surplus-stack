@@ -14,6 +14,7 @@ interface SEOProps {
   ogType?: 'website' | 'article' | 'product';
   structuredData?: object;
   breadcrumbs?: BreadcrumbItem[];
+  noIndex?: boolean;
 }
 
 const SEO = ({
@@ -25,6 +26,7 @@ const SEO = ({
   ogType = 'website',
   structuredData,
   breadcrumbs,
+  noIndex = false,
 }: SEOProps) => {
   const siteUrl = 'https://loadoutmarketplace.com';
   const fullCanonicalUrl = canonicalUrl ? `${siteUrl}${canonicalUrl}` : window.location.href.split('?')[0];
@@ -47,8 +49,8 @@ const SEO = ({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       <meta name="author" content="Loadout Marketplace" />
-      <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-      <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+      <meta name="robots" content={noIndex ? "noindex, nofollow" : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"} />
+      <meta name="googlebot" content={noIndex ? "noindex, nofollow" : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"} />
       
       {/* Canonical URL */}
       <link rel="canonical" href={fullCanonicalUrl} />
