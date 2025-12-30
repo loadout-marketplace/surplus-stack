@@ -20,9 +20,25 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { z } from "zod";
 
+// Helper to sanitize text - strips HTML/script tags and suspicious patterns
+const sanitizeText = (text: string): string => {
+  return text
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+\s*=/gi, '') // Remove event handlers like onclick=
+    .replace(/[<>]/g, '') // Remove angle brackets
+    .trim();
+};
+
 // Validation schema for listing creation
 const listingSchema = z.object({
-  title: z.string().trim().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters"),
+  title: z.string()
+    .trim()
+    .min(5, "Title must be at least 5 characters")
+    .max(100, "Title must be less than 100 characters")
+    .refine((val) => !/<script|<img|<iframe|javascript:|on\w+\s*=/i.test(val), {
+      message: "Title contains invalid characters"
+    }),
   description: z.string().trim().min(10, "Description must be at least 10 characters").max(5000, "Description must be less than 5000 characters"),
   priceType: z.enum(["fixed", "auction"]),
   fixedPrice: z.number().positive("Price must be positive").max(1000000, "Price seems unrealistic").optional(),

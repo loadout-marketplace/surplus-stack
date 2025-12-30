@@ -2,7 +2,62 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.81.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-timestamp, x-signature',
+};
+
+// Sanitize text to prevent XSS in notifications
+const sanitizeTitle = (title: string): string => {
+  if (!title) return '';
+  return title
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+\s*=/gi, '') // Remove event handlers
+    .replace(/[<>]/g, '') // Remove angle brackets
+    .substring(0, 100) // Truncate to max 100 chars
+    .trim();
+};
+
+// HMAC signature verification for stronger authentication
+const verifySignature = async (
+  secret: string,
+  timestamp: string,
+  signature: string
+): Promise<boolean> => {
+  try {
+    // Check timestamp is within 5 minutes
+    const timestampMs = parseInt(timestamp, 10);
+    const now = Date.now();
+    if (Math.abs(now - timestampMs) > 5 * 60 * 1000) {
+      console.error('Request timestamp too old or in future');
+      return false;
+    }
+
+    // Verify HMAC signature
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign', 'verify']
+    );
+    
+    const message = `${timestamp}`;
+    const signatureBuffer = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      encoder.encode(message)
+    );
+    
+    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+    
+    return signature === expectedSignature;
+  } catch (error) {
+    console.error('Error verifying signature:', error);
+    return false;
+  }
 };
 
 Deno.serve(async (req) => {
@@ -11,14 +66,44 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify authentication using secret key
-    const authHeader = req.headers.get('Authorization');
     const expectedSecret = Deno.env.get('AUCTION_CRON_SECRET');
+    if (!expectedSecret) {
+      console.error('AUCTION_CRON_SECRET not configured');
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check for HMAC signature first (more secure)
+    const timestamp = req.headers.get('X-Timestamp');
+    const signature = req.headers.get('X-Signature');
     
-    if (!authHeader || authHeader !== `Bearer ${expectedSecret}`) {
+    // Check for Bearer token (legacy/fallback)
+    const authHeader = req.headers.get('Authorization');
+    
+    let authenticated = false;
+    
+    // Try HMAC authentication first
+    if (timestamp && signature) {
+      authenticated = await verifySignature(expectedSecret, timestamp, signature);
+      if (!authenticated) {
+        console.error('HMAC signature verification failed');
+      }
+    }
+    
+    // Fall back to Bearer token if HMAC not provided or failed
+    if (!authenticated && authHeader) {
+      authenticated = authHeader === `Bearer ${expectedSecret}`;
+      if (!authenticated) {
+        console.error('Bearer token verification failed');
+      }
+    }
+    
+    if (!authenticated) {
       console.error('Unauthorized access attempt to process-expired-auctions');
       return new Response(
-        JSON.stringify({ error: 'Unauthorized - Invalid or missing authentication token' }),
+        JSON.stringify({ error: 'Unauthorized - Invalid or missing authentication' }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -57,7 +142,10 @@ Deno.serve(async (req) => {
     let processedCount = 0;
 
     for (const auction of expiredAuctions) {
-      console.log(`Processing auction: ${auction.title} (${auction.id})`);
+      // Sanitize title to prevent XSS in notification messages
+      const safeTitle = sanitizeTitle(auction.title);
+      
+      console.log(`Processing auction: ${safeTitle} (${auction.id})`);
 
       // Get the highest bid for this auction
       const { data: highestBid, error: bidError } = await supabase
@@ -105,13 +193,13 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Notify the winner
+        // Notify the winner with sanitized title
         const { error: winnerNotifError } = await supabase
           .from('notifications')
           .insert({
             user_id: highestBid.bidder_id,
             title: 'Auction Won! 🎉',
-            message: `Congratulations! You won the auction for "${auction.title}" with a bid of $${highestBid.amount}. Please proceed to payment.`,
+            message: `Congratulations! You won the auction for "${safeTitle}" with a bid of $${highestBid.amount}. Please proceed to payment.`,
             type: 'bid',
             link: `/listings/${auction.slug}`,
           });
@@ -120,13 +208,13 @@ Deno.serve(async (req) => {
           console.error(`Error creating winner notification:`, winnerNotifError);
         }
 
-        // Notify the seller
+        // Notify the seller with sanitized title
         const { error: sellerNotifError } = await supabase
           .from('notifications')
           .insert({
             user_id: auction.seller_id,
             title: 'Auction Ended Successfully',
-            message: `Your auction "${auction.title}" has ended with a winning bid of $${highestBid.amount}.`,
+            message: `Your auction "${safeTitle}" has ended with a winning bid of $${highestBid.amount}.`,
             type: 'listing',
             link: `/dashboard`,
           });
@@ -151,13 +239,13 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Notify the seller
+        // Notify the seller with sanitized title
         const { error: notifError } = await supabase
           .from('notifications')
           .insert({
             user_id: auction.seller_id,
             title: 'Auction Ended',
-            message: `Your auction "${auction.title}" has ended with no qualifying bids.`,
+            message: `Your auction "${safeTitle}" has ended with no qualifying bids.`,
             type: 'listing',
             link: `/dashboard`,
           });
