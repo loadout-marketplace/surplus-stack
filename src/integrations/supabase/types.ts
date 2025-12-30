@@ -780,6 +780,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      sanitize_notification_text: {
+        Args: { input_text: string }
+        Returns: string
+      }
     }
     Enums: {
       listing_condition: "new" | "like_new" | "good" | "fair" | "salvage"
