@@ -46,13 +46,23 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 border-b border-border/40 shadow-[0_1px_3px_0_rgb(0_0_0/0.05)]">
+    <nav className="fixed top-0 z-50 w-full bg-background border-b border-border">
       <div className="container flex h-16 items-center justify-between px-4 max-w-7xl">
-        <Link to="/" className="flex items-center gap-2.5">
+        {/* Left: Logo */}
+        <Link to="/" className="flex items-center gap-2.5 shrink-0">
           <img src={logo} alt="Loadout Marketplace" className="h-8 w-8" />
-          <span className="font-bold text-lg tracking-tight text-foreground">Loadout Marketplace</span>
+          <span className="font-bold text-lg tracking-tight text-foreground">Loadout</span>
         </Link>
 
+        {/* Center: Nav links (hidden on mobile) */}
+        <div className="hidden md:flex items-center gap-8">
+          <Link to="/listings" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Browse</Link>
+          <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">How It Works</a>
+          <a href="#for-contractors" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">For Contractors</a>
+          <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
+        </div>
+
+        {/* Right side */}
         {isMobile && user ? (
           <div className="flex items-center gap-1.5">
             <MessagesBadge />
@@ -71,10 +81,10 @@ const Navbar = () => {
                       Browse
                     </Button>
                   </Link>
-                  <Link to="/listings/new" className="w-full">
-                    <Button className="w-full justify-start h-11 text-base">
+                  <Link to="/create-listing" className="w-full">
+                    <Button className="w-full justify-start h-11 text-base bg-cta hover:bg-cta/90 text-cta-foreground">
                       <Plus className="h-4 w-4 mr-3" />
-                      List Item
+                      Post a Listing
                     </Button>
                   </Link>
                   <div className="h-px bg-border my-2" />
@@ -103,21 +113,50 @@ const Navbar = () => {
               </SheetContent>
             </Sheet>
           </div>
-        ) : (
-          <div className="flex items-center gap-1">
-            <Link to="/listings">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                <Search className="h-4 w-4 md:mr-2" />
-                <span className="hidden md:inline">Browse</span>
-              </Button>
+        ) : isMobile ? (
+          <div className="flex items-center gap-1.5">
+            <Link to="/auth">
+              <Button variant="ghost" size="sm">Sign In</Button>
             </Link>
-
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-72 pt-12">
+                <div className="flex flex-col gap-1">
+                  <Link to="/listings" className="w-full">
+                    <Button variant="ghost" className="w-full justify-start h-11 text-base">Browse</Button>
+                  </Link>
+                  <a href="#how-it-works" className="w-full">
+                    <Button variant="ghost" className="w-full justify-start h-11 text-base">How It Works</Button>
+                  </a>
+                  <a href="#for-contractors" className="w-full">
+                    <Button variant="ghost" className="w-full justify-start h-11 text-base">For Contractors</Button>
+                  </a>
+                  <a href="#pricing" className="w-full">
+                    <Button variant="ghost" className="w-full justify-start h-11 text-base">Pricing</Button>
+                  </a>
+                  <div className="h-px bg-border my-2" />
+                  <Link to="/create-listing" className="w-full">
+                    <Button className="w-full justify-start h-11 text-base bg-cta hover:bg-cta/90 text-cta-foreground">
+                      <Plus className="h-4 w-4 mr-3" />
+                      Post a Listing
+                    </Button>
+                  </Link>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
             {user ? (
               <>
-                <Link to="/listings/new" className="hidden md:block">
-                  <Button size="sm">
+                <Link to="/create-listing">
+                  <Button size="sm" className="bg-cta hover:bg-cta/90 text-cta-foreground">
                     <Plus className="h-4 w-4 mr-1.5" />
-                    List Item
+                    Post a Listing
                   </Button>
                 </Link>
 
@@ -127,8 +166,8 @@ const Navbar = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                      <User className="h-4 w-4 md:mr-2" />
-                      <span className="hidden md:inline">Account</span>
+                      <User className="h-4 w-4 mr-2" />
+                      Account
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
@@ -162,17 +201,17 @@ const Navbar = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <div className="flex items-center gap-2">
+              <>
                 <Link to="/auth">
                   <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>
-                <Link to="/listings/new">
+                <Link to="/create-listing">
                   <Button size="sm" className="bg-cta hover:bg-cta/90 text-cta-foreground">
                     <Plus className="h-4 w-4 mr-1.5" />
                     Post a Listing
                   </Button>
                 </Link>
-              </div>
+              </>
             )}
           </div>
         )}
