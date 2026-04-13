@@ -226,42 +226,67 @@ const Landing = () => {
                 <p className="text-muted-foreground text-center py-12">No listings yet — be the first to post!</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {recentListings.map((listing) => (
-                    <Link key={listing.id} to={`/listings/${listing.slug}`}>
-                      <Card className="overflow-hidden hover:shadow-md transition-shadow h-full border-border/60">
-                        <div className="relative h-44 bg-muted overflow-hidden">
-                          {listing.listing_images?.[0]?.url ? (
-                            <img
-                              src={listing.listing_images[0].url}
-                              alt={listing.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Package className="h-10 w-10 text-muted-foreground" />
-                            </div>
-                          )}
-                          <Badge variant="secondary" className="absolute top-2 right-2 capitalize text-xs">
-                            {listing.condition.replace("_", " ")}
-                          </Badge>
-                        </div>
-                        <CardContent className="p-4 pb-2">
-                          <h3 className="font-semibold text-base line-clamp-1 mb-1">{listing.title}</h3>
-                          {listing.categories && (
-                            <Badge variant="outline" className="text-xs mb-2">{listing.categories.name}</Badge>
-                          )}
-                          <div className="flex items-center text-xs text-muted-foreground gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {listing.location_city}, {listing.location_state}
+                  {recentListings.map((listing) => {
+                    const timeAgo = getTimeAgo(listing.created_at);
+                    const retailEstimate = listing.fixed_price * 2.5;
+                    const pctOff = Math.round((1 - listing.fixed_price / retailEstimate) * 100);
+
+                    return (
+                      <Link key={listing.id} to={`/listings/${listing.slug}`}>
+                        <Card className="overflow-hidden hover:shadow-md transition-shadow h-full border-border/60 group">
+                          {/* Image / placeholder */}
+                          <div className="relative h-44 bg-muted overflow-hidden">
+                            {listing.listing_images?.[0]?.url ? (
+                              <img
+                                src={listing.listing_images[0].url}
+                                alt={listing.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-muted">
+                                <Package className="h-10 w-10 text-muted-foreground/50" />
+                                <span className="text-xs text-muted-foreground">No image</span>
+                              </div>
+                            )}
+                            {/* Category badge — green pill */}
+                            {listing.categories && (
+                              <Badge className="absolute top-2.5 left-2.5 bg-cta text-cta-foreground hover:bg-cta/90 text-xs font-medium">
+                                {listing.categories.name}
+                              </Badge>
+                            )}
                           </div>
-                        </CardContent>
-                        <CardFooter className="p-4 pt-0">
-                          <span className="text-lg font-bold text-primary">${listing.fixed_price}</span>
-                          <span className="text-xs text-muted-foreground ml-auto">{listing.quantity} {listing.unit}</span>
-                        </CardFooter>
-                      </Card>
-                    </Link>
-                  ))}
+
+                          <CardContent className="p-4 space-y-3">
+                            {/* Title */}
+                            <h3 className="font-semibold text-base line-clamp-2 leading-snug">{listing.title}</h3>
+
+                            {/* Location + time */}
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {listing.location_city}, {listing.location_state}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {timeAgo}
+                              </span>
+                            </div>
+
+                            {/* Price row */}
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-xl font-bold text-foreground">${listing.fixed_price.toLocaleString()}</span>
+                              <span className="text-xs font-semibold text-primary">~{pctOff}% off retail</span>
+                            </div>
+
+                            {/* Contact button */}
+                            <Button size="sm" variant="outline" className="w-full mt-1 border-cta text-cta hover:bg-cta hover:text-cta-foreground transition-colors">
+                              Contact Seller
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </div>
