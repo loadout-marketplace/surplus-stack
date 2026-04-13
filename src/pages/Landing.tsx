@@ -123,7 +123,7 @@ const Landing = () => {
         structuredData={structuredData}
       />
       
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pt-16">
         <Navbar />
 
         {/* Hero Section — clean, spacious */}
