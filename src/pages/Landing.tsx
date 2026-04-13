@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, DollarSign, Package, Shield, TrendingUp } from "lucide-react";
+import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { WelcomeStats } from "@/components/WelcomeStats";
@@ -54,171 +53,154 @@ const Landing = () => {
         structuredData={structuredData}
       />
       
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-background">
         <Navbar />
 
-        {/* Hero Section */}
-        <header className="bg-hero-bg text-hero-fg py-20 md:py-32">
-          <div className="container max-w-6xl">
-            <div className="text-center space-y-6">
-              <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                Sell Your Surplus. Find Deals. Build Smarter.
+        {/* Hero Section — clean, spacious */}
+        <header className="bg-hero-bg text-hero-fg">
+          <div className="container max-w-5xl py-24 md:py-36">
+            <div className="text-center space-y-8">
+              <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.1] tracking-tight">
+                Sell Your Surplus.
+                <br />
+                <span className="text-primary">Find Deals.</span> Build Smarter.
               </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-                Find deals up to 80% off retail. Buy and sell surplus construction materials.
+              <p className="hero-description text-lg md:text-xl text-hero-fg/70 max-w-xl mx-auto leading-relaxed">
+                The marketplace for surplus construction materials. Save up to 80% off retail from verified local sellers.
               </p>
-              <nav className="flex flex-col sm:flex-row gap-4 justify-center pt-4" aria-label="Primary actions">
+              <nav className="flex flex-col sm:flex-row gap-3 justify-center pt-2" aria-label="Primary actions">
                 <Link to="/listings">
-                  <Button size="lg" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto text-base px-8 h-12">
                     Browse Listings
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
                 <Link to="/listings/new">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto bg-transparent text-hero-fg border-hero-fg hover:bg-hero-fg/10">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto text-base px-8 h-12 bg-transparent text-hero-fg border-hero-fg/30 hover:bg-hero-fg/5 hover:border-hero-fg/50">
                     List Your Surplus
                   </Button>
                 </Link>
               </nav>
             </div>
-
-            {/* Features */}
-            <ul className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl mx-auto list-none" role="list" aria-label="Key features">
-              <li className="text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <Shield className="h-6 w-6 text-primary" aria-hidden="true" />
-                </div>
-                <h2 className="font-semibold text-lg">Verified Sellers</h2>
-              </li>
-              <li className="text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <Package className="h-6 w-6 text-primary" aria-hidden="true" />
-                </div>
-                <h2 className="font-semibold text-lg">Local Pickup or Shipping</h2>
-              </li>
-              <li className="text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <CheckCircle className="h-6 w-6 text-primary" aria-hidden="true" />
-                </div>
-                <h2 className="font-semibold text-lg">Fast, Secure Transactions</h2>
-              </li>
-            </ul>
           </div>
         </header>
 
+        {/* Trust strip */}
+        <section className="border-b bg-background">
+          <div className="container max-w-5xl">
+            <ul className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border list-none" role="list" aria-label="Key features">
+              <li className="flex items-center gap-3 py-6 md:py-8 justify-center">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent">
+                  <Shield className="h-5 w-5 text-primary" aria-hidden="true" />
+                </div>
+                <span className="font-semibold text-foreground">Verified Sellers</span>
+              </li>
+              <li className="flex items-center gap-3 py-6 md:py-8 justify-center">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent">
+                  <Package className="h-5 w-5 text-primary" aria-hidden="true" />
+                </div>
+                <span className="font-semibold text-foreground">Local Pickup or Shipping</span>
+              </li>
+              <li className="flex items-center gap-3 py-6 md:py-8 justify-center">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent">
+                  <CheckCircle className="h-5 w-5 text-primary" aria-hidden="true" />
+                </div>
+                <span className="font-semibold text-foreground">Secure Transactions</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+
         <main>
-          {/* Welcome Stats for logged-in users */}
           {user && <WelcomeStats />}
 
           {/* How It Works */}
-          <section className="py-20 bg-background" aria-labelledby="how-it-works-heading">
-            <div className="container max-w-6xl">
-              <div className="text-center mb-12">
-                <h2 id="how-it-works-heading" className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Simple process to buy or sell construction materials
+          <section className="py-20 md:py-28 bg-background" aria-labelledby="how-it-works-heading">
+            <div className="container max-w-5xl">
+              <div className="text-center mb-16">
+                <h2 id="how-it-works-heading" className="text-3xl md:text-4xl font-bold tracking-tight mb-3">How It Works</h2>
+                <p className="text-muted-foreground text-lg max-w-lg mx-auto">
+                  Three simple steps to buy or sell construction materials.
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-8">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <Package className="h-6 w-6 text-primary" aria-hidden="true" />
+              <div className="grid md:grid-cols-3 gap-10 md:gap-12">
+                {[
+                  {
+                    icon: Package,
+                    step: "1",
+                    title: "List or Browse",
+                    desc: "Sellers create free listings with photos. Buyers search by category, location, and price."
+                  },
+                  {
+                    icon: DollarSign,
+                    step: "2",
+                    title: "Connect & Deal",
+                    desc: "Message sellers directly. Negotiate prices or buy now at fixed prices."
+                  },
+                  {
+                    icon: CheckCircle,
+                    step: "3",
+                    title: "Complete Transaction",
+                    desc: "Arrange pickup or delivery. Leave reviews. Track orders from your dashboard."
+                  }
+                ].map((item) => (
+                  <div key={item.step} className="text-center md:text-left">
+                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-accent mb-5">
+                      <item.icon className="h-6 w-6 text-primary" aria-hidden="true" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">1. List or Browse</h3>
-                    <p className="text-muted-foreground">
-                      Sellers: Create a free listing with photos and details. Buyers: Search by category, location, and price.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <DollarSign className="h-6 w-6 text-primary" aria-hidden="true" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">2. Connect & Deal</h3>
-                    <p className="text-muted-foreground">
-                      Message sellers directly. Negotiate prices. Buy now at fixed prices or bid on auction items.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <CheckCircle className="h-6 w-6 text-primary" aria-hidden="true" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">3. Complete Transaction</h3>
-                    <p className="text-muted-foreground">
-                      Arrange pickup or delivery. Leave reviews. Track your orders and manage listings in your dashboard.
-                    </p>
-                  </CardContent>
-                </Card>
+                    <h3 className="text-xl font-semibold mb-2">{item.step}. {item.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </section>
 
-          {/* Trust Section */}
-          <section className="py-20 bg-muted/30" aria-labelledby="why-loadout-heading">
-            <div className="container max-w-6xl">
-              <div className="text-center mb-12">
-                <h2 id="why-loadout-heading" className="text-3xl md:text-4xl font-bold mb-4">Why Loadout?</h2>
+          {/* Why Loadout */}
+          <section className="py-20 md:py-28 bg-section-alt" aria-labelledby="why-loadout-heading">
+            <div className="container max-w-5xl">
+              <div className="text-center mb-16">
+                <h2 id="why-loadout-heading" className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Why Loadout?</h2>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                <article className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <Shield className="h-8 w-8 text-primary" aria-hidden="true" />
-                  </div>
-                  <h3 className="font-semibold mb-2">Verified Sellers</h3>
-                  <p className="text-sm text-muted-foreground">
-                    All sellers are verified. Review system ensures trust and quality.
-                  </p>
-                </article>
-
-                <article className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <TrendingUp className="h-8 w-8 text-primary" aria-hidden="true" />
-                  </div>
-                  <h3 className="font-semibold mb-2">Best Prices</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Save up to 80% off retail on quality construction materials.
-                  </p>
-                </article>
-
-                <article className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <Package className="h-8 w-8 text-primary" aria-hidden="true" />
-                  </div>
-                  <h3 className="font-semibold mb-2">Wide Selection</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Lumber, tools, hardware, and more. Everything you need in one place.
-                  </p>
-                </article>
+              <div className="grid md:grid-cols-3 gap-10 max-w-4xl mx-auto">
+                {[
+                  { icon: Shield, title: "Verified Sellers", desc: "All sellers are verified. Reviews ensure trust and quality." },
+                  { icon: TrendingUp, title: "Best Prices", desc: "Save up to 80% off retail on quality construction materials." },
+                  { icon: Package, title: "Wide Selection", desc: "Lumber, tools, hardware, and more — everything in one place." },
+                ].map((item) => (
+                  <article key={item.title} className="text-center">
+                    <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-background border border-border mb-5">
+                      <item.icon className="h-7 w-7 text-primary" aria-hidden="true" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </article>
+                ))}
               </div>
             </div>
           </section>
 
           {/* CTA Section */}
-          <section className="py-20 bg-primary text-primary-foreground" aria-labelledby="cta-heading">
-            <div className="container max-w-4xl text-center">
-              <h2 id="cta-heading" className="text-3xl md:text-4xl font-bold mb-4">
+          <section className="py-20 md:py-28 bg-secondary text-secondary-foreground" aria-labelledby="cta-heading">
+            <div className="container max-w-3xl text-center">
+              <h2 id="cta-heading" className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
                 Ready to Get Started?
               </h2>
-              <p className="text-lg mb-8 opacity-90">
+              <p className="text-lg mb-10 text-secondary-foreground/70 max-w-md mx-auto">
                 Join thousands of contractors buying and selling materials every day.
               </p>
-              <nav className="flex flex-col sm:flex-row gap-4 justify-center" aria-label="Get started actions">
+              <nav className="flex flex-col sm:flex-row gap-3 justify-center" aria-label="Get started actions">
                 {!user && (
                   <Link to="/auth">
-                    <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                    <Button size="lg" className="w-full sm:w-auto text-base px-8 h-12">
                       Create Free Account
                     </Button>
                   </Link>
                 )}
                 <Link to="/listings">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto text-base px-8 h-12 bg-transparent border-secondary-foreground/30 text-secondary-foreground hover:bg-secondary-foreground/5">
                     Browse Materials
                   </Button>
                 </Link>
@@ -228,10 +210,16 @@ const Landing = () => {
         </main>
 
         {/* Footer */}
-        <footer className="border-t py-8 bg-background">
-          <div className="container max-w-6xl">
+        <footer className="border-t py-10 bg-background">
+          <div className="container max-w-5xl">
             <div className="text-center text-sm text-muted-foreground">
-              <p>&copy; 2025 Loadout Marketplace. All rights reserved. | <a href="/Loadout_Marketplace_Terms_of_Service.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-foreground underline">Terms of Service</a> | <Link to="/privacy-policy" className="hover:text-foreground underline">Privacy Policy</Link></p>
+              <p>
+                &copy; 2025 Loadout Marketplace. All rights reserved.
+                {" · "}
+                <a href="/Loadout_Marketplace_Terms_of_Service.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Terms of Service</a>
+                {" · "}
+                <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+              </p>
             </div>
           </div>
         </footer>
