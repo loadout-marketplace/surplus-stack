@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search, MapPin, Clock } from "lucide-react";
+import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search, MapPin, Clock, UserCheck, MessageSquareText, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
@@ -369,9 +369,9 @@ const Landing = () => {
 
               <div className="grid md:grid-cols-3 gap-10 max-w-4xl mx-auto">
                 {[
-                  { icon: Shield, title: "Verified Sellers", desc: "All sellers are verified. Reviews ensure trust and quality." },
-                  { icon: TrendingUp, title: "Best Prices", desc: "Save up to 80% off retail on quality construction materials." },
-                  { icon: Package, title: "Wide Selection", desc: "Lumber, tools, hardware, and more — everything in one place." },
+                  { icon: UserCheck, title: "Verified Contractor Profiles", desc: "Every seller is verified. Browse real reviews and track records before you buy." },
+                  { icon: MessageSquareText, title: "Secure Messaging & Payments", desc: "Communicate safely and transact with confidence through our protected platform." },
+                  { icon: Zap, title: "List in Under 2 Minutes", desc: "Snap a photo, set your price, and your listing is live — it's that fast." },
                 ].map((item) => (
                   <article key={item.title} className="text-center">
                     <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-background border border-border mb-5">
