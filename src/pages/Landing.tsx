@@ -3,8 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search, MapPin } from "lucide-react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search, MapPin, Clock } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +22,7 @@ interface RecentListing {
   location_state: string;
   quantity: number;
   unit: string;
+  created_at: string;
   listing_images: { url: string }[];
   categories: { name: string } | null;
 }
@@ -38,7 +39,7 @@ const Landing = () => {
     const fetchRecent = async () => {
       const { data } = await supabase
         .from("listings")
-        .select("id, title, slug, fixed_price, condition, location_city, location_state, quantity, unit, listing_images(url), categories(name)")
+        .select("id, title, slug, fixed_price, condition, location_city, location_state, quantity, unit, created_at, listing_images(url), categories(name)")
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(6);
