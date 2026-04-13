@@ -137,7 +137,7 @@ const Landing = () => {
                 <Link
                   key={cat}
                   to={`/listings?category=${cat.split(" ").slice(1).join(" ").toLowerCase()}`}
-                  className="inline-flex items-center px-4 py-2 rounded-full border border-border bg-background text-sm font-medium text-foreground hover:bg-accent hover:border-primary/30 transition-colors whitespace-nowrap"
+                  className="inline-flex items-center px-4 py-2 rounded-full border border-border bg-background text-sm font-medium text-muted-foreground hover:bg-cta/5 hover:border-cta hover:text-cta transition-colors whitespace-nowrap"
                 >
                   {cat}
                 </Link>
