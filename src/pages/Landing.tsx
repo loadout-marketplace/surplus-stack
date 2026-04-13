@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search, MapPin, Clock, UserCheck, MessageSquareText, Zap } from "lucide-react";
+import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search, MapPin, Clock, UserCheck, MessageSquareText, Zap, Camera, Handshake, CircleDollarSign } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
