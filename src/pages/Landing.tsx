@@ -1,6 +1,9 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { WelcomeStats } from "@/components/WelcomeStats";
@@ -8,6 +11,28 @@ import SEO from "@/components/SEO";
 
 const Landing = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [heroCategory, setHeroCategory] = useState("all");
+  const [heroSearch, setHeroSearch] = useState("");
+
+  const heroCategories = [
+    { value: "all", label: "All Categories" },
+    { value: "lumber", label: "Lumber" },
+    { value: "roofing", label: "Roofing" },
+    { value: "electrical", label: "Electrical" },
+    { value: "plumbing", label: "Plumbing" },
+    { value: "tools", label: "Tools" },
+    { value: "flooring", label: "Flooring" },
+    { value: "insulation", label: "Insulation" },
+    { value: "hardware", label: "Hardware" },
+  ];
+
+  const handleHeroSearch = () => {
+    const params = new URLSearchParams();
+    if (heroSearch) params.set("q", heroSearch);
+    if (heroCategory !== "all") params.set("category", heroCategory);
+    navigate(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
+  };
 
   const structuredData = {
     "@context": "https://schema.org",
