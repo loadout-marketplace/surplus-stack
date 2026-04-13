@@ -361,7 +361,7 @@ const Landing = () => {
           </section>
 
           {/* Why Loadout */}
-          <section className="py-20 md:py-28 bg-section-alt" aria-labelledby="why-loadout-heading">
+          <section className="py-20 md:py-28 bg-hero-bg" aria-labelledby="why-loadout-heading">
             <div className="container max-w-5xl">
               <div className="text-center mb-16">
                 <h2 id="why-loadout-heading" className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Why Loadout?</h2>
@@ -374,8 +374,8 @@ const Landing = () => {
                   { icon: Zap, title: "List in Under 2 Minutes", desc: "Snap a photo, set your price, and your listing is live — it's that fast." },
                 ].map((item) => (
                   <article key={item.title} className="text-center">
-                    <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-background border border-border mb-5">
-                      <item.icon className="h-7 w-7 text-primary" aria-hidden="true" />
+                    <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-cta/10 mb-5">
+                      <item.icon className="h-7 w-7 text-cta" aria-hidden="true" />
                     </div>
                     <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
