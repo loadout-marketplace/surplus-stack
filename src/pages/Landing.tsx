@@ -125,6 +125,27 @@ const Landing = () => {
           </div>
         </header>
 
+        {/* Category chips */}
+        <section className="border-b bg-background py-4">
+          <div className="container max-w-5xl overflow-x-auto scrollbar-hide">
+            <div className="flex gap-2 min-w-max px-1">
+              {[
+                "🪵 Lumber", "🏠 Roofing", "⚡ Electrical", "🔧 Plumbing",
+                "🛠️ Tools", "🧱 Flooring", "🧤 Insulation", "🔩 Hardware",
+                "🪟 Windows & Doors", "🎨 Paint & Finishes"
+              ].map((cat) => (
+                <Link
+                  key={cat}
+                  to={`/listings?category=${cat.split(" ").slice(1).join(" ").toLowerCase()}`}
+                  className="inline-flex items-center px-4 py-2 rounded-full border border-border bg-background text-sm font-medium text-foreground hover:bg-accent hover:border-primary/30 transition-colors whitespace-nowrap"
+                >
+                  {cat}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Trust stats */}
         <section className="border-b bg-section-alt">
           <div className="container max-w-5xl">
