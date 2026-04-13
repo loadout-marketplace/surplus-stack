@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search } from "lucide-react";
+import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search, MapPin } from "lucide-react";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { WelcomeStats } from "@/components/WelcomeStats";
 import SEO from "@/components/SEO";
+import { supabase } from "@/integrations/supabase/client";
 
 const Landing = () => {
   const { user } = useAuth();
