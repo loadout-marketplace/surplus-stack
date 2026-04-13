@@ -2,13 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* Design System — Clean, spacious, modern marketplace
+   Palette: #111827 primary, #6B7280 secondary, #F5A623 amber accent, #10B981 green, #F7F8FA alt bg
+   All values in HSL.
 */
 
 @layer base {
   :root {
-    /* Brand Colors - Construction Industrial Theme */
+    /* Backgrounds */
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
 
@@ -18,90 +19,97 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary: Amber #F59E0B */
-    --primary: 38 92% 50%;
+    /* Primary Accent: Warm Amber #F5A623 */
+    --primary: 38 91% 55%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Slate */
+    /* Secondary: Slate Dark #111827 */
     --secondary: 222 47% 11%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Muted: Gray tones */
-    --muted: 220 13% 91%;
-    --muted-foreground: 215 16% 47%;
+    /* Muted / Secondary text #6B7280 */
+    --muted: 220 20% 97%;
+    --muted-foreground: 220 9% 46%;
 
-    /* Accent: Lighter amber */
-    --accent: 38 92% 95%;
+    /* Accent: Very light amber tint */
+    --accent: 38 60% 96%;
     --accent-foreground: 222 47% 11%;
+
+    /* Success green #10B981 */
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 38 92% 50%;
+    --ring: 38 91% 55%;
 
-    --radius: 0.5rem;
-    
-    /* Custom Design Tokens */
-    --hero-bg: 222 84% 5%;
+    --radius: 0.75rem;
+
+    /* Section alternate bg #F7F8FA */
+    --section-alt: 220 20% 97%;
+
+    /* Hero */
+    --hero-bg: 222 47% 11%;
     --hero-fg: 0 0% 100%;
-    --construction-yellow: 45 93% 47%;
-    --slate-dark: 222 47% 11%;
 
+    /* Sidebar */
     --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
+    --sidebar-foreground: 220 9% 46%;
+    --sidebar-primary: 222 47% 11%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 20% 97%;
+    --sidebar-accent-foreground: 222 47% 11%;
     --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 38 91% 55%;
   }
 
   .dark {
-    --background: 222 84% 5%;
-    --foreground: 0 0% 100%;
+    --background: 222 47% 5%;
+    --foreground: 220 20% 97%;
 
-    --card: 222 47% 11%;
-    --card-foreground: 0 0% 100%;
+    --card: 222 47% 9%;
+    --card-foreground: 220 20% 97%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 220 20% 97%;
 
-    --primary: 38 92% 50%;
+    --primary: 38 91% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 33% 18%;
+    --secondary: 220 14% 18%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 217 33% 18%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 220 14% 18%;
+    --muted-foreground: 220 9% 65%;
 
-    --accent: 217 33% 18%;
+    --accent: 220 14% 18%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 38 92% 50%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 38 91% 55%;
+
+    --section-alt: 222 47% 7%;
+    --hero-bg: 222 47% 5%;
+    --hero-fg: 220 20% 97%;
+
+    --sidebar-background: 222 47% 7%;
+    --sidebar-foreground: 220 20% 97%;
+    --sidebar-primary: 38 91% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 220 14% 14%;
+    --sidebar-accent-foreground: 220 20% 97%;
+    --sidebar-border: 220 14% 18%;
+    --sidebar-ring: 38 91% 55%;
   }
 }
 
@@ -111,6 +119,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
