@@ -125,28 +125,20 @@ const Landing = () => {
           </div>
         </header>
 
-        {/* Trust strip */}
-        <section className="border-b bg-background">
+        {/* Trust stats */}
+        <section className="border-b bg-section-alt">
           <div className="container max-w-5xl">
-            <ul className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border list-none" role="list" aria-label="Key features">
-              <li className="flex items-center gap-3 py-6 md:py-8 justify-center">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent">
-                  <Shield className="h-5 w-5 text-primary" aria-hidden="true" />
-                </div>
-                <span className="font-semibold text-foreground">Verified Sellers</span>
-              </li>
-              <li className="flex items-center gap-3 py-6 md:py-8 justify-center">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent">
-                  <Package className="h-5 w-5 text-primary" aria-hidden="true" />
-                </div>
-                <span className="font-semibold text-foreground">Local Pickup or Shipping</span>
-              </li>
-              <li className="flex items-center gap-3 py-6 md:py-8 justify-center">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent">
-                  <CheckCircle className="h-5 w-5 text-primary" aria-hidden="true" />
-                </div>
-                <span className="font-semibold text-foreground">Secure Transactions</span>
-              </li>
+            <ul className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border list-none" role="list" aria-label="Platform stats">
+              {[
+                { number: "12,400+", label: "Active Listings" },
+                { number: "3,800+", label: "Verified Contractors" },
+                { number: "48", label: "States Covered" },
+              ].map((stat) => (
+                <li key={stat.label} className="flex flex-col items-center py-8 md:py-10 gap-1">
+                  <span className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">{stat.number}</span>
+                  <span className="text-sm text-muted-foreground font-medium">{stat.label}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </section>
