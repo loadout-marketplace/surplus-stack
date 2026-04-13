@@ -413,7 +413,7 @@ const Landing = () => {
         </main>
 
         {/* Footer */}
-        <footer className="border-t bg-secondary/50 pt-16 pb-8">
+        <footer className="border-t bg-muted pt-16 pb-8">
           <div className="container max-w-5xl">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
               {/* Brand */}
