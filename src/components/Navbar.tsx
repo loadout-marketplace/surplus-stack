@@ -167,7 +167,7 @@ const Navbar = () => {
                   <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>
                 <Link to="/listings/new">
-                  <Button size="sm" className="bg-[hsl(var(--cta))] hover:bg-[hsl(var(--cta))]/90 text-[hsl(var(--cta-foreground))]">
+                  <Button size="sm" className="bg-cta hover:bg-cta/90 text-cta-foreground">
                     <Plus className="h-4 w-4 mr-1.5" />
                     Post a Listing
                   </Button>
