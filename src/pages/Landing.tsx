@@ -167,6 +167,20 @@ const Landing = () => {
         <main>
           {user && <WelcomeStats />}
 
+          {/* Recently Listed Near You */}
+          <section className="py-16 md:py-20 bg-background">
+            <div className="container max-w-5xl">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Recently Listed Near You</h2>
+                <Link to="/listings" className="text-sm font-semibold text-cta hover:text-cta/80 transition-colors flex items-center gap-1">
+                  View All <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+              {/* Listing cards would go here — populated from data */}
+              <p className="text-muted-foreground text-center py-12">Browse listings to see what's available near you.</p>
+            </div>
+          </section>
+
           {/* How It Works */}
           <section className="py-20 md:py-28 bg-background" aria-labelledby="how-it-works-heading">
             <div className="container max-w-5xl">
