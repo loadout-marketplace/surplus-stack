@@ -313,7 +313,7 @@ const Landing = () => {
                             {/* Price row */}
                             <div className="flex items-baseline gap-2">
                               <span className="text-xl font-bold text-foreground">${listing.fixed_price.toLocaleString()}</span>
-                              <span className="text-xs font-semibold text-primary">~{pctOff}% off retail</span>
+                              <span className="text-xs font-semibold text-amber-600">~{pctOff}% off retail</span>
                             </div>
 
                             {/* Contact button */}
