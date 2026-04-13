@@ -332,9 +332,9 @@ const Landing = () => {
                 <div className="hidden md:block absolute top-8 left-[calc(16.67%+24px)] right-[calc(16.67%+24px)] h-0.5 bg-border" />
 
                 {[
-                  { icon: Package, step: "1", title: "List or Browse", desc: "Sellers create free listings with photos. Buyers search by category, location, and price." },
-                  { icon: DollarSign, step: "2", title: "Connect & Deal", desc: "Message sellers directly. Negotiate prices or buy now at fixed prices." },
-                  { icon: CheckCircle, step: "3", title: "Complete", desc: "Arrange pickup or delivery. Leave reviews. Track orders from your dashboard." },
+                  { icon: Camera, step: "1", title: "Post Your Surplus", desc: "Snap a photo, add details, and your listing goes live in under 2 minutes." },
+                  { icon: Handshake, step: "2", title: "Connect with Local Contractors", desc: "Buyers in your area find your listing and reach out through secure messaging." },
+                  { icon: CircleDollarSign, step: "3", title: "Get Paid Securely", desc: "Complete the transaction with confidence. Funds are protected until delivery." },
                 ].map((item) => (
                   <div key={item.step} className="flex flex-col items-center text-center relative z-10">
                     <div className="flex items-center justify-center h-16 w-16 rounded-full bg-cta/10 border-4 border-background mb-4">
