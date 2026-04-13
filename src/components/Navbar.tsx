@@ -46,7 +46,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
+    <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 border-b border-border/40 shadow-[0_1px_3px_0_rgb(0_0_0/0.05)]">
       <div className="container flex h-16 items-center justify-between px-4 max-w-7xl">
         <Link to="/" className="flex items-center gap-2.5">
           <img src={logo} alt="Loadout Marketplace" className="h-8 w-8" />
