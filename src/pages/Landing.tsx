@@ -367,7 +367,7 @@ const Landing = () => {
                     <div className="flex items-center justify-center h-16 w-16 rounded-full bg-cta/10 border-4 border-background mb-4">
                       <item.icon className="h-7 w-7 text-cta" aria-hidden="true" />
                     </div>
-                    <span className="text-xs font-bold text-cta uppercase tracking-wider mb-1">Step {item.step}</span>
+                    <span className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Step {item.step}</span>
                     <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed max-w-[240px]">{item.desc}</p>
                   </div>
