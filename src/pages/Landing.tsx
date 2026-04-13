@@ -66,7 +66,7 @@ const Landing = () => {
                 Materials <span className="text-primary">Near You</span>
               </h1>
               <p className="hero-description text-lg md:text-xl text-hero-fg/70 max-w-xl mx-auto leading-relaxed">
-                The marketplace for surplus construction materials. Save up to 80% off retail from verified local sellers.
+                Save up to 80% on lumber, roofing, tools & hardware. Or turn your leftover materials into cash — free to list, no commissions.
               </p>
               <nav className="flex flex-col sm:flex-row gap-3 justify-center pt-2" aria-label="Primary actions">
                 <Link to="/listings">
