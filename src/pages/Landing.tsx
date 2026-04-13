@@ -90,13 +90,13 @@ const Landing = () => {
                 <br />
                 Materials <span className="text-primary">Near You</span>
               </h1>
-              <p className="hero-description text-lg md:text-xl text-hero-fg/70 max-w-xl mx-auto leading-relaxed">
+              <p className="hero-description text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed">
                 Save up to 80% on lumber, roofing, tools & hardware. Or turn your leftover materials into cash — free to list, no commissions.
               </p>
               <div className="max-w-2xl mx-auto pt-2">
-                <div className="flex flex-col sm:flex-row gap-2 bg-hero-fg/10 backdrop-blur-sm rounded-xl p-2">
+                <div className="flex flex-col sm:flex-row gap-2 bg-background rounded-xl p-2 shadow-lg border border-border/60">
                   <Select value={heroCategory} onValueChange={setHeroCategory}>
-                    <SelectTrigger className="sm:w-44 bg-hero-fg text-foreground border-0 h-12 rounded-lg">
+                    <SelectTrigger className="sm:w-44 bg-background text-foreground border border-border h-12 rounded-lg">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -110,7 +110,7 @@ const Landing = () => {
                     value={heroSearch}
                     onChange={(e) => setHeroSearch(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleHeroSearch()}
-                    className="flex-1 bg-hero-fg text-foreground border-0 h-12 rounded-lg placeholder:text-muted-foreground"
+                    className="flex-1 bg-background text-foreground border border-border h-12 rounded-lg placeholder:text-muted-foreground"
                   />
                   <Button
                     onClick={handleHeroSearch}
