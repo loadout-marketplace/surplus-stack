@@ -303,6 +303,20 @@ const Landing = () => {
             </div>
           </section>
 
+          {/* Platform fee info */}
+          <section className="bg-section-alt border-y border-border/60">
+            <div className="container max-w-5xl py-6">
+              <div className="flex items-center gap-4 justify-center text-center">
+                <div className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cta/10">
+                  <Shield className="h-5 w-5 text-cta" />
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
+                  <span className="font-semibold text-foreground">Secure checkout powered by Loadout</span> — a small 4% platform fee applies to completed transactions, keeping this marketplace running and fraud-free.
+                </p>
+              </div>
+            </div>
+          </section>
+
           {/* How It Works */}
           <section className="py-20 md:py-28 bg-background" aria-labelledby="how-it-works-heading">
             <div className="container max-w-5xl">
