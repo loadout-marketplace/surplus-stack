@@ -166,6 +166,9 @@ const Landing = () => {
                   </Button>
                 </div>
               </div>
+              <p className="text-sm text-muted-foreground pt-4 font-medium">
+                Join 3,800+ contractors already turning surplus into cash.
+              </p>
             </div>
           </div>
         </header>
