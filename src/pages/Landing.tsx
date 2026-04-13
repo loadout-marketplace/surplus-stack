@@ -244,7 +244,7 @@ const Landing = () => {
 
                     return (
                       <Link key={listing.id} to={`/listings/${listing.slug}`}>
-                        <Card className="overflow-hidden hover:shadow-md transition-shadow h-full border-border/60 group">
+                        <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 h-full border-border/60 group rounded-xl">
                           {/* Image / placeholder */}
                           <div className="relative h-44 bg-muted overflow-hidden">
                             {listing.listing_images?.[0]?.url ? (
