@@ -327,33 +327,22 @@ const Landing = () => {
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-10 md:gap-12">
+              <div className="grid md:grid-cols-3 gap-6 md:gap-0 relative">
+                {/* Connector lines (desktop only) */}
+                <div className="hidden md:block absolute top-8 left-[calc(16.67%+24px)] right-[calc(16.67%+24px)] h-0.5 bg-border" />
+
                 {[
-                  {
-                    icon: Package,
-                    step: "1",
-                    title: "List or Browse",
-                    desc: "Sellers create free listings with photos. Buyers search by category, location, and price."
-                  },
-                  {
-                    icon: DollarSign,
-                    step: "2",
-                    title: "Connect & Deal",
-                    desc: "Message sellers directly. Negotiate prices or buy now at fixed prices."
-                  },
-                  {
-                    icon: CheckCircle,
-                    step: "3",
-                    title: "Complete Transaction",
-                    desc: "Arrange pickup or delivery. Leave reviews. Track orders from your dashboard."
-                  }
+                  { icon: Package, step: "1", title: "List or Browse", desc: "Sellers create free listings with photos. Buyers search by category, location, and price." },
+                  { icon: DollarSign, step: "2", title: "Connect & Deal", desc: "Message sellers directly. Negotiate prices or buy now at fixed prices." },
+                  { icon: CheckCircle, step: "3", title: "Complete", desc: "Arrange pickup or delivery. Leave reviews. Track orders from your dashboard." },
                 ].map((item) => (
-                  <div key={item.step} className="text-center md:text-left">
-                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-accent mb-5">
-                      <item.icon className="h-6 w-6 text-primary" aria-hidden="true" />
+                  <div key={item.step} className="flex flex-col items-center text-center relative z-10">
+                    <div className="flex items-center justify-center h-16 w-16 rounded-full bg-cta/10 border-4 border-background mb-4">
+                      <item.icon className="h-7 w-7 text-cta" aria-hidden="true" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">{item.step}. {item.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
+                    <span className="text-xs font-bold text-cta uppercase tracking-wider mb-1">Step {item.step}</span>
+                    <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed max-w-[240px]">{item.desc}</p>
                   </div>
                 ))}
               </div>
