@@ -402,28 +402,26 @@ const Landing = () => {
           </section>
 
           {/* CTA Section */}
-          <section className="py-20 md:py-28 bg-secondary text-secondary-foreground" aria-labelledby="cta-heading">
+          <section className="py-20 md:py-28" style={{ backgroundColor: '#0F3D22' }} aria-labelledby="cta-heading">
             <div className="container max-w-3xl text-center">
-              <h2 id="cta-heading" className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-                Ready to Get Started?
+              <h2 id="cta-heading" className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-white">
+                Got leftover materials from your last job?
               </h2>
-              <p className="text-lg mb-10 text-secondary-foreground/70 max-w-md mx-auto">
-                Join thousands of contractors buying and selling materials every day.
+              <p className="text-lg mb-10 text-white/70 max-w-md mx-auto">
+                Join 3,800+ contractors already turning surplus into cash.
               </p>
-              <nav className="flex flex-col sm:flex-row gap-3 justify-center" aria-label="Get started actions">
-                {!user && (
-                  <Link to="/auth">
-                    <Button size="lg" className="w-full sm:w-auto text-base px-8 h-12">
-                      Create Free Account
-                    </Button>
-                  </Link>
-                )}
-                <Link to="/listings">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto text-base px-8 h-12 bg-transparent border-secondary-foreground/30 text-secondary-foreground hover:bg-secondary-foreground/5">
-                    Browse Materials
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link to="/create-listing">
+                  <Button size="lg" className="w-full sm:w-auto text-base px-8 h-12 bg-white text-foreground hover:bg-white/90 font-semibold">
+                    Post a Free Listing
                   </Button>
                 </Link>
-              </nav>
+                <Link to="/listings">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto text-base px-8 h-12 bg-transparent border-white/40 text-white hover:bg-white/10 font-semibold">
+                    Browse Deals
+                  </Button>
+                </Link>
+              </div>
             </div>
           </section>
         </main>
