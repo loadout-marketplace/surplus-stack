@@ -12,11 +12,41 @@ import { WelcomeStats } from "@/components/WelcomeStats";
 import SEO from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 
+interface RecentListing {
+  id: string;
+  title: string;
+  slug: string;
+  fixed_price: number;
+  condition: string;
+  location_city: string;
+  location_state: string;
+  quantity: number;
+  unit: string;
+  listing_images: { url: string }[];
+  categories: { name: string } | null;
+}
+
 const Landing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [heroCategory, setHeroCategory] = useState("all");
   const [heroSearch, setHeroSearch] = useState("");
+  const [recentListings, setRecentListings] = useState<RecentListing[]>([]);
+  const [loadingListings, setLoadingListings] = useState(true);
+
+  useEffect(() => {
+    const fetchRecent = async () => {
+      const { data } = await supabase
+        .from("listings")
+        .select("id, title, slug, fixed_price, condition, location_city, location_state, quantity, unit, listing_images(url), categories(name)")
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(6);
+      setRecentListings((data as RecentListing[]) || []);
+      setLoadingListings(false);
+    };
+    fetchRecent();
+  }, []);
 
   const heroCategories = [
     { value: "all", label: "All Categories" },
