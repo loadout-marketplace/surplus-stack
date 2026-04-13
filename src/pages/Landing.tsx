@@ -1,6 +1,9 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { WelcomeStats } from "@/components/WelcomeStats";
@@ -8,6 +11,28 @@ import SEO from "@/components/SEO";
 
 const Landing = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [heroCategory, setHeroCategory] = useState("all");
+  const [heroSearch, setHeroSearch] = useState("");
+
+  const heroCategories = [
+    { value: "all", label: "All Categories" },
+    { value: "lumber", label: "Lumber" },
+    { value: "roofing", label: "Roofing" },
+    { value: "electrical", label: "Electrical" },
+    { value: "plumbing", label: "Plumbing" },
+    { value: "tools", label: "Tools" },
+    { value: "flooring", label: "Flooring" },
+    { value: "insulation", label: "Insulation" },
+    { value: "hardware", label: "Hardware" },
+  ];
+
+  const handleHeroSearch = () => {
+    const params = new URLSearchParams();
+    if (heroSearch) params.set("q", heroSearch);
+    if (heroCategory !== "all") params.set("category", heroCategory);
+    navigate(`/listings${params.toString() ? `?${params.toString()}` : ""}`);
+  };
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -68,19 +93,34 @@ const Landing = () => {
               <p className="hero-description text-lg md:text-xl text-hero-fg/70 max-w-xl mx-auto leading-relaxed">
                 Save up to 80% on lumber, roofing, tools & hardware. Or turn your leftover materials into cash — free to list, no commissions.
               </p>
-              <nav className="flex flex-col sm:flex-row gap-3 justify-center pt-2" aria-label="Primary actions">
-                <Link to="/listings">
-                  <Button size="lg" className="w-full sm:w-auto text-base px-8 h-12">
-                    Browse Listings
-                    <ArrowRight className="ml-2 h-4 w-4" />
+              <div className="max-w-2xl mx-auto pt-2">
+                <div className="flex flex-col sm:flex-row gap-2 bg-hero-fg/10 backdrop-blur-sm rounded-xl p-2">
+                  <Select value={heroCategory} onValueChange={setHeroCategory}>
+                    <SelectTrigger className="sm:w-44 bg-hero-fg text-foreground border-0 h-12 rounded-lg">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {heroCategories.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="What are you looking for?"
+                    value={heroSearch}
+                    onChange={(e) => setHeroSearch(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleHeroSearch()}
+                    className="flex-1 bg-hero-fg text-foreground border-0 h-12 rounded-lg placeholder:text-muted-foreground"
+                  />
+                  <Button
+                    onClick={handleHeroSearch}
+                    className="h-12 px-6 bg-cta hover:bg-cta/90 text-cta-foreground rounded-lg"
+                  >
+                    <Search className="h-4 w-4 mr-2" />
+                    Search
                   </Button>
-                </Link>
-                <Link to="/listings/new">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto text-base px-8 h-12 bg-transparent text-hero-fg border-hero-fg/30 hover:bg-hero-fg/5 hover:border-hero-fg/50">
-                    List Your Surplus
-                  </Button>
-                </Link>
-              </nav>
+                </div>
+              </div>
             </div>
           </div>
         </header>
