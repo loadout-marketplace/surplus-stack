@@ -346,7 +346,6 @@ const Landing = () => {
                   </div>
                 ))}
               </div>
-              </div>
             </div>
           </section>
 
