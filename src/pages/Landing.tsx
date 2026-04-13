@@ -166,6 +166,14 @@ const Landing = () => {
                   </Button>
                 </div>
               </div>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                <Button asChild className="h-12 px-8 bg-background text-foreground hover:bg-background/90 rounded-lg font-semibold">
+                  <Link to="/create-listing">Post a Free Listing</Link>
+                </Button>
+                <Button asChild variant="outline" className="h-12 px-8 border-background/40 text-hero-fg hover:bg-background/10 rounded-lg font-semibold bg-transparent">
+                  <Link to="/listings">Browse Deals</Link>
+                </Button>
+              </div>
               <p className="text-sm text-muted-foreground pt-4 font-medium">
                 Join 3,800+ contractors already turning surplus into cash.
               </p>
