@@ -42,6 +42,10 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
+    /* CTA green */
+    --cta: 160 84% 39%;
+    --cta-foreground: 0 0% 100%;
+
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 38 91% 55%;
