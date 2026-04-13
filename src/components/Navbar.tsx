@@ -50,7 +50,7 @@ const Navbar = () => {
       <div className="container flex h-16 items-center justify-between px-4 max-w-7xl">
         <Link to="/" className="flex items-center gap-2.5">
           <img src={logo} alt="Loadout Marketplace" className="h-8 w-8" />
-          <span className="font-bold text-lg tracking-tight text-foreground">Loadout</span>
+          <span className="font-bold text-lg tracking-tight text-foreground">Loadout Marketplace</span>
         </Link>
 
         {isMobile && user ? (
