@@ -136,7 +136,7 @@ const Landing = () => {
                 Materials <span className="text-primary">Near You</span>
               </h1>
               <p className="hero-description text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                Save up to 80% on lumber, roofing, tools & hardware. Or turn your leftover materials into cash — free to list, no commissions.
+                Got leftover materials from your last job? Turn them into cash — or save up to 80% on lumber, roofing, tools & hardware. Free to list, no commissions.
               </p>
               <div className="max-w-2xl mx-auto pt-2">
                 <div className="flex flex-col sm:flex-row gap-2 bg-background rounded-xl p-2 shadow-lg border border-border/60">
