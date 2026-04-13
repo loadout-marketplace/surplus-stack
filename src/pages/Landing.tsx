@@ -1,19 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search } from "lucide-react";
+import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search, MapPin } from "lucide-react";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { WelcomeStats } from "@/components/WelcomeStats";
 import SEO from "@/components/SEO";
+import { supabase } from "@/integrations/supabase/client";
+
+interface RecentListing {
+  id: string;
+  title: string;
+  slug: string;
+  fixed_price: number;
+  condition: string;
+  location_city: string;
+  location_state: string;
+  quantity: number;
+  unit: string;
+  listing_images: { url: string }[];
+  categories: { name: string } | null;
+}
 
 const Landing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [heroCategory, setHeroCategory] = useState("all");
   const [heroSearch, setHeroSearch] = useState("");
+  const [recentListings, setRecentListings] = useState<RecentListing[]>([]);
+  const [loadingListings, setLoadingListings] = useState(true);
+
+  useEffect(() => {
+    const fetchRecent = async () => {
+      const { data } = await supabase
+        .from("listings")
+        .select("id, title, slug, fixed_price, condition, location_city, location_state, quantity, unit, listing_images(url), categories(name)")
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(6);
+      setRecentListings((data as RecentListing[]) || []);
+      setLoadingListings(false);
+    };
+    fetchRecent();
+  }, []);
 
   const heroCategories = [
     { value: "all", label: "All Categories" },
@@ -176,8 +209,60 @@ const Landing = () => {
                   View All <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
-              {/* Listing cards would go here — populated from data */}
-              <p className="text-muted-foreground text-center py-12">Browse listings to see what's available near you.</p>
+              {loadingListings ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {[...Array(6)].map((_, i) => (
+                    <Card key={i} className="overflow-hidden">
+                      <div className="h-44 bg-muted animate-pulse" />
+                      <CardContent className="p-4 space-y-2">
+                        <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                        <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : recentListings.length === 0 ? (
+                <p className="text-muted-foreground text-center py-12">No listings yet — be the first to post!</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {recentListings.map((listing) => (
+                    <Link key={listing.id} to={`/listings/${listing.slug}`}>
+                      <Card className="overflow-hidden hover:shadow-md transition-shadow h-full border-border/60">
+                        <div className="relative h-44 bg-muted overflow-hidden">
+                          {listing.listing_images?.[0]?.url ? (
+                            <img
+                              src={listing.listing_images[0].url}
+                              alt={listing.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="h-10 w-10 text-muted-foreground" />
+                            </div>
+                          )}
+                          <Badge variant="secondary" className="absolute top-2 right-2 capitalize text-xs">
+                            {listing.condition.replace("_", " ")}
+                          </Badge>
+                        </div>
+                        <CardContent className="p-4 pb-2">
+                          <h3 className="font-semibold text-base line-clamp-1 mb-1">{listing.title}</h3>
+                          {listing.categories && (
+                            <Badge variant="outline" className="text-xs mb-2">{listing.categories.name}</Badge>
+                          )}
+                          <div className="flex items-center text-xs text-muted-foreground gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {listing.location_city}, {listing.location_state}
+                          </div>
+                        </CardContent>
+                        <CardFooter className="p-4 pt-0">
+                          <span className="text-lg font-bold text-primary">${listing.fixed_price}</span>
+                          <span className="text-xs text-muted-foreground ml-auto">{listing.quantity} {listing.unit}</span>
+                        </CardFooter>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
 
