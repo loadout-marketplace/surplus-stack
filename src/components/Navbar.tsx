@@ -162,9 +162,17 @@ const Navbar = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <Link to="/auth">
-                <Button size="sm">Log in / Sign Up</Button>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link to="/auth">
+                  <Button variant="ghost" size="sm">Sign In</Button>
+                </Link>
+                <Link to="/listings/new">
+                  <Button size="sm" className="bg-cta hover:bg-cta/90 text-cta-foreground">
+                    <Plus className="h-4 w-4 mr-1.5" />
+                    Post a Listing
+                  </Button>
+                </Link>
+              </div>
             )}
           </div>
         )}
