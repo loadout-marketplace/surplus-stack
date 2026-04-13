@@ -166,7 +166,23 @@ const Landing = () => {
                   </Button>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+              <div className="flex items-center justify-center gap-6 sm:gap-10 pt-6">
+                <div className="text-center">
+                  <p className="text-2xl sm:text-3xl font-bold text-cta">12,400+</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Active Listings</p>
+                </div>
+                <div className="w-px h-10 bg-border" />
+                <div className="text-center">
+                  <p className="text-2xl sm:text-3xl font-bold text-cta">3,800+</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Verified Contractors</p>
+                </div>
+                <div className="w-px h-10 bg-border" />
+                <div className="text-center">
+                  <p className="text-2xl sm:text-3xl font-bold text-cta">48</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">States Covered</p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-6">
                 <Button asChild className="h-12 px-8 bg-background text-foreground hover:bg-background/90 rounded-lg font-semibold">
                   <Link to="/create-listing">Post a Free Listing</Link>
                 </Button>
