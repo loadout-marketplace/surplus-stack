@@ -121,7 +121,7 @@ const Landing = () => {
                 className="animate-fade-in-up text-xs uppercase tracking-[0.22em] text-neutral-400"
                 style={montserrat}
               >
-                The Professional Surplus Marketplace
+                The Surplus Marketplace
               </p>
 
               {/* Headline */}
@@ -141,8 +141,7 @@ const Landing = () => {
                 className="animate-fade-in-up animate-delay-200 text-base md:text-lg text-neutral-500 max-w-lg mx-auto leading-relaxed"
                 style={montserrat}
               >
-                Turn leftover materials into cash — or save up to 80% on lumber,
-                roofing, tools &amp; hardware. Free to list. No commissions.
+                Save up to 80% off retail by buying directly from contractors and suppliers near you. Free to list. Zero commissions.
               </p>
 
               {/* Search bar */}
