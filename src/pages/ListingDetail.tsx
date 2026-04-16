@@ -2,10 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Package, Calendar, User } from "lucide-react";
+import { MapPin, Package, Calendar, User, Truck, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { BidDialog } from "@/components/BidDialog";
@@ -13,30 +10,18 @@ import { SellerRating } from "@/components/SellerRating";
 import SEO from "@/components/SEO";
 
 interface ListingDetail {
-  id: string;
-  title: string;
-  description: string;
-  fixed_price: number;
-  price_type: string;
-  starting_bid: number | null;
-  current_highest_bid: number | null;
-  auction_end_time: string | null;
-  condition: string;
-  quantity: number;
-  unit: string;
-  min_quantity_increment: number | null;
-  location_city: string;
-  location_state: string;
-  location_zip: string;
-  pickup_only: boolean;
-  shipping_available: boolean;
-  seller_id: string;
-  status: string;
-  created_at: string;
+  id: string; title: string; description: string; fixed_price: number; price_type: string;
+  starting_bid: number | null; current_highest_bid: number | null; auction_end_time: string | null;
+  condition: string; quantity: number; unit: string; min_quantity_increment: number | null;
+  location_city: string; location_state: string; location_zip: string;
+  pickup_only: boolean; shipping_available: boolean; seller_id: string; status: string; created_at: string;
   listing_images: { url: string }[];
   categories: { name: string } | null;
   profiles: { name: string; company_name: string } | null;
 }
+
+const playfair: React.CSSProperties = { fontFamily: "'Playfair Display', Georgia, serif" };
+const montserrat: React.CSSProperties = { fontFamily: "'Montserrat', sans-serif" };
 
 const ListingDetail = () => {
   const { slug } = useParams();
@@ -50,71 +35,34 @@ const ListingDetail = () => {
   const [extending, setExtending] = useState(false);
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
   const [contactingSeller, setContactingSeller] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
 
-  useEffect(() => {
-    fetchListing();
-  }, [slug]);
+  useEffect(() => { fetchListing(); }, [slug]);
 
   useEffect(() => {
     if (listing?.price_type === 'auction' && listing.auction_end_time) {
       const timer = setInterval(() => {
-        const now = new Date().getTime();
-        const end = new Date(listing.auction_end_time!).getTime();
-        const distance = end - now;
-
-        if (distance < 0) {
-          setTimeRemaining("Auction ended");
-          clearInterval(timer);
-        } else {
-          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-          if (days > 0) {
-            setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
-          } else if (hours > 0) {
-            setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
-          } else {
-            setTimeRemaining(`${minutes}m ${seconds}s`);
-          }
-        }
+        const distance = new Date(listing.auction_end_time!).getTime() - Date.now();
+        if (distance < 0) { setTimeRemaining("Auction ended"); clearInterval(timer); return; }
+        const d = Math.floor(distance / 86400000);
+        const h = Math.floor((distance % 86400000) / 3600000);
+        const m = Math.floor((distance % 3600000) / 60000);
+        const s = Math.floor((distance % 60000) / 1000);
+        setTimeRemaining(d > 0 ? `${d}d ${h}h ${m}m` : h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`);
       }, 1000);
-
       return () => clearInterval(timer);
     }
   }, [listing]);
 
   const fetchListing = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("listings")
-      .select(`
-        *,
-        listing_images (url),
-        categories (name),
-        profiles (name, company_name)
-      `)
-      .eq("slug", slug)
-      .single();
-
-    if (error) {
-      toast.error("Failed to load listing");
-      console.error(error);
-    } else {
+    const { data, error } = await supabase.from("listings").select(`*, listing_images (url), categories (name), profiles (name, company_name)`).eq("slug", slug).single();
+    if (error) { toast.error("Failed to load listing"); }
+    else {
       setListing(data);
-      
-      // Fetch bids if it's an auction - use secure RPC to protect bidder identities
       if (data?.price_type === 'auction') {
-        const { data: bidsData, error: bidsError } = await supabase
-          .rpc("get_listing_bids_for_seller", { p_listing_id: data.id });
-
-        if (!bidsError && bidsData) {
-          setBidsCount(bidsData.length);
-          if (bidsData.length > 0) {
-            setHighestBid(bidsData[0].amount);
-          }
-        }
+        const { data: bidsData } = await supabase.rpc("get_listing_bids_for_seller", { p_listing_id: data.id });
+        if (bidsData) { setBidsCount(bidsData.length); if (bidsData.length > 0) setHighestBid(bidsData[0].amount); }
       }
     }
     setLoading(false);
@@ -122,446 +70,227 @@ const ListingDetail = () => {
 
   const handleExtendAuction = async () => {
     if (!listing) return;
-
     setExtending(true);
     try {
-      // Extend by 24 hours
-      const newEndTime = new Date(listing.auction_end_time!);
-      newEndTime.setHours(newEndTime.getHours() + 24);
-
-      const { error } = await supabase
-        .from("listings")
-        .update({ auction_end_time: newEndTime.toISOString() })
-        .eq("id", listing.id);
-
+      const newEnd = new Date(listing.auction_end_time!);
+      newEnd.setHours(newEnd.getHours() + 24);
+      const { error } = await supabase.from("listings").update({ auction_end_time: newEnd.toISOString() }).eq("id", listing.id);
       if (error) throw error;
-
-      toast.success("Auction extended by 24 hours");
-      fetchListing();
-    } catch (error) {
-      console.error("Error extending auction:", error);
-      toast.error("Failed to extend auction");
-    } finally {
-      setExtending(false);
-    }
+      toast.success("Auction extended by 24 hours"); fetchListing();
+    } catch { toast.error("Failed to extend auction"); }
+    finally { setExtending(false); }
   };
 
   const handleContactSeller = async () => {
     if (!user || !listing) return;
-    
     setContactingSeller(true);
     try {
-      // Check if user is blocked
-      const { data: blockData } = await supabase
-        .from("blocked_users")
-        .select("id")
-        .eq("blocker_id", listing.seller_id)
-        .eq("blocked_id", user.id)
-        .single();
-
-      if (blockData) {
-        toast.error("You are unable to message this seller");
-        setContactingSeller(false);
-        return;
-      }
-
-      // Check if thread already exists
-      const { data: existingThread } = await supabase
-        .from("message_threads")
-        .select("id")
-        .eq("listing_id", listing.id)
-        .eq("buyer_id", user.id)
-        .single();
-
-      if (existingThread) {
-        navigate(`/messages/${existingThread.id}`);
-      } else {
-        // Create new thread with pending status
-        const { data: newThread, error } = await supabase
-          .from("message_threads")
-          .insert({
-            listing_id: listing.id,
-            buyer_id: user.id,
-            seller_id: listing.seller_id,
-            status: 'pending'
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        toast.success("Message request sent to seller");
-        navigate(`/messages/${newThread.id}`);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to send message request");
-    } finally {
-      setContactingSeller(false);
-    }
+      const { data: blockData } = await supabase.from("blocked_users").select("id").eq("blocker_id", listing.seller_id).eq("blocked_id", user.id).single();
+      if (blockData) { toast.error("You are unable to message this seller"); return; }
+      const { data: existing } = await supabase.from("message_threads").select("id").eq("listing_id", listing.id).eq("buyer_id", user.id).single();
+      if (existing) { navigate(`/messages/${existing.id}`); return; }
+      const { data: newThread, error } = await supabase.from("message_threads").insert({ listing_id: listing.id, buyer_id: user.id, seller_id: listing.seller_id, status: 'pending' }).select().single();
+      if (error) throw error;
+      toast.success("Message request sent to seller"); navigate(`/messages/${newThread.id}`);
+    } catch { toast.error("Failed to send message request"); }
+    finally { setContactingSeller(false); }
   };
 
   const canExtendAuction = () => {
-    if (!listing || !user) return false;
-    if (listing.seller_id !== user.id) return false;
-    if (listing.price_type !== 'auction') return false;
-    if (listing.status !== 'active') return false;
-    if (!listing.auction_end_time) return false;
-    
-    const now = new Date().getTime();
-    const end = new Date(listing.auction_end_time).getTime();
-    if (now >= end) return false;
-
-    // Allow extension if no bids or highest bid is below starting bid
-    if (bidsCount === 0) return true;
-    if (highestBid && listing.starting_bid && highestBid < listing.starting_bid) return true;
-
-    return false;
+    if (!listing || !user || listing.seller_id !== user.id || listing.price_type !== 'auction' || listing.status !== 'active' || !listing.auction_end_time) return false;
+    if (Date.now() >= new Date(listing.auction_end_time).getTime()) return false;
+    return bidsCount === 0 || (highestBid !== null && listing.starting_bid !== null && highestBid < listing.starting_bid);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container max-w-6xl py-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-96 bg-muted rounded-lg" />
-            <div className="h-8 bg-muted rounded w-3/4" />
-            <div className="h-4 bg-muted rounded w-1/2" />
-          </div>
+  if (loading) return (
+    <div className="min-h-screen bg-white"><Navbar />
+      <div className="container max-w-6xl py-16">
+        <div className="animate-pulse grid md:grid-cols-2 gap-10">
+          <div className="h-96 bg-neutral-100 rounded-sm" />
+          <div className="space-y-4"><div className="h-8 bg-neutral-100 rounded w-3/4" /><div className="h-4 bg-neutral-100 rounded w-1/2" /><div className="h-32 bg-neutral-100 rounded" /></div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (!listing) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container max-w-6xl py-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">Listing not found</h1>
-          <Link to="/listings">
-            <Button>Browse Listings</Button>
-          </Link>
-        </div>
+  if (!listing) return (
+    <div className="min-h-screen bg-white"><Navbar />
+      <div className="container max-w-6xl py-16 text-center">
+        <h1 className="text-2xl font-bold mb-4" style={playfair}>Listing not found</h1>
+        <Link to="/listings" className="text-sm underline" style={montserrat}>Browse Listings</Link>
       </div>
-    );
-  }
+    </div>
+  );
 
-  const productStructuredData = listing ? {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "@id": `https://loadoutmarketplace.com/listings/${slug}#product`,
-    "name": listing.title,
-    "description": listing.description || `${listing.title} - ${listing.condition.replace("_", " ")} condition, ${listing.quantity} ${listing.unit}`,
-    "image": listing.listing_images?.map(img => img.url) || [],
-    "url": `https://loadoutmarketplace.com/listings/${slug}`,
-    "sku": listing.id,
-    "category": listing.categories?.name || "Construction Materials",
-    "material": listing.categories?.name || undefined,
-    "offers": {
-      "@type": "Offer",
-      "price": listing.price_type === 'auction' 
-        ? (highestBid || listing.starting_bid || 0) 
-        : listing.fixed_price,
-      "priceCurrency": "USD",
-      "availability": listing.status === 'active' 
-        ? "https://schema.org/InStock" 
-        : "https://schema.org/OutOfStock",
-      "itemCondition": listing.condition === 'new' 
-        ? "https://schema.org/NewCondition" 
-        : "https://schema.org/UsedCondition",
-      "seller": {
-        "@type": "Organization",
-        "name": listing.profiles?.company_name || listing.profiles?.name || "Loadout Marketplace Seller"
-      },
-      "priceValidUntil": listing.price_type === 'auction' && listing.auction_end_time 
-        ? listing.auction_end_time 
-        : undefined,
-      "areaServed": {
-        "@type": "Place",
-        "name": `${listing.location_city}, ${listing.location_state}`
-      }
-    },
-    "brand": {
-      "@type": "Brand",
-      "name": "Loadout Marketplace"
-    },
-    "additionalProperty": [
-      {
-        "@type": "PropertyValue",
-        "name": "Quantity",
-        "value": `${listing.quantity} ${listing.unit}`
-      },
-      {
-        "@type": "PropertyValue",
-        "name": "Condition",
-        "value": listing.condition.replace("_", " ")
-      }
-    ]
-  } : null;
-
-  const breadcrumbs = listing ? [
-    { name: "Home", url: "/" },
-    { name: "Browse Listings", url: "/listings" },
-    { name: listing.categories?.name || "Materials", url: "/listings" },
-    { name: listing.title.slice(0, 50), url: `/listings/${slug}` }
-  ] : [];
+  const retailEstimate = listing.fixed_price ? listing.fixed_price * 2.5 : 0;
+  const pctOff = retailEstimate ? Math.round((1 - listing.fixed_price / retailEstimate) * 100) : 0;
+  const tax = ((listing.fixed_price || 0) * 0.0925);
+  const total = ((listing.fixed_price || 0) * 1.0925);
 
   return (
     <>
-      {listing && (
-        <SEO 
-          title={`${listing.title} for Sale | ${listing.location_city}, ${listing.location_state} | Loadout`}
-          description={listing.description?.slice(0, 150) || `Buy ${listing.title} - ${listing.condition.replace("_", " ")} condition. ${listing.quantity} ${listing.unit} available. Located in ${listing.location_city}, ${listing.location_state}. Save up to 80% off retail.`}
-          keywords={`${listing.title}, ${listing.categories?.name || 'construction materials'}, surplus materials ${listing.location_city}, buy building supplies ${listing.location_state}, discount ${listing.categories?.name || 'materials'}`}
-          canonicalUrl={`/listings/${slug}`}
-          ogType="product"
-          structuredData={productStructuredData || undefined}
-          breadcrumbs={breadcrumbs}
-        />
-      )}
-      
-      <div className="min-h-screen bg-background">
+      <SEO
+        title={`${listing.title} for Sale | ${listing.location_city}, ${listing.location_state} | Loadout`}
+        description={listing.description?.slice(0, 150) || `Buy ${listing.title} — ${listing.condition.replace("_", " ")} condition, ${listing.quantity} ${listing.unit} available in ${listing.location_city}, ${listing.location_state}.`}
+        canonicalUrl={`/listings/${slug}`}
+        ogType="product"
+      />
+      <div className="min-h-screen bg-white">
         <Navbar />
+        <main className="container max-w-6xl px-6" style={{ paddingTop: "96px", paddingBottom: "80px" }}>
 
-        <main className="container max-w-6xl py-8">
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Images */}
-          <div>
-            <div className="rounded-lg overflow-hidden bg-muted h-96">
-              {listing.listing_images?.[0]?.url ? (
-                <img
-                  src={listing.listing_images[0].url}
-                  alt={listing.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Package className="h-16 w-16 text-muted-foreground" />
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-xs text-neutral-400 mb-8" style={montserrat}>
+            <Link to="/" className="hover:text-neutral-700 transition-colors">Home</Link>
+            <span>/</span>
+            <Link to="/listings" className="hover:text-neutral-700 transition-colors">Listings</Link>
+            {listing.categories && <><span>/</span><span>{listing.categories.name}</span></>}
+          </nav>
 
-          {/* Details */}
-          <div className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-10">
+            {/* Images */}
             <div>
-              <h1 className="text-3xl font-bold mb-2">{listing.title}</h1>
-              {listing.categories && (
-                <Badge variant="outline" className="mb-4">
-                  {listing.categories.name}
-                </Badge>
-              )}
-              
-              {listing.price_type === 'auction' ? (
-                <div className="space-y-2 mb-4">
-                  <div className="text-xl font-semibold text-muted-foreground">
-                    {highestBid && highestBid >= (listing.starting_bid || 0) ? (
-                      <>
-                        <div className="text-sm">Current Bid</div>
-                        <div className="text-3xl font-bold text-primary">
-                          ${highestBid.toLocaleString()}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-sm">Starting Bid</div>
-                        <div className="text-3xl font-bold text-primary">
-                          ${listing.starting_bid?.toLocaleString()}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Badge variant={timeRemaining === "Auction ended" ? "destructive" : "default"}>
-                      {timeRemaining || "Calculating..."}
-                    </Badge>
-                    <span className="text-muted-foreground">
-                      {bidsCount} {bidsCount === 1 ? "bid" : "bids"}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="mb-4">
-                  <div className="text-sm text-muted-foreground">Listed Price</div>
-                  <div className="text-2xl font-bold text-primary">
-                    ${listing.fixed_price?.toLocaleString()}
-                  </div>
-                  <div className="mt-2 pt-2 border-t border-border">
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Sales Tax (9.25%)</span>
-                      <span>${((listing.fixed_price || 0) * 0.0925).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <span className="font-semibold">Total</span>
-                      <span className="text-xl font-bold text-primary">
-                        ${((listing.fixed_price || 0) * 1.0925).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <Card>
-              <CardContent className="pt-6 space-y-3">
-                <div className="flex items-start gap-2">
-                  <Package className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <div className="font-medium">Condition</div>
-                    <div className="text-sm text-muted-foreground capitalize">
-                      {listing.condition.replace("_", " ")}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <Package className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <div className="font-medium">Quantity</div>
-                    <div className="text-sm text-muted-foreground">
-                      {listing.quantity} {listing.unit}
-                    </div>
-                    {listing.min_quantity_increment && (
-                      <div className="mt-1">
-                        <Badge variant="secondary" className="text-xs">
-                          Partial purchases available (min {listing.min_quantity_increment} {listing.unit})
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <div className="font-medium">Location</div>
-                    <div className="text-sm text-muted-foreground">
-                      {listing.location_city}, {listing.location_state} {listing.location_zip}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {listing.pickup_only && "Pickup only"}
-                      {listing.pickup_only && listing.shipping_available && " • "}
-                      {listing.shipping_available && "Shipping available"}
-                    </div>
-                  </div>
-                </div>
-
-                {listing.profiles && (
-                  <div className="flex items-start gap-2">
-                    <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <div className="font-medium">Seller</div>
-                      <Link
-                        to={`/sellers/${listing.seller_id}`}
-                        className="text-sm text-muted-foreground hover:text-primary hover:underline"
-                      >
-                        {listing.profiles.name}
-                        {listing.profiles.company_name && ` • ${listing.profiles.company_name}`}
-                      </Link>
-                    </div>
+              <div className="rounded-sm overflow-hidden bg-neutral-100 mb-3" style={{ border: "1px solid #e8e8e8", height: "400px" }}>
+                {listing.listing_images?.[activeImage]?.url ? (
+                  <img src={listing.listing_images[activeImage].url} alt={listing.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+                    <Package className="h-14 w-14 text-neutral-300" />
+                    <p className="text-xs text-neutral-400" style={montserrat}>No image available</p>
                   </div>
                 )}
-
-                <div className="flex items-start gap-2">
-                  <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <div className="font-medium">Listed</div>
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(listing.created_at).toLocaleDateString()}
-                    </div>
-                  </div>
+              </div>
+              {listing.listing_images?.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                  {listing.listing_images.map((img, i) => (
+                    <button key={i} onClick={() => setActiveImage(i)} className="shrink-0 w-16 h-16 rounded-sm overflow-hidden transition-opacity" style={{ border: i === activeImage ? "2px solid #111" : "1px solid #e8e8e8", opacity: i === activeImage ? 1 : 0.6 }}>
+                      <img src={img.url} alt={`${listing.title} ${i+1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-3">
-              {canExtendAuction() && (
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleExtendAuction}
-                  disabled={extending}
-                >
-                  {extending ? "Extending..." : "Extend Auction by 24 Hours"}
-                </Button>
-              )}
-              
-              {user ? (
-                <>
-                  <Button 
-                    size="lg" 
-                    className="w-full"
-                    variant="outline"
-                    onClick={handleContactSeller}
-                    disabled={contactingSeller}
-                  >
-                    {contactingSeller ? 'Sending Request...' : 'Request to Message Seller'}
-                  </Button>
-                  {listing.price_type === 'auction' ? (
-                    <Button 
-                      size="lg" 
-                      className="w-full"
-                      onClick={() => setBidDialogOpen(true)}
-                    >
-                      Bid / Purchase
-                    </Button>
-                  ) : (
-                    <Button 
-                      size="lg" 
-                      className="w-full"
-                    >
-                      Purchase
-                    </Button>
-                  )}
-                </>
-              ) : (
-                <Link to="/auth">
-                  <Button size="lg" className="w-full">
-                    Sign In to {listing.price_type === 'auction' ? 'Bid / Purchase' : 'Purchase'}
-                  </Button>
-                </Link>
               )}
             </div>
-          </div>
-        </div>
 
-        {/* Description */}
-        {listing.description && (
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">Description</h2>
-            <Card>
-              <CardContent className="pt-6">
-                <p className="whitespace-pre-wrap text-muted-foreground">
-                  {listing.description}
+            {/* Details */}
+            <div className="space-y-6">
+              {/* Title & Category */}
+              <div>
+                {listing.categories && (
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2" style={montserrat}>{listing.categories.name}</p>
+                )}
+                <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-1" style={playfair}>{listing.title}</h1>
+                <p className="text-xs text-neutral-400 uppercase tracking-wider" style={montserrat}>
+                  {listing.condition.replace("_", " ")} condition · Listed {new Date(listing.created_at).toLocaleDateString()}
                 </p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+              </div>
 
-        {/* Seller Rating */}
-        <div className="mt-8">
-          <SellerRating 
-            sellerId={listing.seller_id}
-            sellerName={listing.profiles?.name || "Seller"}
-          />
-        </div>
+              {/* Price */}
+              {listing.price_type === 'auction' ? (
+                <div className="p-5 rounded-sm" style={{ background: "#fafafa", border: "1px solid #ebebeb" }}>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-1" style={montserrat}>
+                    {highestBid && highestBid >= (listing.starting_bid || 0) ? "Current Bid" : "Starting Bid"}
+                  </p>
+                  <p className="text-3xl font-bold text-neutral-900 mb-2" style={playfair}>
+                    ${(highestBid && highestBid >= (listing.starting_bid || 0) ? highestBid : listing.starting_bid)?.toLocaleString()}
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-sm" style={{ ...montserrat, background: timeRemaining === "Auction ended" ? "#fef2f2" : "#f0fdf4", color: timeRemaining === "Auction ended" ? "#dc2626" : "#16a34a" }}>
+                      <Clock className="h-3 w-3" />{timeRemaining || "Calculating…"}
+                    </span>
+                    <span className="text-xs text-neutral-400" style={montserrat}>{bidsCount} {bidsCount === 1 ? "bid" : "bids"}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-5 rounded-sm" style={{ background: "#fafafa", border: "1px solid #ebebeb" }}>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-1" style={montserrat}>Price</p>
+                  <div className="flex items-baseline gap-3 mb-3">
+                    <p className="text-3xl font-bold text-neutral-900" style={playfair}>${listing.fixed_price?.toLocaleString()}</p>
+                    <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider" style={montserrat}>~{pctOff}% off retail</span>
+                  </div>
+                  <div className="silver-rule mb-3" />
+                  <div className="space-y-1 text-xs" style={montserrat}>
+                    <div className="flex justify-between text-neutral-400"><span>Sales Tax (9.25%)</span><span>${tax.toFixed(2)}</span></div>
+                    <div className="flex justify-between font-bold text-neutral-900"><span>Total</span><span>${total.toFixed(2)}</span></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { icon: Package, label: "Quantity", value: `${listing.quantity} ${listing.unit}` },
+                  { icon: MapPin, label: "Location", value: `${listing.location_city}, ${listing.location_state}` },
+                  { icon: Truck, label: "Delivery", value: listing.pickup_only ? "Pickup only" : listing.shipping_available ? "Shipping available" : "Pickup only" },
+                  { icon: User, label: "Seller", value: listing.profiles?.company_name || listing.profiles?.name || "Seller", link: `/sellers/${listing.seller_id}` },
+                ].map((item) => (
+                  <div key={item.label} className="p-3 rounded-sm" style={{ border: "1px solid #f0f0f0" }}>
+                    <div className="flex items-center gap-1.5 text-xs text-neutral-400 mb-1" style={montserrat}>
+                      <item.icon className="h-3 w-3" />{item.label}
+                    </div>
+                    {item.link ? (
+                      <Link to={item.link} className="text-sm font-semibold text-neutral-900 hover:underline" style={playfair}>{item.value}</Link>
+                    ) : (
+                      <p className="text-sm font-semibold text-neutral-900" style={montserrat}>{item.value}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {listing.min_quantity_increment && (
+                <p className="text-xs text-neutral-500 px-1" style={montserrat}>Partial purchases available — minimum {listing.min_quantity_increment} {listing.unit}</p>
+              )}
+
+              {/* Actions */}
+              <div className="space-y-2">
+                {canExtendAuction() && (
+                  <button onClick={handleExtendAuction} disabled={extending} className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50" style={{ ...montserrat, border: "1px solid #e0e0e0" }}>
+                    {extending ? "Extending…" : "Extend Auction 24 Hours"}
+                  </button>
+                )}
+                {user ? (
+                  <>
+                    <button onClick={handleContactSeller} disabled={contactingSeller} className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50" style={{ ...montserrat, border: "1px solid #e0e0e0" }}>
+                      {contactingSeller ? "Sending…" : "Message Seller"}
+                    </button>
+                    {listing.price_type === 'auction' ? (
+                      <button onClick={() => setBidDialogOpen(true)} className="w-full h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: "#111" }}>
+                        Bid / Purchase
+                      </button>
+                    ) : (
+                      <button className="w-full h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: "#111" }}>
+                        Purchase
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <Link to="/auth">
+                    <button className="w-full h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: "#111" }}>
+                      Sign In to {listing.price_type === 'auction' ? 'Bid / Purchase' : 'Purchase'}
+                    </button>
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          {listing.description && (
+            <div className="mt-14">
+              <h2 className="text-xl font-bold text-neutral-900 mb-5" style={playfair}>Description</h2>
+              <div className="silver-rule mb-6" />
+              <p className="whitespace-pre-wrap text-sm text-neutral-600 leading-relaxed max-w-3xl" style={montserrat}>{listing.description}</p>
+            </div>
+          )}
+
+          {/* Seller Rating */}
+          <div className="mt-14">
+            <h2 className="text-xl font-bold text-neutral-900 mb-5" style={playfair}>About the Seller</h2>
+            <div className="silver-rule mb-6" />
+            <SellerRating sellerId={listing.seller_id} sellerName={listing.profiles?.name || "Seller"} />
+          </div>
         </main>
 
-        {/* Bid Dialog */}
         {listing.price_type === 'auction' && (
-          <BidDialog
-            open={bidDialogOpen}
-            onOpenChange={setBidDialogOpen}
-            listingId={listing.id}
-            listingTitle={listing.title}
-            currentHighestBid={highestBid}
-            startingBid={listing.starting_bid}
-            onBidPlaced={fetchListing}
-          />
+          <BidDialog open={bidDialogOpen} onOpenChange={setBidDialogOpen} listingId={listing.id} listingTitle={listing.title} currentHighestBid={highestBid} startingBid={listing.starting_bid} onBidPlaced={fetchListing} />
         )}
       </div>
     </>
