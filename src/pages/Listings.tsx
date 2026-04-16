@@ -2,18 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Search, MapPin, Package, User } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, MapPin, Package, User, Clock } from "lucide-react";
 import { toast } from "sonner";
 import zipcodes from "zipcodes";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,25 +13,28 @@ import { SellerBadges } from "@/components/SellerBadges";
 import SEO from "@/components/SEO";
 
 interface Listing {
-  id: string;
-  title: string;
-  slug: string;
-  fixed_price: number;
-  condition: string;
-  location_city: string;
-  location_state: string;
-  location_zip: string | null;
-  quantity: number;
-  unit: string;
-  created_at: string;
-  seller_id: string;
+  id: string; title: string; slug: string; fixed_price: number; condition: string;
+  location_city: string; location_state: string; location_zip: string | null;
+  quantity: number; unit: string; created_at: string; seller_id: string;
   listing_images: { url: string }[];
   categories: { name: string } | null;
   profiles: { name: string | null; company_name: string | null; is_verified_business: boolean | null } | null;
-  sellerRating?: number;
-  sellerReviewCount?: number;
-  sellerCompletedSales?: number;
+  sellerRating?: number; sellerReviewCount?: number; sellerCompletedSales?: number;
+  distance?: number | null;
 }
+
+const playfair: React.CSSProperties = { fontFamily: "'Playfair Display', Georgia, serif" };
+const montserrat: React.CSSProperties = { fontFamily: "'Montserrat', sans-serif" };
+
+const getTimeAgo = (dateStr: string) => {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return days < 30 ? `${days}d ago` : `${Math.floor(days / 30)}mo ago`;
+};
 
 const Listings = () => {
   const { user } = useAuth();
@@ -55,291 +50,128 @@ const Listings = () => {
   const [searchZipCode, setSearchZipCode] = useState<string>("");
   const [sellerSearch, setSellerSearch] = useState<string>("");
 
-  useEffect(() => {
-    fetchCategories();
-    fetchListings();
-    fetchUserZipCode();
-  }, [selectedCategory, user]);
+  useEffect(() => { fetchCategories(); fetchListings(); fetchUserZipCode(); }, [selectedCategory, user]);
 
   const fetchUserZipCode = async () => {
     if (!user) return;
-    
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("user_zip")
-      .eq("id", user.id)
-      .single();
-
-    if (error) {
-      console.error("Error fetching user ZIP code:", error);
-    } else if (data?.user_zip) {
-      setUserZipCode(data.user_zip);
-      // Set as default search ZIP if user hasn't entered one
-      if (!searchZipCode) {
-        setSearchZipCode(data.user_zip);
-      }
-    }
+    const { data } = await supabase.from("profiles").select("user_zip").eq("id", user.id).single();
+    if (data?.user_zip) { setUserZipCode(data.user_zip); if (!searchZipCode) setSearchZipCode(data.user_zip); }
   };
 
   const fetchCategories = async () => {
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      toast.error("Failed to load categories");
-    } else {
-      setCategories(data || []);
-    }
+    const { data, error } = await supabase.from("categories").select("*").order("name");
+    if (!error) setCategories(data || []);
   };
 
   const fetchListings = async () => {
     setLoading(true);
-    let query = supabase
-      .from("listings")
-      .select(`
-        *,
-        listing_images (url),
-        categories (name),
-        profiles (name, company_name, is_verified_business)
-      `)
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(50);
-
-    if (selectedCategory && selectedCategory !== "all") {
-      query = query.eq("category_id", selectedCategory);
-    }
-
+    let query = supabase.from("listings").select(`*, listing_images (url), categories (name), profiles (name, company_name, is_verified_business)`).eq("status", "active").order("created_at", { ascending: false }).limit(50);
+    if (selectedCategory && selectedCategory !== "all") query = query.eq("category_id", selectedCategory);
     const { data, error } = await query;
-
-    if (error) {
-      toast.error("Failed to load listings");
-      console.error(error);
-    } else {
-      // Fetch seller ratings and completed sales for all listings
-      const listingsWithRatings = await Promise.all(
-        (data || []).map(async (listing) => {
-          // Fetch reviews
-          const { data: reviews } = await supabase
-            .from("reviews")
-            .select("rating")
-            .eq("reviewed_user_id", listing.seller_id);
-
-          let sellerRating = 0;
-          const sellerReviewCount = reviews?.length || 0;
-          if (reviews && reviews.length > 0) {
-            sellerRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-          }
-
-          // Fetch completed sales count
-          const { count } = await supabase
-            .from("orders")
-            .select("id", { count: "exact", head: true })
-            .eq("seller_id", listing.seller_id)
-            .eq("status", "completed");
-
-          return { 
-            ...listing, 
-            sellerRating, 
-            sellerReviewCount,
-            sellerCompletedSales: count || 0 
-          };
-        })
-      );
-      
-      setListings(listingsWithRatings);
-    }
+    if (error) { toast.error("Failed to load listings"); setLoading(false); return; }
+    const listingsWithRatings = await Promise.all((data || []).map(async (listing) => {
+      const { data: reviews } = await supabase.from("reviews").select("rating").eq("reviewed_user_id", listing.seller_id);
+      const sellerReviewCount = reviews?.length || 0;
+      const sellerRating = reviews && reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+      const { count } = await supabase.from("orders").select("id", { count: "exact", head: true }).eq("seller_id", listing.seller_id).eq("status", "completed");
+      return { ...listing, sellerRating, sellerReviewCount, sellerCompletedSales: count || 0 };
+    }));
+    setListings(listingsWithRatings);
     setLoading(false);
   };
 
   const calculateDistance = (zip1: string, zip2: string): number => {
     if (!zip1 || !zip2) return Infinity;
-    
-    const location1 = zipcodes.lookup(zip1);
-    const location2 = zipcodes.lookup(zip2);
-    
-    if (!location1 || !location2) return Infinity;
-    
-    // Haversine formula to calculate distance in miles
-    const R = 3959; // Earth's radius in miles
-    const lat1 = location1.latitude * Math.PI / 180;
-    const lat2 = location2.latitude * Math.PI / 180;
-    const dLat = (location2.latitude - location1.latitude) * Math.PI / 180;
-    const dLon = (location2.longitude - location1.longitude) * Math.PI / 180;
-    
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1) * Math.cos(lat2) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    
-    return distance;
+    const l1 = zipcodes.lookup(zip1); const l2 = zipcodes.lookup(zip2);
+    if (!l1 || !l2) return Infinity;
+    const R = 3959;
+    const lat1 = l1.latitude * Math.PI / 180; const lat2 = l2.latitude * Math.PI / 180;
+    const dLat = (l2.latitude - l1.latitude) * Math.PI / 180;
+    const dLon = (l2.longitude - l1.longitude) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
-  const filteredListings = listings
-    .map((listing) => {
-      const zipToUse = searchZipCode || userZipCode;
-      let distance: number | null = null;
-      
-      if (zipToUse && listing.location_zip) {
-        distance = calculateDistance(zipToUse, listing.location_zip);
-      }
-      
-      return { ...listing, distance };
-    })
-    .filter((listing) => {
-      // Filter by search query
-      const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      // Filter by custom category text if "other" is selected
-      let matchesCategory = true;
-      if (selectedCategory === "other" && customCategory.trim()) {
-        const categoryName = listing.categories?.name?.toLowerCase() || "";
-        matchesCategory = categoryName.includes(customCategory.toLowerCase().trim());
-      }
-      
-      // Filter by seller name/company
-      let matchesSeller = true;
-      if (sellerSearch.trim()) {
-        const sellerName = listing.profiles?.name?.toLowerCase() || "";
-        const companyName = listing.profiles?.company_name?.toLowerCase() || "";
-        const searchTerm = sellerSearch.toLowerCase().trim();
-        matchesSeller = sellerName.includes(searchTerm) || companyName.includes(searchTerm);
-      }
-      
-      // Filter by distance if user has a ZIP code
-      let withinRadius = true;
-      if (listing.distance !== null) {
-        const radiusToUse = searchRadius === "custom" ? parseInt(customRadius) || 25 : parseInt(searchRadius);
-        withinRadius = listing.distance <= radiusToUse;
-      }
-      
-      return matchesSearch && matchesCategory && matchesSeller && withinRadius;
-    });
-
-  const listingsStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    "@id": "https://loadoutmarketplace.com/listings#collectionpage",
-    "name": "Browse Surplus Construction Materials for Sale",
-    "description": "Find discounted lumber, tools, roofing, hardware and building supplies from verified local sellers. Save up to 80% off retail prices on quality construction materials.",
-    "url": "https://loadoutmarketplace.com/listings",
-    "isPartOf": {
-      "@type": "WebSite",
-      "@id": "https://loadoutmarketplace.com/#website"
-    },
-    "mainEntity": {
-      "@type": "ItemList",
-      "name": "Available Construction Materials",
-      "numberOfItems": filteredListings.length,
-      "itemListElement": filteredListings.slice(0, 20).map((listing, index) => ({
-        "@type": "ListItem",
-        "position": index + 1,
-        "item": {
-          "@type": "Product",
-          "name": listing.title,
-          "url": `https://loadoutmarketplace.com/listings/${listing.slug}`,
-          "image": listing.listing_images?.[0]?.url || undefined,
-          "description": `${listing.condition.replace("_", " ")} condition - ${listing.quantity} ${listing.unit}`,
-          "category": listing.categories?.name || "Construction Materials",
-          "offers": {
-            "@type": "Offer",
-            "price": listing.fixed_price,
-            "priceCurrency": "USD",
-            "availability": "https://schema.org/InStock",
-            "seller": {
-              "@type": "Organization",
-              "name": listing.profiles?.company_name || listing.profiles?.name || "Verified Seller"
-            }
-          }
-        }
-      }))
+  const filteredListings = listings.map((listing) => {
+    const zipToUse = searchZipCode || userZipCode;
+    const distance = zipToUse && listing.location_zip ? calculateDistance(zipToUse, listing.location_zip) : null;
+    return { ...listing, distance };
+  }).filter((listing) => {
+    const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase());
+    let matchesCategory = true;
+    if (selectedCategory === "other" && customCategory.trim()) {
+      matchesCategory = (listing.categories?.name?.toLowerCase() || "").includes(customCategory.toLowerCase().trim());
     }
-  };
-
-  const breadcrumbs = [
-    { name: "Home", url: "/" },
-    { name: "Browse Listings", url: "/listings" }
-  ];
+    let matchesSeller = true;
+    if (sellerSearch.trim()) {
+      const term = sellerSearch.toLowerCase().trim();
+      matchesSeller = (listing.profiles?.name?.toLowerCase() || "").includes(term) || (listing.profiles?.company_name?.toLowerCase() || "").includes(term);
+    }
+    let withinRadius = true;
+    if (listing.distance !== null && listing.distance !== undefined) {
+      const radiusToUse = searchRadius === "custom" ? parseInt(customRadius) || 25 : parseInt(searchRadius);
+      withinRadius = listing.distance <= radiusToUse;
+    }
+    return matchesSearch && matchesCategory && matchesSeller && withinRadius;
+  });
 
   return (
     <>
-      <SEO 
-        title="Browse Surplus Construction Materials for Sale | Loadout Marketplace"
+      <SEO
+        title="Browse Surplus Construction Materials | Loadout Marketplace"
         description="Find discounted lumber, tools, roofing, hardware and building supplies from verified local sellers. Save up to 80% off retail on quality construction materials near you."
-        keywords="buy construction materials, discount building supplies, surplus lumber for sale, used tools near me, construction equipment deals, building materials marketplace, cheap lumber, contractor surplus"
+        keywords="buy construction materials, discount building supplies, surplus lumber for sale, used tools near me"
         canonicalUrl="/listings"
-        structuredData={listingsStructuredData}
-        breadcrumbs={breadcrumbs}
       />
-      
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-white">
         <Navbar />
+        <main className="container max-w-7xl px-6" style={{ paddingTop: "96px", paddingBottom: "80px" }}>
 
-        <main className="container max-w-7xl py-8">
-        {/* Search and Filters */}
-        <div className="mb-8 space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search Materials..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+          {/* Page Header */}
+          <div className="mb-10">
+            <p className="text-xs uppercase tracking-[0.22em] text-neutral-400 mb-3" style={montserrat}>
+              Surplus Materials
+            </p>
+            <div className="flex items-baseline justify-between">
+              <h1 className="text-3xl font-bold text-neutral-900" style={playfair}>Browse Listings</h1>
+              <p className="text-sm text-neutral-400" style={montserrat}>
+                {filteredListings.length} listing{filteredListings.length !== 1 ? "s" : ""} found
+              </p>
             </div>
-            <div className="relative w-full md:w-56">
-              <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Seller or Company Name..."
-                value={sellerSearch}
-                onChange={(e) => setSellerSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+            <div className="silver-rule mt-6" />
+          </div>
 
-            <div className="flex flex-col gap-2">
+          {/* Filters */}
+          <div className="mb-8 p-6 bg-neutral-50 rounded-sm" style={{ border: "1px solid #ebebeb" }}>
+            <div className="flex flex-col md:flex-row gap-3 flex-wrap">
+              <div className="flex-1 min-w-[200px] relative">
+                <Search className="absolute left-3 top-3.5 h-4 w-4 text-neutral-400" />
+                <Input type="search" placeholder="Search materials..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-11 rounded-sm border-neutral-200 text-sm" style={montserrat} />
+              </div>
+              <div className="relative min-w-[180px]">
+                <User className="absolute left-3 top-3.5 h-4 w-4 text-neutral-400" />
+                <Input type="search" placeholder="Seller or company..." value={sellerSearch} onChange={(e) => setSellerSearch(e.target.value)}
+                  className="pl-9 h-11 rounded-sm border-neutral-200 text-sm" style={montserrat} />
+              </div>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full md:w-64">
+                <SelectTrigger className="h-11 rounded-sm border-neutral-200 text-sm min-w-[180px]" style={montserrat}>
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
+                  {categories.map((cat) => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
               {selectedCategory === "other" && (
-                <Input
-                  type="text"
-                  placeholder="Type category to search..."
-                  value={customCategory}
-                  onChange={(e) => setCustomCategory(e.target.value)}
-                  className="w-full md:w-64"
-                />
+                <Input type="text" placeholder="Type category..." value={customCategory} onChange={(e) => setCustomCategory(e.target.value)}
+                  className="h-11 rounded-sm border-neutral-200 text-sm min-w-[160px]" style={montserrat} />
               )}
-            </div>
-
-            <div className="flex gap-2 w-full md:w-auto">
-              <Input
-                type="text"
-                placeholder="ZIP Code"
-                value={searchZipCode}
-                onChange={(e) => setSearchZipCode(e.target.value)}
-                className="w-32"
-                maxLength={5}
-              />
+              <Input type="text" placeholder="ZIP Code" value={searchZipCode} onChange={(e) => setSearchZipCode(e.target.value)}
+                className="h-11 rounded-sm border-neutral-200 text-sm w-28" maxLength={5} style={montserrat} />
               <Select value={searchRadius} onValueChange={setSearchRadius}>
-                <SelectTrigger className="w-full md:w-48">
+                <SelectTrigger className="h-11 rounded-sm border-neutral-200 text-sm min-w-[160px]" style={montserrat}>
                   <SelectValue placeholder="Search Radius" />
                 </SelectTrigger>
                 <SelectContent>
@@ -352,136 +184,90 @@ const Listings = () => {
                 </SelectContent>
               </Select>
               {searchRadius === "custom" && (
-                <Input
-                  type="number"
-                  placeholder="Miles"
-                  value={customRadius}
-                  onChange={(e) => setCustomRadius(e.target.value)}
-                  className="w-24"
-                  min="1"
-                />
+                <Input type="number" placeholder="Miles" value={customRadius} onChange={(e) => setCustomRadius(e.target.value)}
+                  className="h-11 rounded-sm border-neutral-200 text-sm w-24" min="1" style={montserrat} />
               )}
             </div>
           </div>
-        </div>
 
-        {/* Results Count */}
-        <div className="mb-4">
-          <p className="text-sm text-muted-foreground">
-            {filteredListings.length} listing{filteredListings.length !== 1 ? "s" : ""} found
-          </p>
-        </div>
-
-        {/* Listings Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="overflow-hidden">
-                <div className="h-48 bg-muted animate-pulse" />
-                <CardContent className="p-4 space-y-2">
-                  <div className="h-4 bg-muted animate-pulse rounded" />
-                  <div className="h-4 bg-muted animate-pulse rounded w-2/3" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : filteredListings.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No listings found</h3>
-            <p className="text-muted-foreground mb-4">
-              Try adjusting your search or filters
-            </p>
-            <Link to="/listings/new">
-              <Button>Create First Listing</Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredListings.map((listing) => (
-              <Link key={listing.id} to={`/listings/${listing.slug}`}>
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
-                    <div className="relative h-48 bg-muted overflow-hidden">
-                        {listing.listing_images?.[0]?.url ? (
-                          <img
-                            src={listing.listing_images[0].url}
-                            alt={listing.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="h-12 w-12 text-muted-foreground" />
-                          </div>
-                        )}
-                        <Badge variant="secondary" className="absolute top-2 right-2 capitalize">
-                          {listing.condition.replace("_", " ")}
-                        </Badge>
-                      </div>
-
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-lg mb-2 line-clamp-2">
-                      {listing.title}
-                    </h3>
-
-                    {listing.categories && (
-                      <Badge variant="outline" className="mb-2">
-                        {listing.categories.name}
-                      </Badge>
-                    )}
-
-                    <div className="flex items-center text-sm text-muted-foreground mb-2">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      {listing.location_city}, {listing.location_state}
-                      {listing.distance !== null && (
-                        <span className="ml-2 text-xs font-medium text-primary">
-                          • {listing.distance.toFixed(1)} mi
+          {/* Grid */}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="rounded-sm overflow-hidden" style={{ border: "1px solid #e8e8e8" }}>
+                  <div className="h-48 bg-neutral-100 animate-pulse" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 bg-neutral-100 animate-pulse rounded w-3/4" />
+                    <div className="h-3 bg-neutral-100 animate-pulse rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredListings.length === 0 ? (
+            <div className="text-center py-20">
+              <Package className="h-10 w-10 text-neutral-300 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-neutral-900 mb-2" style={playfair}>No listings found</h3>
+              <p className="text-sm text-neutral-500 mb-6" style={montserrat}>Try adjusting your search or filters</p>
+              <Link to="/create-listing">
+                <button className="h-11 px-8 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: "#111" }}>
+                  Post a Listing
+                </button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredListings.map((listing) => (
+                <Link key={listing.id} to={`/listings/${listing.slug}`}>
+                  <div className="card-premium rounded-sm overflow-hidden h-full group bg-white">
+                    <div className="relative h-48 bg-neutral-100 overflow-hidden">
+                      {listing.listing_images?.[0]?.url ? (
+                        <img src={listing.listing_images[0].url} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                          <Package className="h-10 w-10 text-neutral-300" />
+                          <span className="text-xs text-neutral-400" style={montserrat}>No image</span>
+                        </div>
+                      )}
+                      {listing.categories && (
+                        <span className="absolute top-3 left-3 text-white text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm" style={{ ...montserrat, background: "#111", fontSize: "10px" }}>
+                          {listing.categories.name}
                         </span>
                       )}
-                    </div>
-
-                    <div
-                      className="flex items-center text-sm text-muted-foreground mb-2 hover:text-primary cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        window.location.href = `/sellers/${listing.seller_id}`;
-                      }}
-                    >
-                      <User className="h-4 w-4 mr-1" />
-                      <span className="hover:underline">
-                        {listing.profiles?.company_name || listing.profiles?.name || "Unknown Seller"}
+                      <span className="absolute top-3 right-3 text-neutral-600 text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm capitalize" style={{ ...montserrat, background: "rgba(255,255,255,0.92)", fontSize: "10px" }}>
+                        {listing.condition.replace("_", " ")}
                       </span>
                     </div>
-
-                    <p className="text-sm text-muted-foreground">
-                      Qty: {listing.quantity} {listing.unit}
-                    </p>
-                  </CardContent>
-
-                  <CardContent className="p-4 pt-0">
-                    <SellerBadges
-                      completedSales={listing.sellerCompletedSales || 0}
-                      averageRating={listing.sellerRating || 0}
-                      reviewCount={listing.sellerReviewCount || 0}
-                      isVerifiedBusiness={listing.profiles?.is_verified_business || false}
-                      variant="compact"
-                    />
-                  </CardContent>
-
-                  <CardFooter className="p-4 pt-0">
-                    <div className="text-2xl font-bold text-primary">
-                      ${listing.fixed_price}
+                    <div className="p-5 space-y-3">
+                      <h3 className="font-bold text-base line-clamp-2 leading-snug text-neutral-900" style={playfair}>{listing.title}</h3>
+                      <div className="flex items-center gap-3 text-xs text-neutral-400" style={montserrat}>
+                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{listing.location_city}, {listing.location_state}</span>
+                        {listing.distance !== null && listing.distance !== undefined && <span className="font-medium text-neutral-600">{listing.distance.toFixed(1)} mi</span>}
+                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{getTimeAgo(listing.created_at)}</span>
+                      </div>
+                      <div
+                        className="flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer"
+                        style={montserrat}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `/sellers/${listing.seller_id}`; }}
+                      >
+                        <User className="h-3 w-3" />
+                        <span className="hover:underline">{listing.profiles?.company_name || listing.profiles?.name || "Unknown Seller"}</span>
+                      </div>
+                      <p className="text-xs text-neutral-400" style={montserrat}>Qty: {listing.quantity} {listing.unit}</p>
+                      <SellerBadges completedSales={listing.sellerCompletedSales || 0} averageRating={listing.sellerRating || 0} reviewCount={listing.sellerReviewCount || 0} isVerifiedBusiness={listing.profiles?.is_verified_business || false} variant="compact" />
+                      <div className="flex items-baseline justify-between pt-1">
+                        <span className="text-xl font-bold text-neutral-900" style={playfair}>${listing.fixed_price?.toLocaleString()}</span>
+                        <span className="text-xs text-neutral-400 uppercase tracking-wider" style={montserrat}>~{Math.round((1 - listing.fixed_price / (listing.fixed_price * 2.5)) * 100)}% off retail</span>
+                      </div>
                     </div>
-                  </CardFooter>
-                </Card>
-              </Link>
-            ))}
-              </div>
-            )}
-          </main>
-        </div>
-      </>
-      );
-    };
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+    </>
+  );
+};
 
 export default Listings;
