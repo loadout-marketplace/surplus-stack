@@ -3,7 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, DollarSign, Package, Shield, TrendingUp, ArrowRight, Search, MapPin, Clock, UserCheck, MessageSquareText, Zap, Camera, Handshake, CircleDollarSign } from "lucide-react";
+import {
+  Package, Shield, ArrowRight, Search, MapPin, Clock,
+  UserCheck, MessageSquareText, Zap, Camera, Handshake, CircleDollarSign
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
@@ -82,71 +85,84 @@ const Landing = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "@id": "https://loadoutmarketplace.com/#webpage",
-    "name": "Loadout Marketplace - Buy & Sell Surplus Construction Materials",
-    "description": "Save up to 80% on surplus construction materials. Buy & sell lumber, roofing, tools, hardware from local contractors. Free to list.",
-    "url": "https://loadoutmarketplace.com",
-    "isPartOf": {
-      "@type": "WebSite",
-      "@id": "https://loadoutmarketplace.com/#website"
-    },
-    "about": {
-      "@type": "Thing",
-      "name": "Surplus Construction Materials Marketplace"
-    },
-    "mainEntity": {
-      "@type": "ItemList",
-      "name": "Popular Construction Material Categories",
-      "numberOfItems": 6,
-      "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Lumber & Wood", "url": "https://loadoutmarketplace.com/listings?category=lumber" },
-        { "@type": "ListItem", "position": 2, "name": "Roofing Materials", "url": "https://loadoutmarketplace.com/listings?category=roofing" },
-        { "@type": "ListItem", "position": 3, "name": "Tools & Equipment", "url": "https://loadoutmarketplace.com/listings?category=tools" },
-        { "@type": "ListItem", "position": 4, "name": "Hardware & Fasteners", "url": "https://loadoutmarketplace.com/listings?category=hardware" },
-        { "@type": "ListItem", "position": 5, "name": "Plumbing Supplies", "url": "https://loadoutmarketplace.com/listings?category=plumbing" },
-        { "@type": "ListItem", "position": 6, "name": "Electrical Supplies", "url": "https://loadoutmarketplace.com/listings?category=electrical" }
-      ]
-    },
-    "speakable": {
-      "@type": "SpeakableSpecification",
-      "cssSelector": ["h1", ".hero-description"]
-    }
+    name: "Loadout Marketplace - Buy & Sell Surplus Construction Materials",
+    description: "Save up to 80% on surplus construction materials. Buy & sell lumber, roofing, tools, hardware from local contractors. Free to list.",
+    url: "https://loadoutmarketplace.com",
+  };
+
+  const playfair: React.CSSProperties = {
+    fontFamily: "'Playfair Display', Georgia, serif",
+  };
+
+  const montserrat: React.CSSProperties = {
+    fontFamily: "'Montserrat', sans-serif",
   };
 
   return (
     <>
-      <SEO 
+      <SEO
         title="Loadout Marketplace | Buy & Sell Surplus Construction Materials Near You"
         description="Save up to 80% on surplus construction materials. Buy & sell lumber, roofing, tools, hardware from local contractors. Free to list. Trusted by thousands of contractors nationwide."
-        keywords="surplus construction materials, building materials marketplace, discount lumber near me, used construction supplies, contractor materials, DIY materials, buy surplus lumber, sell leftover materials, construction deals"
+        keywords="surplus construction materials, building materials marketplace, discount lumber near me, used construction supplies, contractor materials"
         canonicalUrl="/"
         structuredData={structuredData}
       />
-      
-      <div className="min-h-screen bg-background pt-16">
+
+      <div className="min-h-screen bg-white pt-16">
         <Navbar />
 
-        {/* Hero Section — clean, spacious */}
-        <header className="bg-hero-bg text-hero-fg">
-          <div className="container max-w-5xl py-24 md:py-36">
+        {/* ── HERO ──────────────────────────────────────────── */}
+        <header style={{ background: "#fafafa", borderBottom: "1px solid #ebebeb" }}>
+          <div className="container max-w-5xl py-28 md:py-40">
             <div className="text-center space-y-8">
-              <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.1] tracking-tight">
-                Buy & Sell Surplus Construction
-                <br />
-                Materials <span className="text-primary">Near You</span>
-              </h1>
-              <p className="hero-description text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                Got leftover materials from your last job? Turn them into cash — or save up to 80% on lumber, roofing, tools & hardware. Free to list, no commissions.
+
+              {/* Eyebrow */}
+              <p
+                className="animate-fade-in-up text-xs uppercase tracking-[0.22em] text-neutral-400"
+                style={montserrat}
+              >
+                The Professional Surplus Marketplace
               </p>
-              <div className="max-w-2xl mx-auto pt-2">
-                <div className="flex flex-col sm:flex-row gap-2 bg-background rounded-xl p-2 shadow-lg border border-border/60">
+
+              {/* Headline */}
+              <h1
+                className="animate-fade-in-up animate-delay-100 text-4xl md:text-6xl font-bold leading-[1.1] text-neutral-900"
+                style={playfair}
+              >
+                Buy &amp; Sell Surplus<br />
+                <span style={{ fontStyle: "italic", color: "#444" }}>Construction Materials</span>
+              </h1>
+
+              {/* Silver rule */}
+              <div className="silver-rule max-w-xs mx-auto animate-fade-in-up animate-delay-200" />
+
+              {/* Subtext */}
+              <p
+                className="animate-fade-in-up animate-delay-200 text-base md:text-lg text-neutral-500 max-w-lg mx-auto leading-relaxed"
+                style={montserrat}
+              >
+                Turn leftover materials into cash — or save up to 80% on lumber,
+                roofing, tools &amp; hardware. Free to list. No commissions.
+              </p>
+
+              {/* Search bar */}
+              <div className="animate-fade-in-up animate-delay-300 max-w-2xl mx-auto">
+                <div
+                  className="flex flex-col sm:flex-row gap-2 bg-white p-2 rounded-sm"
+                  style={{ border: "1px solid #d8d8d8", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}
+                >
                   <Select value={heroCategory} onValueChange={setHeroCategory}>
-                    <SelectTrigger className="sm:w-44 bg-background text-foreground border border-border h-12 rounded-lg">
+                    <SelectTrigger
+                      className="sm:w-48 bg-white border border-neutral-200 h-11 rounded-sm text-sm"
+                      style={montserrat}
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {heroCategories.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                        <SelectItem key={cat.value} value={cat.value} style={montserrat}>
+                          {cat.label}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -155,61 +171,75 @@ const Landing = () => {
                     value={heroSearch}
                     onChange={(e) => setHeroSearch(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleHeroSearch()}
-                    className="flex-1 bg-background text-foreground border border-border h-12 rounded-lg placeholder:text-muted-foreground"
+                    className="flex-1 bg-white border border-neutral-200 h-11 rounded-sm text-sm placeholder:text-neutral-400"
+                    style={montserrat}
                   />
                   <Button
                     onClick={handleHeroSearch}
-                    className="h-12 px-6 bg-cta hover:bg-cta/90 text-cta-foreground rounded-lg"
+                    className="h-11 px-6 text-white text-xs font-semibold uppercase tracking-wider rounded-sm"
+                    style={{ ...montserrat, background: "#111", minWidth: "100px" }}
                   >
                     <Search className="h-4 w-4 mr-2" />
                     Search
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center justify-center gap-6 sm:gap-10 pt-6">
-                <div className="text-center">
-                  <p className="text-2xl sm:text-3xl font-bold text-cta">12,400+</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Active Listings</p>
-                </div>
-                <div className="w-px h-10 bg-border" />
-                <div className="text-center">
-                  <p className="text-2xl sm:text-3xl font-bold text-cta">3,800+</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Verified Contractors</p>
-                </div>
-                <div className="w-px h-10 bg-border" />
-                <div className="text-center">
-                  <p className="text-2xl sm:text-3xl font-bold text-cta">48</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">States Covered</p>
-                </div>
+
+              {/* Stats row */}
+              <div
+                className="animate-fade-in-up animate-delay-400 flex items-center justify-center gap-10 pt-4"
+                style={montserrat}
+              >
+                {[
+                  { n: "12,400+", label: "Active Listings" },
+                  { n: "3,800+", label: "Verified Contractors" },
+                  { n: "48 States", label: "Covered" },
+                ].map((s, i) => (
+                  <div key={i} className="text-center">
+                    <p className="text-2xl font-bold text-neutral-900" style={playfair}>{s.n}</p>
+                    <p className="text-xs text-neutral-400 uppercase tracking-wider mt-0.5">{s.label}</p>
+                  </div>
+                ))}
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-6">
-                <Button asChild className="h-12 px-8 bg-background text-foreground hover:bg-background/90 rounded-lg font-semibold">
-                  <Link to="/create-listing">Post a Free Listing</Link>
-                </Button>
-                <Button asChild variant="outline" className="h-12 px-8 border-background/40 text-hero-fg hover:bg-background/10 rounded-lg font-semibold bg-transparent">
-                  <Link to="/listings">Browse Deals</Link>
-                </Button>
+
+              {/* CTA buttons */}
+              <div className="animate-fade-in-up animate-delay-400 flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                <Link to="/create-listing">
+                  <Button
+                    className="h-11 px-8 text-white text-xs font-bold uppercase tracking-[0.12em] rounded-sm btn-shimmer"
+                    style={montserrat}
+                  >
+                    Post a Free Listing
+                  </Button>
+                </Link>
+                <Link to="/listings">
+                  <Button
+                    variant="outline"
+                    className="h-11 px-8 text-xs font-bold uppercase tracking-[0.12em] rounded-sm border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                    style={montserrat}
+                  >
+                    Browse Deals
+                  </Button>
+                </Link>
               </div>
-              <p className="text-sm text-muted-foreground pt-4 font-medium">
-                Join 3,800+ contractors already turning surplus into cash.
-              </p>
             </div>
           </div>
         </header>
 
-        {/* Category chips */}
-        <section className="border-b bg-background py-4">
+        {/* ── CATEGORY CHIPS ────────────────────────────────── */}
+        <section style={{ borderBottom: "1px solid #ebebeb", background: "#fff", padding: "16px 0" }}>
           <div className="container max-w-5xl overflow-x-auto scrollbar-hide">
             <div className="flex gap-2 min-w-max px-1">
               {[
-                "🪵 Lumber", "🏠 Roofing", "⚡ Electrical", "🔧 Plumbing",
-                "🛠️ Tools", "🧱 Flooring", "🧤 Insulation", "🔩 Hardware",
-                "🪟 Windows & Doors", "🎨 Paint & Finishes"
+                "Lumber", "Roofing", "Electrical", "Plumbing",
+                "Tools", "Flooring", "Insulation", "Hardware",
+                "Windows & Doors", "Paint & Finishes"
               ].map((cat) => (
                 <Link
                   key={cat}
-                  to={`/listings?category=${cat.split(" ").slice(1).join(" ").toLowerCase()}`}
-                  className="inline-flex items-center px-4 py-2 rounded-full border border-border bg-background text-sm font-medium text-muted-foreground hover:bg-cta/5 hover:border-cta hover:text-cta transition-colors whitespace-nowrap"
+                  to={`/listings?category=${cat.toLowerCase()}`}
+                  className="inline-flex items-center px-4 py-2 rounded-sm border text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-neutral-900 hover:border-neutral-400 transition-colors whitespace-nowrap"
+                  style={{ ...montserrat, borderColor: "#e0e0e0", background: "#fff" }}
                 >
                   {cat}
                 </Link>
@@ -218,18 +248,22 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* Trust stats */}
-        <section className="border-b bg-section-alt">
+        {/* ── TRUST STATS BAR ───────────────────────────────── */}
+        <section style={{ background: "#f7f7f7", borderBottom: "1px solid #ebebeb" }}>
           <div className="container max-w-5xl">
-            <ul className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border list-none" role="list" aria-label="Platform stats">
+            <ul className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-neutral-200 list-none">
               {[
                 { number: "12,400+", label: "Active Listings" },
                 { number: "3,800+", label: "Verified Contractors" },
                 { number: "48", label: "States Covered" },
               ].map((stat) => (
-                <li key={stat.label} className="flex flex-col items-center py-8 md:py-10 gap-1">
-                  <span className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">{stat.number}</span>
-                  <span className="text-sm text-muted-foreground font-medium">{stat.label}</span>
+                <li key={stat.label} className="flex flex-col items-center py-10 gap-1">
+                  <span className="text-3xl md:text-4xl font-bold text-neutral-900" style={playfair}>
+                    {stat.number}
+                  </span>
+                  <span className="text-xs text-neutral-400 uppercase tracking-widest" style={montserrat}>
+                    {stat.label}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -239,67 +273,80 @@ const Landing = () => {
         <main>
           {user && <WelcomeStats />}
 
-          {/* Recently Listed Near You */}
-          <section className="py-16 md:py-20 bg-background">
+          {/* ── RECENT LISTINGS ───────────────────────────── */}
+          <section style={{ background: "#fff", padding: "80px 0" }}>
             <div className="container max-w-5xl">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Recently Listed Near You</h2>
-                <Link to="/listings" className="text-sm font-semibold text-cta hover:text-cta/80 transition-colors flex items-center gap-1">
-                  View All <ArrowRight className="h-4 w-4" />
+              <div className="flex items-baseline justify-between mb-10">
+                <h2 className="text-2xl md:text-3xl font-bold text-neutral-900" style={playfair}>
+                  Recently Listed Near You
+                </h2>
+                <Link
+                  to="/listings"
+                  className="text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:text-neutral-900 flex items-center gap-1 transition-colors"
+                  style={montserrat}
+                >
+                  View All <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
+
               {loadingListings ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {[...Array(6)].map((_, i) => (
-                    <Card key={i} className="overflow-hidden">
-                      <div className="h-44 bg-muted animate-pulse" />
+                    <Card key={i} className="overflow-hidden rounded-sm">
+                      <div className="h-44 bg-neutral-100 animate-pulse" />
                       <CardContent className="p-4 space-y-2">
-                        <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-                        <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+                        <div className="h-4 bg-neutral-100 animate-pulse rounded w-3/4" />
+                        <div className="h-3 bg-neutral-100 animate-pulse rounded w-1/2" />
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               ) : recentListings.length === 0 ? (
-                <p className="text-muted-foreground text-center py-12">No listings yet — be the first to post!</p>
+                <p className="text-neutral-400 text-center py-12 text-sm" style={montserrat}>
+                  No listings yet — be the first to post!
+                </p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {recentListings.map((listing) => {
                     const timeAgo = getTimeAgo(listing.created_at);
                     const retailEstimate = listing.fixed_price * 2.5;
                     const pctOff = Math.round((1 - listing.fixed_price / retailEstimate) * 100);
-
                     return (
                       <Link key={listing.id} to={`/listings/${listing.slug}`}>
-                        <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 h-full border-border/60 group rounded-xl">
-                          {/* Image / placeholder */}
-                          <div className="relative h-44 bg-muted overflow-hidden">
+                        <Card
+                          className="card-premium overflow-hidden h-full rounded-sm group"
+                          style={{ border: "1px solid #e8e8e8" }}
+                        >
+                          <div className="relative h-44 bg-neutral-100 overflow-hidden">
                             {listing.listing_images?.[0]?.url ? (
                               <img
                                 src={listing.listing_images[0].url}
                                 alt={listing.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               />
                             ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-muted">
-                                <Package className="h-10 w-10 text-muted-foreground/50" />
-                                <span className="text-xs text-muted-foreground">No image</span>
+                              <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                                <Package className="h-10 w-10 text-neutral-300" />
+                                <span className="text-xs text-neutral-400" style={montserrat}>No image</span>
                               </div>
                             )}
-                            {/* Category badge — green pill */}
                             {listing.categories && (
-                              <Badge className="absolute top-2.5 left-2.5 bg-cta text-cta-foreground hover:bg-cta/90 text-xs font-medium">
+                              <Badge
+                                className="absolute top-3 left-3 text-white text-xs font-semibold uppercase tracking-wider rounded-sm px-2 py-0.5"
+                                style={{ ...montserrat, background: "#111", fontSize: "10px" }}
+                              >
                                 {listing.categories.name}
                               </Badge>
                             )}
                           </div>
-
-                          <CardContent className="p-4 space-y-3">
-                            {/* Title */}
-                            <h3 className="font-semibold text-base line-clamp-2 leading-snug">{listing.title}</h3>
-
-                            {/* Location + time */}
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <CardContent className="p-5 space-y-3">
+                            <h3
+                              className="font-bold text-base line-clamp-2 leading-snug text-neutral-900"
+                              style={playfair}
+                            >
+                              {listing.title}
+                            </h3>
+                            <div className="flex items-center gap-3 text-xs text-neutral-400" style={montserrat}>
                               <span className="flex items-center gap-1">
                                 <MapPin className="h-3 w-3" />
                                 {listing.location_city}, {listing.location_state}
@@ -309,15 +356,20 @@ const Landing = () => {
                                 {timeAgo}
                               </span>
                             </div>
-
-                            {/* Price row */}
-                            <div className="flex items-baseline gap-2">
-                              <span className="text-xl font-bold text-foreground">${listing.fixed_price.toLocaleString()}</span>
-                              <span className="text-xs font-semibold text-amber-600">~{pctOff}% off retail</span>
+                            <div className="flex items-baseline gap-2 pt-1">
+                              <span className="text-xl font-bold text-neutral-900" style={playfair}>
+                                ${listing.fixed_price.toLocaleString()}
+                              </span>
+                              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider" style={montserrat}>
+                                ~{pctOff}% off retail
+                              </span>
                             </div>
-
-                            {/* Contact button */}
-                            <Button size="sm" variant="outline" className="w-full mt-1 border-cta text-cta hover:bg-cta hover:text-cta-foreground transition-colors">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-full mt-1 rounded-sm border-neutral-300 text-neutral-700 hover:bg-neutral-900 hover:text-white hover:border-neutral-900 transition-all text-xs font-semibold uppercase tracking-wider"
+                              style={montserrat}
+                            >
                               Contact Seller
                             </Button>
                           </CardContent>
@@ -330,94 +382,122 @@ const Landing = () => {
             </div>
           </section>
 
-          {/* Platform fee info */}
-          <section className="bg-section-alt border-y border-border/60">
-            <div className="container max-w-5xl py-6">
+          {/* ── PLATFORM FEE BANNER ───────────────────────── */}
+          <section style={{ background: "#f7f7f7", borderTop: "1px solid #ebebeb", borderBottom: "1px solid #ebebeb" }}>
+            <div className="container max-w-5xl py-5">
               <div className="flex items-center gap-4 justify-center text-center">
-                <div className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cta/10">
-                  <Shield className="h-5 w-5 text-cta" />
+                <div className="hidden sm:flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-200">
+                  <Shield className="h-4 w-4 text-neutral-600" />
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
-                  <span className="font-semibold text-foreground">Secure checkout powered by Loadout</span> — a small 4% platform fee applies to completed transactions, keeping this marketplace running and fraud-free.
+                <p className="text-sm text-neutral-500 max-w-xl" style={montserrat}>
+                  <span className="font-semibold text-neutral-800">Secure checkout powered by Loadout</span>
+                  {" "}— a small 4% platform fee applies to completed transactions, keeping this marketplace running and fraud-free.
                 </p>
               </div>
             </div>
           </section>
 
-          {/* How It Works */}
-          <section className="py-20 md:py-28 bg-background" aria-labelledby="how-it-works-heading">
+          {/* ── HOW IT WORKS ──────────────────────────────── */}
+          <section style={{ background: "#fff", padding: "100px 0" }} id="how-it-works">
             <div className="container max-w-5xl">
               <div className="text-center mb-16">
-                <h2 id="how-it-works-heading" className="text-3xl md:text-4xl font-bold tracking-tight mb-3">How It Works</h2>
-                <p className="text-muted-foreground text-lg max-w-lg mx-auto">
-                  Three simple steps to buy or sell construction materials.
+                <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-4" style={montserrat}>
+                  Simple Process
                 </p>
+                <h2 className="text-3xl md:text-4xl font-bold text-neutral-900" style={playfair}>
+                  How It Works
+                </h2>
+                <div className="silver-rule max-w-[60px] mx-auto mt-6" />
               </div>
 
               <div className="grid md:grid-cols-3 gap-6 md:gap-0 relative">
-                {/* Connector lines (desktop only) */}
-                <div className="hidden md:block absolute top-8 left-[calc(16.67%+24px)] right-[calc(16.67%+24px)] h-0.5 bg-border" />
-
+                <div className="hidden md:block absolute top-8 left-[calc(16.67%+24px)] right-[calc(16.67%+24px)] h-px bg-neutral-200" />
                 {[
-                  { icon: Camera, step: "1", title: "Post Your Surplus", desc: "Snap a photo, add details, and your listing goes live in under 2 minutes." },
-                  { icon: Handshake, step: "2", title: "Connect with Local Contractors", desc: "Buyers in your area find your listing and reach out through secure messaging." },
-                  { icon: CircleDollarSign, step: "3", title: "Get Paid Securely", desc: "Complete the transaction with confidence. Funds are protected until delivery." },
+                  { icon: Camera, step: "01", title: "Post Your Surplus", desc: "Snap a photo, add details, and your listing goes live in under 2 minutes." },
+                  { icon: Handshake, step: "02", title: "Connect with Buyers", desc: "Local contractors find your listing and reach out through secure messaging." },
+                  { icon: CircleDollarSign, step: "03", title: "Get Paid Securely", desc: "Complete the transaction with confidence. Funds are protected until delivery." },
                 ].map((item) => (
                   <div key={item.step} className="flex flex-col items-center text-center relative z-10">
-                    <div className="flex items-center justify-center h-16 w-16 rounded-full bg-cta/10 border-4 border-background mb-4">
-                      <item.icon className="h-7 w-7 text-cta" aria-hidden="true" />
+                    <div
+                      className="flex items-center justify-center h-16 w-16 rounded-full bg-white border-2 border-neutral-200 mb-6"
+                      style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+                    >
+                      <item.icon className="h-6 w-6 text-neutral-700" />
                     </div>
-                    <span className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Step {item.step}</span>
-                    <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed max-w-[240px]">{item.desc}</p>
+                    <span className="text-xs font-bold text-neutral-300 uppercase tracking-[0.2em] mb-2" style={montserrat}>
+                      Step {item.step}
+                    </span>
+                    <h3 className="text-lg font-bold mb-2 text-neutral-900" style={playfair}>{item.title}</h3>
+                    <p className="text-sm text-neutral-500 leading-relaxed max-w-[220px]" style={montserrat}>{item.desc}</p>
                   </div>
                 ))}
               </div>
             </div>
           </section>
 
-          {/* Why Loadout */}
-          <section className="py-20 md:py-28 bg-hero-bg" aria-labelledby="why-loadout-heading">
+          {/* ── WHY LOADOUT ───────────────────────────────── */}
+          <section style={{ background: "#f7f7f7", borderTop: "1px solid #ebebeb", padding: "100px 0" }} id="for-contractors">
             <div className="container max-w-5xl">
               <div className="text-center mb-16">
-                <h2 id="why-loadout-heading" className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Why Loadout?</h2>
+                <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 mb-4" style={montserrat}>
+                  Built for Professionals
+                </p>
+                <h2 className="text-3xl md:text-4xl font-bold text-neutral-900" style={playfair}>
+                  Why Loadout?
+                </h2>
+                <div className="silver-rule max-w-[60px] mx-auto mt-6" />
               </div>
 
-              <div className="grid md:grid-cols-3 gap-10 max-w-4xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-12 max-w-4xl mx-auto">
                 {[
                   { icon: UserCheck, title: "Verified Contractor Profiles", desc: "Every seller is verified. Browse real reviews and track records before you buy." },
                   { icon: MessageSquareText, title: "Secure Messaging & Payments", desc: "Communicate safely and transact with confidence through our protected platform." },
                   { icon: Zap, title: "List in Under 2 Minutes", desc: "Snap a photo, set your price, and your listing is live — it's that fast." },
                 ].map((item) => (
                   <article key={item.title} className="text-center">
-                    <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-cta/10 mb-5">
-                      <item.icon className="h-7 w-7 text-cta" aria-hidden="true" />
+                    <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-white border border-neutral-200 mb-5"
+                      style={{ boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
+                      <item.icon className="h-6 w-6 text-neutral-700" />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                    <h3 className="font-bold text-lg mb-3 text-neutral-900" style={playfair}>{item.title}</h3>
+                    <p className="text-sm text-neutral-500 leading-relaxed" style={montserrat}>{item.desc}</p>
                   </article>
                 ))}
               </div>
             </div>
           </section>
 
-          {/* CTA Section */}
-          <section className="py-20 md:py-28" style={{ backgroundColor: '#0F3D22' }} aria-labelledby="cta-heading">
+          {/* ── CTA SECTION ───────────────────────────────── */}
+          <section style={{ background: "#111", padding: "100px 0" }}>
             <div className="container max-w-3xl text-center">
-              <h2 id="cta-heading" className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-white">
-                Got leftover materials from your last job?
+              <p className="text-xs uppercase tracking-[0.22em] text-neutral-400 mb-5" style={montserrat}>
+                Join the Network
+              </p>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4" style={playfair}>
+                Got leftover materials<br />
+                <span style={{ fontStyle: "italic", color: "#aaa" }}>from your last job?</span>
               </h2>
-              <p className="text-lg mb-10 text-white/70 max-w-md mx-auto">
+              <div className="silver-rule max-w-[60px] mx-auto my-8" />
+              <p className="text-base text-neutral-400 mb-10 max-w-md mx-auto" style={montserrat}>
                 Join 3,800+ contractors already turning surplus into cash.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link to="/create-listing">
-                  <Button size="lg" className="w-full sm:w-auto text-base px-8 h-12 bg-white text-foreground hover:bg-white/90 font-semibold">
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto text-sm px-10 h-12 font-bold uppercase tracking-wider rounded-sm"
+                    style={{ ...montserrat, background: "#fff", color: "#111" }}
+                  >
                     Post a Free Listing
                   </Button>
                 </Link>
                 <Link to="/listings">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto text-base px-8 h-12 bg-transparent border-white/40 text-white hover:bg-white/10 font-semibold">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto text-sm px-10 h-12 font-bold uppercase tracking-wider rounded-sm bg-transparent text-white hover:bg-white/10"
+                    style={{ ...montserrat, borderColor: "rgba(255,255,255,0.25)" }}
+                  >
                     Browse Deals
                   </Button>
                 </Link>
@@ -426,58 +506,83 @@ const Landing = () => {
           </section>
         </main>
 
-        {/* Footer */}
-        <footer className="pt-16 pb-8" style={{ backgroundColor: '#F9FAFB' }}>
+        {/* ── FOOTER ────────────────────────────────────────── */}
+        <footer style={{ background: "#fafafa", borderTop: "1px solid #ebebeb", paddingTop: "64px", paddingBottom: "40px" }}>
           <div className="container max-w-5xl">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
               {/* Brand */}
               <div className="md:col-span-1 space-y-3">
-                <Link to="/" className="text-2xl font-bold text-foreground tracking-tight">
-                  🏗️ Loadout
+                <Link to="/" className="flex items-center gap-2">
+                  <span className="text-xl font-bold text-neutral-900" style={playfair}>
+                    Loadout
+                  </span>
                 </Link>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Sell Your Surplus. Find Deals. Build Smarter.
+                <p className="text-xs text-neutral-400 leading-relaxed" style={montserrat}>
+                  Sell Your Surplus.<br />Find Deals. Build Smarter.
                 </p>
               </div>
 
               {/* Marketplace */}
-              <div className="space-y-3">
-                <h4 className="font-semibold text-foreground text-sm uppercase tracking-wider">Marketplace</h4>
-                <nav className="flex flex-col gap-2 text-sm">
-                  <Link to="/listings" className="text-muted-foreground hover:text-foreground transition-colors">Browse Listings</Link>
-                  <Link to="/create-listing" className="text-muted-foreground hover:text-foreground transition-colors">Post a Listing</Link>
-                  <Link to="/listings?category=lumber" className="text-muted-foreground hover:text-foreground transition-colors">Lumber</Link>
-                  <Link to="/listings?category=tools" className="text-muted-foreground hover:text-foreground transition-colors">Tools</Link>
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-800" style={montserrat}>
+                  Marketplace
+                </h4>
+                <nav className="flex flex-col gap-2.5 text-sm">
+                  {[
+                    { to: "/listings", label: "Browse Listings" },
+                    { to: "/create-listing", label: "Post a Listing" },
+                    { to: "/listings?category=lumber", label: "Lumber" },
+                    { to: "/listings?category=tools", label: "Tools" },
+                  ].map((l) => (
+                    <Link key={l.to} to={l.to} className="text-neutral-400 hover:text-neutral-800 transition-colors text-xs" style={montserrat}>
+                      {l.label}
+                    </Link>
+                  ))}
                 </nav>
               </div>
 
               {/* Company */}
-              <div className="space-y-3">
-                <h4 className="font-semibold text-foreground text-sm uppercase tracking-wider">Company</h4>
-                <nav className="flex flex-col gap-2 text-sm">
-                  <a href="/Loadout_Marketplace_Terms_of_Service.pdf" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">Terms of Service</a>
-                  <Link to="/privacy-policy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link>
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-800" style={montserrat}>
+                  Company
+                </h4>
+                <nav className="flex flex-col gap-2.5">
+                  <a
+                    href="/Loadout_Marketplace_Terms_of_Service.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-neutral-400 hover:text-neutral-800 transition-colors text-xs"
+                    style={montserrat}
+                  >
+                    Terms of Service
+                  </a>
+                  <Link to="/privacy-policy" className="text-neutral-400 hover:text-neutral-800 transition-colors text-xs" style={montserrat}>
+                    Privacy Policy
+                  </Link>
                 </nav>
               </div>
 
               {/* Social */}
-              <div className="space-y-3">
-                <h4 className="font-semibold text-foreground text-sm uppercase tracking-wider">Connect</h4>
-                <nav className="flex gap-4 text-muted-foreground">
-                  <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-foreground transition-colors">
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-800" style={montserrat}>
+                  Connect
+                </h4>
+                <nav className="flex gap-4 text-neutral-400">
+                  <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-neutral-800 transition-colors">
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                   </a>
-                  <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-foreground transition-colors">
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                  <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-neutral-800 transition-colors">
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
                   </a>
-                  <a href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="X" className="hover:text-foreground transition-colors">
-                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  <a href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="X" className="hover:text-neutral-800 transition-colors">
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                   </a>
                 </nav>
               </div>
             </div>
 
-            <div className="border-t border-border pt-6 text-center text-sm text-muted-foreground">
+            <div className="silver-rule mb-6" />
+            <div className="text-center text-xs text-neutral-400" style={montserrat}>
               <p>&copy; {new Date().getFullYear()} Loadout Marketplace. All rights reserved.</p>
             </div>
           </div>
