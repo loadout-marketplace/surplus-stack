@@ -1,32 +1,30 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Package, CheckCircle } from "lucide-react";
+import { Package, CheckCircle, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { ReviewDialog } from "@/components/ReviewDialog";
 
 interface Order {
-  id: string;
-  status: string;
-  total_price: number;
-  quantity: number;
-  created_at: string;
-  listing_id: string;
-  seller_id: string;
-  listings: {
-    title: string;
-    slug: string;
-  } | null;
-  profiles: {
-    name: string;
-  } | null;
+  id: string; status: string; total_price: number; quantity: number;
+  created_at: string; listing_id: string; seller_id: string;
+  listings: { title: string; slug: string } | null;
+  profiles: { name: string } | null;
   reviews: { id: string }[];
 }
+
+const playfair: React.CSSProperties = { fontFamily: "'Playfair Display', Georgia, serif" };
+const montserrat: React.CSSProperties = { fontFamily: "'Montserrat', sans-serif" };
+
+const statusStyles: Record<string, { label: string; bg: string; color: string }> = {
+  pending_payment: { label: "Pending Payment", bg: "#fafafa", color: "#999" },
+  paid: { label: "Paid", bg: "#f0fdf4", color: "#16a34a" },
+  ready_for_pickup: { label: "Ready for Pickup", bg: "#eff6ff", color: "#2563eb" },
+  completed: { label: "Completed", bg: "#f0fdf4", color: "#16a34a" },
+  cancelled: { label: "Cancelled", bg: "#fef2f2", color: "#dc2626" },
+};
 
 const Orders = () => {
   const { user, loading: authLoading } = useAuth();
@@ -35,80 +33,36 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      toast.error("Please sign in to view orders");
-      navigate("/auth");
-    }
+    if (!authLoading && !user) { toast.error("Please sign in to view orders"); navigate("/auth"); }
   }, [user, authLoading, navigate]);
 
-  useEffect(() => {
-    if (user) {
-      fetchOrders();
-    }
-  }, [user]);
+  useEffect(() => { if (user) fetchOrders(); }, [user]);
 
   const fetchOrders = async () => {
     if (!user) return;
-
     setLoading(true);
-    const { data, error } = await supabase
-      .from("orders")
-      .select(
-        `
-        *,
-        listings (title, slug),
-        profiles!orders_seller_id_fkey (name),
-        reviews (id)
-      `
-      )
-      .eq("buyer_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      toast.error("Failed to load orders");
-      console.error(error);
-    } else {
-      setOrders(data || []);
-    }
+    const { data, error } = await supabase.from("orders")
+      .select(`*, listings (title, slug), profiles!orders_seller_id_fkey (name), reviews (id)`)
+      .eq("buyer_id", user.id).order("created_at", { ascending: false });
+    if (error) toast.error("Failed to load orders");
+    else setOrders(data || []);
     setLoading(false);
   };
 
   const handleMarkReceived = async (orderId: string) => {
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: "completed" })
-      .eq("id", orderId);
-
-    if (error) {
-      toast.error("Failed to update order status");
-      console.error(error);
-    } else {
-      toast.success("Order marked as received!");
-      fetchOrders();
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
-      pending_payment: { label: "Pending Payment", variant: "outline" },
-      paid: { label: "Paid", variant: "secondary" },
-      ready_for_pickup: { label: "Ready for Pickup", variant: "secondary" },
-      completed: { label: "Completed", variant: "default" },
-      cancelled: { label: "Cancelled", variant: "outline" },
-    };
-
-    const statusInfo = variants[status] || { label: status, variant: "outline" };
-    return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
+    const { error } = await supabase.from("orders").update({ status: "completed" }).eq("id", orderId);
+    if (error) toast.error("Failed to update order status");
+    else { toast.success("Order marked as received!"); fetchOrders(); }
   };
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container max-w-6xl py-8">
+      <div className="min-h-screen bg-white"><Navbar />
+        <div className="container max-w-4xl py-16">
           <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/3" />
-            <div className="h-64 bg-muted rounded" />
+            <div className="h-8 bg-neutral-100 rounded w-1/3" />
+            <div className="h-32 bg-neutral-100 rounded" />
+            <div className="h-32 bg-neutral-100 rounded" />
           </div>
         </div>
       </div>
@@ -116,99 +70,86 @@ const Orders = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <Navbar />
+      <div className="container max-w-4xl px-6" style={{ paddingTop: "96px", paddingBottom: "80px" }}>
 
-      <div className="container max-w-6xl py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">My Orders</h1>
-          <p className="text-muted-foreground">
-            Track your purchases and leave reviews
-          </p>
+        {/* Header */}
+        <div className="mb-10">
+          <p className="text-xs uppercase tracking-[0.22em] text-neutral-400 mb-2" style={montserrat}>Purchases</p>
+          <h1 className="text-3xl font-bold text-neutral-900" style={playfair}>My Orders</h1>
+          <div className="silver-rule mt-6" />
         </div>
 
         {orders.length === 0 ? (
-          <Card>
-            <CardContent className="pt-6 text-center py-12">
-              <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No orders yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Start shopping to see your orders here
-              </p>
-              <Button onClick={() => navigate("/listings")}>
-                Browse Listings
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="text-center py-20">
+            <Package className="h-10 w-10 text-neutral-300 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-neutral-900 mb-2" style={playfair}>No orders yet</h3>
+            <p className="text-sm text-neutral-500 mb-8" style={montserrat}>Start shopping to see your purchases here</p>
+            <button onClick={() => navigate("/listings")} className="h-11 px-8 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: "#111" }}>
+              Browse Listings
+            </button>
+          </div>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) => (
-              <Card key={order.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg mb-1">
+            {orders.map((order) => {
+              const status = statusStyles[order.status] || { label: order.status, bg: "#fafafa", color: "#999" };
+              return (
+                <div key={order.id} className="bg-white rounded-sm p-6" style={{ border: "1px solid #e8e8e8" }}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1 mr-4">
+                      <h3 className="font-bold text-base text-neutral-900 mb-1" style={playfair}>
                         {order.listings?.title || "Listing Unavailable"}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        Seller: {order.profiles?.name || "Unknown"}
+                      </h3>
+                      <p className="text-xs text-neutral-400" style={montserrat}>
+                        Seller: {order.profiles?.name || "Unknown"} · Ordered {new Date(order.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    {getStatusBadge(order.status)}
+                    <span className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-sm whitespace-nowrap" style={{ ...montserrat, background: status.bg, color: status.color }}>
+                      {status.label}
+                    </span>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center">
-                    <div className="space-y-1">
-                      <p className="text-sm">
-                        <span className="font-medium">Quantity:</span> {order.quantity}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Total:</span> ${order.total_price.toFixed(2)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Ordered on {new Date(order.created_at).toLocaleDateString()}
-                      </p>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-6 text-sm" style={montserrat}>
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-neutral-400 mb-0.5">Quantity</p>
+                        <p className="font-semibold text-neutral-900">{order.quantity}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-neutral-400 mb-0.5">Total</p>
+                        <p className="font-semibold text-neutral-900">${order.total_price.toFixed(2)}</p>
+                      </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
                       {order.status === "ready_for_pickup" && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleMarkReceived(order.id)}
-                        >
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Mark as Received
-                        </Button>
+                        <button onClick={() => handleMarkReceived(order.id)}
+                          className="flex items-center gap-2 h-9 px-4 text-white text-xs font-bold uppercase tracking-wider rounded-sm"
+                          style={{ ...montserrat, background: "#111" }}>
+                          <CheckCircle className="h-3.5 w-3.5" /> Mark Received
+                        </button>
                       )}
-
                       {order.status === "completed" && order.reviews.length === 0 && (
-                        <ReviewDialog
-                          orderId={order.id}
-                          sellerId={order.seller_id}
-                          sellerName={order.profiles?.name || "Seller"}
-                          onReviewSubmitted={fetchOrders}
-                        />
+                        <ReviewDialog orderId={order.id} sellerId={order.seller_id} sellerName={order.profiles?.name || "Seller"} onReviewSubmitted={fetchOrders} />
                       )}
-
                       {order.status === "completed" && order.reviews.length > 0 && (
-                        <Badge variant="secondary">Review Submitted</Badge>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400 px-3 py-1 rounded-sm" style={{ ...montserrat, background: "#f7f7f7" }}>
+                          Reviewed ✓
+                        </span>
                       )}
-
                       {order.listings?.slug && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/listings/${order.listings.slug}`)}
-                        >
-                          View Listing
-                        </Button>
+                        <button onClick={() => navigate(`/listings/${order.listings!.slug}`)}
+                          className="flex items-center gap-1 h-9 px-4 text-xs font-semibold uppercase tracking-wider rounded-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                          style={{ ...montserrat, border: "1px solid #e0e0e0" }}>
+                          View <ArrowRight className="h-3 w-3" />
+                        </button>
                       )}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
