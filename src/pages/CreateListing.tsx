@@ -7,59 +7,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { z } from "zod";
 
-// Helper to sanitize text - strips HTML/script tags and suspicious patterns
 const sanitizeText = (text: string): string => {
   return text
-    .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/javascript:/gi, '') // Remove javascript: protocol
-    .replace(/on\w+\s*=/gi, '') // Remove event handlers like onclick=
-    .replace(/[<>]/g, '') // Remove angle brackets
+    .replace(/<[^>]*>/g, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    .replace(/[<>]/g, '')
     .trim();
 };
 
-// Validation schema for listing creation
 const listingSchema = z.object({
-  title: z.string()
-    .trim()
-    .min(5, "Title must be at least 5 characters")
-    .max(100, "Title must be less than 100 characters")
-    .refine((val) => !/<script|<img|<iframe|javascript:|on\w+\s*=/i.test(val), {
-      message: "Title contains invalid characters"
-    }),
-  description: z.string().trim().min(10, "Description must be at least 10 characters").max(5000, "Description must be less than 5000 characters"),
+  title: z.string().trim().min(5, "Title must be at least 5 characters").max(100, "Title must be less than 100 characters")
+    .refine((val) => !/<script|<img|<iframe|javascript:|on\w+\s*=/i.test(val), { message: "Title contains invalid characters" }),
+  description: z.string().trim().min(10, "Description must be at least 10 characters").max(5000),
   priceType: z.enum(["fixed", "auction"]),
-  fixedPrice: z.number().positive("Price must be positive").max(1000000, "Price seems unrealistic").optional(),
-  startingBid: z.number().positive("Starting bid must be positive").max(1000000, "Starting bid seems unrealistic").optional(),
-  buyNowPrice: z.number().positive("Buy now price must be positive").max(1000000, "Buy now price seems unrealistic").optional(),
-  quantity: z.number().positive("Quantity must be positive").int("Quantity must be a whole number").max(10000, "Quantity seems unrealistic"),
-  city: z.string().trim().min(1, "City is required").max(50, "City name too long"),
+  fixedPrice: z.number().positive().max(1000000).optional(),
+  startingBid: z.number().positive().max(1000000).optional(),
+  buyNowPrice: z.number().positive().max(1000000).optional(),
+  quantity: z.number().positive().int().max(10000),
+  city: z.string().trim().min(1, "City is required").max(50),
   state: z.string().trim().length(2, "State must be 2 letters"),
   zip: z.string().trim().regex(/^\d{5}$/, "ZIP must be 5 digits"),
 }).refine((data) => {
-  if (data.priceType === "fixed") {
-    return data.fixedPrice !== undefined && data.fixedPrice > 0;
-  }
-  if (data.priceType === "auction") {
-    return data.startingBid !== undefined && data.startingBid > 0;
-  }
+  if (data.priceType === "fixed") return data.fixedPrice !== undefined && data.fixedPrice > 0;
+  if (data.priceType === "auction") return data.startingBid !== undefined && data.startingBid > 0;
   return false;
-}, {
-  message: "Price is required",
-  path: ["fixedPrice"],
-});
+}, { message: "Price is required", path: ["fixedPrice"] });
+
+const playfair: React.CSSProperties = { fontFamily: "'Playfair Display', Georgia, serif" };
+const montserrat: React.CSSProperties = { fontFamily: "'Montserrat', sans-serif" };
+
+const inputClass = "h-11 rounded-sm border-neutral-200 bg-white text-sm text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-500 focus:ring-0";
+const labelClass = "text-xs font-semibold uppercase tracking-wider text-neutral-500";
+
+const SectionHeader = ({ title }: { title: string }) => (
+  <div className="pb-4 mb-6" style={{ borderBottom: "1px solid #f0f0f0" }}>
+    <h2 className="text-lg font-bold text-neutral-900" style={playfair}>{title}</h2>
+  </div>
+);
 
 const CreateListing = () => {
   const { user, loading: authLoading } = useAuth();
@@ -82,30 +73,20 @@ const CreateListing = () => {
   };
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      toast.error("Please sign in to create a listing");
-      navigate("/auth");
-    }
+    if (!authLoading && !user) { toast.error("Please sign in to create a listing"); navigate("/auth"); }
   }, [user, authLoading, navigate]);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  useEffect(() => { fetchCategories(); }, []);
 
   const fetchCategories = async () => {
-    const { data } = await supabase
-      .from("categories")
-      .select("*")
-      .order("name");
+    const { data } = await supabase.from("categories").select("*").order("name");
     setCategories(data || []);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
-
     setLoading(true);
-
     try {
       const formData = new FormData(e.currentTarget);
       const title = formData.get("title") as string;
@@ -119,30 +100,10 @@ const CreateListing = () => {
       const state = formData.get("state") as string;
       const zip = formData.get("zip") as string;
 
-      // Validate input data
-      const validation = listingSchema.safeParse({
-        title,
-        description,
-        priceType: selectedPriceType,
-        fixedPrice,
-        startingBid,
-        buyNowPrice,
-        quantity,
-        city,
-        state,
-        zip,
-      });
-
-      if (!validation.success) {
-        const firstError = validation.error.errors[0];
-        toast.error(firstError.message);
-        setLoading(false);
-        return;
-      }
+      const validation = listingSchema.safeParse({ title, description, priceType: selectedPriceType, fixedPrice, startingBid, buyNowPrice, quantity, city, state, zip });
+      if (!validation.success) { toast.error(validation.error.errors[0].message); setLoading(false); return; }
 
       const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Date.now();
-
-      // Calculate auction end time if it's an auction
       let auctionEndTime = null;
       if (selectedPriceType === "auction") {
         const durationDays = parseInt(formData.get("auctionDuration") as string);
@@ -151,84 +112,40 @@ const CreateListing = () => {
         auctionEndTime = endDate.toISOString();
       }
 
-      // Validate partial quantity increment if enabled
-      const minIncrement = allowPartialQuantity && minQuantityIncrement 
-        ? parseFloat(minQuantityIncrement) 
-        : null;
-      
+      const minIncrement = allowPartialQuantity && minQuantityIncrement ? parseFloat(minQuantityIncrement) : null;
       if (allowPartialQuantity && minIncrement) {
-        if (minIncrement <= 0) {
-          toast.error("Minimum quantity increment must be greater than 0");
-          setLoading(false);
-          return;
-        }
-        if (minIncrement > validation.data.quantity) {
-          toast.error("Minimum increment cannot exceed total quantity");
-          setLoading(false);
-          return;
-        }
+        if (minIncrement <= 0) { toast.error("Minimum quantity increment must be greater than 0"); setLoading(false); return; }
+        if (minIncrement > validation.data.quantity) { toast.error("Minimum increment cannot exceed total quantity"); setLoading(false); return; }
       }
 
       const listingData = {
-        seller_id: user.id,
-        title: validation.data.title,
-        slug,
-        description: validation.data.description,
+        seller_id: user.id, title: validation.data.title, slug, description: validation.data.description,
         category_id: formData.get("category") as string,
         condition: formData.get("condition") as "new" | "like_new" | "good" | "fair" | "salvage",
-        quantity: validation.data.quantity,
-        unit: selectedUnit === "other" ? customUnit : selectedUnit,
+        quantity: validation.data.quantity, unit: selectedUnit === "other" ? customUnit : selectedUnit,
         fixed_price: validation.data.priceType === "fixed" ? validation.data.fixedPrice : null,
         starting_bid: validation.data.priceType === "auction" ? validation.data.startingBid : null,
         buy_now_price: validation.data.priceType === "auction" ? validation.data.buyNowPrice : null,
         auction_end_time: auctionEndTime,
-        location_city: validation.data.city,
-        location_state: validation.data.state,
-        location_zip: validation.data.zip,
-        pickup_only: formData.get("pickupOnly") === "on",
-        shipping_available: formData.get("shippingAvailable") === "on",
-        price_type: validation.data.priceType,
-        status: "active" as const,
-        min_quantity_increment: minIncrement,
+        location_city: validation.data.city, location_state: validation.data.state, location_zip: validation.data.zip,
+        pickup_only: formData.get("pickupOnly") === "on", shipping_available: formData.get("shippingAvailable") === "on",
+        price_type: validation.data.priceType, status: "active" as const, min_quantity_increment: minIncrement,
       };
 
-      const { data: listing, error } = await supabase
-        .from("listings")
-        .insert(listingData)
-        .select()
-        .single();
-
+      const { data: listing, error } = await supabase.from("listings").insert(listingData).select().single();
       if (error) throw error;
 
-      // Upload images if any
       if (uploadedImages.length > 0) {
         const imageUploadPromises = uploadedImages.map(async (file, index) => {
           const fileExt = file.name.split('.').pop();
           const fileName = `${user.id}/${listing.id}/${Date.now()}-${index}.${fileExt}`;
-          
-          const { error: uploadError } = await supabase.storage
-            .from('listing-images')
-            .upload(fileName, file);
-
+          const { error: uploadError } = await supabase.storage.from('listing-images').upload(fileName, file);
           if (uploadError) throw uploadError;
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('listing-images')
-            .getPublicUrl(fileName);
-
-          return {
-            listing_id: listing.id,
-            url: publicUrl,
-            display_order: index,
-          };
+          const { data: { publicUrl } } = supabase.storage.from('listing-images').getPublicUrl(fileName);
+          return { listing_id: listing.id, url: publicUrl, display_order: index };
         });
-
         const imageRecords = await Promise.all(imageUploadPromises);
-
-        const { error: imagesError } = await supabase
-          .from('listing_images')
-          .insert(imageRecords);
-
+        const { error: imagesError } = await supabase.from('listing_images').insert(imageRecords);
         if (imagesError) throw imagesError;
       }
 
@@ -236,7 +153,6 @@ const CreateListing = () => {
       navigate(`/listings/${listing.slug}`);
     } catch (error: any) {
       toast.error(error.message || "Failed to create listing");
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -245,22 +161,19 @@ const CreateListing = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      if (files.length > 10) {
-        toast.error("Maximum 10 images allowed");
-        return;
-      }
+      if (files.length > 10) { toast.error("Maximum 10 images allowed"); return; }
       setUploadedImages(files);
     }
   };
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-white">
         <Navbar />
-        <div className="container max-w-3xl py-8">
+        <div className="container max-w-3xl py-16">
           <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/3" />
-            <div className="h-64 bg-muted rounded" />
+            <div className="h-8 bg-neutral-100 rounded w-1/3" />
+            <div className="h-64 bg-neutral-100 rounded" />
           </div>
         </div>
       </div>
@@ -268,95 +181,83 @@ const CreateListing = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <Navbar />
+      <div className="container max-w-3xl py-16 px-6">
 
-      <div className="container max-w-3xl py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Create New Listing</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Basic Info */}
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title *</Label>
-                  <Input
-                    id="title"
-                    name="title"
-                    placeholder="e.g., 2x4 Pine Lumber - 100 pieces"
-                    required
-                  />
-                </div>
+        {/* Page Header */}
+        <div className="mb-12 text-center">
+          <p className="text-xs uppercase tracking-[0.22em] text-neutral-400 mb-4" style={montserrat}>
+            Sell Your Materials
+          </p>
+          <h1 className="text-3xl md:text-4xl font-bold text-neutral-900" style={playfair}>
+            Create a Listing
+          </h1>
+          <div className="silver-rule max-w-[60px] mx-auto mt-6" />
+        </div>
 
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    placeholder="Describe the materials, condition, and any relevant details..."
-                    rows={4}
-                  />
-                </div>
+        {/* Form Card */}
+        <div className="bg-white" style={{ border: "1px solid #e8e8e8", borderRadius: "2px", boxShadow: "0 2px 24px rgba(0,0,0,0.05)" }}>
+          <form onSubmit={handleSubmit} className="p-8 md:p-10 space-y-10">
 
-                <div>
-                  <Label htmlFor="category">Category *</Label>
-                  <Select name="category" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="condition">Condition *</Label>
-                  <Select name="condition" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select condition" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="new">New</SelectItem>
-                      <SelectItem value="like_new">Like New</SelectItem>
-                      <SelectItem value="good">Good</SelectItem>
-                      <SelectItem value="fair">Fair</SelectItem>
-                      <SelectItem value="salvage">Salvage</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            {/* Basic Info */}
+            <div className="space-y-6">
+              <SectionHeader title="Basic Information" />
+              <div className="space-y-1.5">
+                <Label htmlFor="title" className={labelClass} style={montserrat}>Title *</Label>
+                <Input id="title" name="title" placeholder="e.g., 2x4 Pine Lumber — 100 pieces" required className={inputClass} style={montserrat} />
               </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="category" className={labelClass} style={montserrat}>Category *</Label>
+                <Select name="category" required>
+                  <SelectTrigger className="h-11 rounded-sm border-neutral-200 text-sm" style={montserrat}>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id} style={montserrat}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="condition" className={labelClass} style={montserrat}>Condition *</Label>
+                <Select name="condition" required>
+                  <SelectTrigger className="h-11 rounded-sm border-neutral-200 text-sm" style={montserrat}>
+                    <SelectValue placeholder="Select condition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="like_new">Like New</SelectItem>
+                    <SelectItem value="good">Good</SelectItem>
+                    <SelectItem value="fair">Fair</SelectItem>
+                    <SelectItem value="salvage">Salvage</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="description" className={labelClass} style={montserrat}>Description *</Label>
+                <Textarea
+                  id="description" name="description" rows={5} required
+                  placeholder="Describe the material, its condition, dimensions, and any other relevant details..."
+                  className="rounded-sm border-neutral-200 text-sm placeholder:text-neutral-300 resize-none"
+                  style={montserrat}
+                />
+              </div>
+            </div>
 
-              {/* Quantity & Unit */}
+            {/* Quantity */}
+            <div className="space-y-6">
+              <SectionHeader title="Quantity & Unit" />
               <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="quantity">Quantity *</Label>
-                  <Input
-                    id="quantity"
-                    name="quantity"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="100"
-                    required
-                  />
+                <div className="space-y-1.5">
+                  <Label htmlFor="quantity" className={labelClass} style={montserrat}>Quantity *</Label>
+                  <Input id="quantity" name="quantity" type="number" step="0.01" min="0" placeholder="100" required className={inputClass} style={montserrat} />
                 </div>
-
-                <div>
-                  <Label htmlFor="unit">Unit *</Label>
-                  <Select 
-                    name="unit" 
-                    value={selectedUnit}
-                    onValueChange={setSelectedUnit}
-                    required
-                  >
-                    <SelectTrigger>
+                <div className="space-y-1.5">
+                  <Label className={labelClass} style={montserrat}>Unit *</Label>
+                  <Select name="unit" value={selectedUnit} onValueChange={setSelectedUnit} required>
+                    <SelectTrigger className="h-11 rounded-sm border-neutral-200 text-sm" style={montserrat}>
                       <SelectValue placeholder="Select unit" />
                     </SelectTrigger>
                     <SelectContent>
@@ -370,252 +271,152 @@ const CreateListing = () => {
                     </SelectContent>
                   </Select>
                   {selectedUnit === "other" && (
-                    <Input
-                      id="customUnit"
-                      value={customUnit}
-                      onChange={(e) => setCustomUnit(e.target.value)}
-                      placeholder="Enter custom unit (e.g., yards, boxes)"
-                      className="mt-2"
-                      required
-                    />
+                    <Input value={customUnit} onChange={(e) => setCustomUnit(e.target.value)} placeholder="Enter custom unit" className={`${inputClass} mt-2`} style={montserrat} required />
                   )}
                 </div>
               </div>
-
-              {/* Partial Quantity Option */}
-              <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/30">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="allowPartialQuantity" 
-                    checked={allowPartialQuantity}
-                    onCheckedChange={(checked) => setAllowPartialQuantity(checked === true)}
-                  />
-                  <Label htmlFor="allowPartialQuantity" className="font-normal cursor-pointer">
+              <div className="p-5 rounded-sm" style={{ background: "#f9f9f9", border: "1px solid #f0f0f0" }}>
+                <div className="flex items-center space-x-3">
+                  <Checkbox id="allowPartialQuantity" checked={allowPartialQuantity} onCheckedChange={(c) => setAllowPartialQuantity(c === true)} />
+                  <Label htmlFor="allowPartialQuantity" className="text-sm font-medium text-neutral-700 cursor-pointer" style={montserrat}>
                     Allow bids/purchases on partial quantities
                   </Label>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Enable this to let buyers bid on or purchase a portion of your total quantity
-                </p>
-                
+                <p className="text-xs text-neutral-400 mt-2 ml-7" style={montserrat}>Enable this to let buyers purchase a portion of your total quantity</p>
                 {allowPartialQuantity && (
-                  <div>
-                    <Label htmlFor="minQuantityIncrement">Minimum Quantity Increment *</Label>
-                    <Input
-                      id="minQuantityIncrement"
-                      type="number"
-                      step="0.01"
-                      min="1"
-                      value={minQuantityIncrement}
-                      onChange={(e) => setMinQuantityIncrement(e.target.value)}
-                      placeholder="e.g., 5 (buyers can bid on 5, 10, 15... units)"
-                      required
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Buyers can bid/purchase in multiples of this amount
+                  <div className="mt-4 space-y-1.5">
+                    <Label className={labelClass} style={montserrat}>Minimum Quantity Increment *</Label>
+                    <Input type="number" step="0.01" min="1" value={minQuantityIncrement} onChange={(e) => setMinQuantityIncrement(e.target.value)} placeholder="e.g., 5" required className={inputClass} style={montserrat} />
+                    <p className="text-xs text-neutral-400" style={montserrat}>Buyers can bid/purchase in multiples of this amount</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Pricing */}
+            <div className="space-y-6">
+              <SectionHeader title="Pricing" />
+              <RadioGroup name="priceType" value={priceType} onValueChange={(v: "fixed" | "auction") => setPriceType(v)} className="flex gap-6">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="fixed" id="fixed" />
+                  <Label htmlFor="fixed" className="text-sm font-medium text-neutral-700 cursor-pointer" style={montserrat}>Fixed Price</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="auction" id="auction" />
+                  <Label htmlFor="auction" className="text-sm font-medium text-neutral-700 cursor-pointer" style={montserrat}>Auction</Label>
+                </div>
+              </RadioGroup>
+
+              {priceType === "fixed" && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="fixedPrice" className={labelClass} style={montserrat}>Price ($) *</Label>
+                  <Input id="fixedPrice" name="fixedPrice" type="number" step="0.01" min="0" placeholder="500" value={fixedPriceValue} onChange={(e) => setFixedPriceValue(e.target.value)} required className={inputClass} style={montserrat} />
+                  {calculateSellerReceives(fixedPriceValue) && (
+                    <p className="text-xs text-neutral-400 mt-1" style={montserrat}>
+                      You receive <span className="font-semibold text-neutral-700">${calculateSellerReceives(fixedPriceValue)}</span> after the 10% platform fee
                     </p>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
 
-              {/* Pricing Type */}
-              <div className="space-y-4">
-                <h3 className="font-semibold">Pricing</h3>
-                <RadioGroup 
-                  name="priceType" 
-                  value={priceType} 
-                  onValueChange={(value: "fixed" | "auction") => setPriceType(value)}
-                  className="flex gap-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="fixed" id="fixed" />
-                    <Label htmlFor="fixed" className="font-normal cursor-pointer">
-                      Fixed Price
-                    </Label>
+              {priceType === "auction" && (
+                <div className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="startingBid" className={labelClass} style={montserrat}>Starting Bid ($) *</Label>
+                      <Input id="startingBid" name="startingBid" type="number" step="0.01" min="0" placeholder="100" value={startingBidValue} onChange={(e) => setStartingBidValue(e.target.value)} required className={inputClass} style={montserrat} />
+                      {calculateSellerReceives(startingBidValue) && (
+                        <p className="text-xs text-neutral-400" style={montserrat}>You receive <span className="font-semibold text-neutral-700">${calculateSellerReceives(startingBidValue)}</span> after fees</p>
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="buyNowPrice" className={labelClass} style={montserrat}>Buy Now Price ($)</Label>
+                      <Input id="buyNowPrice" name="buyNowPrice" type="number" step="0.01" min="0" placeholder="500" className={inputClass} style={montserrat} />
+                      <p className="text-xs text-neutral-400" style={montserrat}>Optional instant purchase price</p>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="auction" id="auction" />
-                    <Label htmlFor="auction" className="font-normal cursor-pointer">
-                      Auction
-                    </Label>
+                  <div className="space-y-1.5">
+                    <Label className={labelClass} style={montserrat}>Auction Duration *</Label>
+                    <Select name="auctionDuration" required>
+                      <SelectTrigger className="h-11 rounded-sm border-neutral-200 text-sm" style={montserrat}>
+                        <SelectValue placeholder="Select duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 Day</SelectItem>
+                        <SelectItem value="3">3 Days</SelectItem>
+                        <SelectItem value="5">5 Days</SelectItem>
+                        <SelectItem value="7">7 Days</SelectItem>
+                        <SelectItem value="14">14 Days</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </RadioGroup>
+                </div>
+              )}
+            </div>
 
-                {priceType === "fixed" && (
-                  <div>
-                    <Label htmlFor="fixedPrice">Price ($) *</Label>
-                    <Input
-                      id="fixedPrice"
-                      name="fixedPrice"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="500"
-                      value={fixedPriceValue}
-                      onChange={(e) => setFixedPriceValue(e.target.value)}
-                      required
-                    />
-                    {calculateSellerReceives(fixedPriceValue) && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Seller receives <span className="font-semibold text-foreground">${calculateSellerReceives(fixedPriceValue)}</span> after fees
-                      </p>
+            {/* Images */}
+            <div className="space-y-6">
+              <SectionHeader title="Photos" />
+              <div className="space-y-1.5">
+                <Label htmlFor="images" className={labelClass} style={montserrat}>Upload Images</Label>
+                <div className="border border-dashed border-neutral-300 rounded-sm p-6 text-center hover:border-neutral-400 transition-colors">
+                  <Input id="images" type="file" accept="image/*" multiple onChange={handleImageChange} className="cursor-pointer opacity-0 absolute" style={{ width: "1px", height: "1px" }} />
+                  <label htmlFor="images" className="cursor-pointer">
+                    <p className="text-sm text-neutral-500" style={montserrat}>Click to upload up to 10 photos</p>
+                    <p className="text-xs text-neutral-400 mt-1" style={montserrat}>JPG, PNG, WEBP accepted</p>
+                    {uploadedImages.length > 0 && (
+                      <p className="text-sm font-semibold text-neutral-800 mt-2" style={montserrat}>{uploadedImages.length} image{uploadedImages.length > 1 ? "s" : ""} selected</p>
                     )}
-                  </div>
-                )}
-
-                {priceType === "auction" && (
-                  <div className="space-y-4">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="startingBid">Starting Bid ($) *</Label>
-                        <Input
-                          id="startingBid"
-                          name="startingBid"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="100"
-                          value={startingBidValue}
-                          onChange={(e) => setStartingBidValue(e.target.value)}
-                          required
-                        />
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Minimum price to start bidding
-                        </p>
-                        {calculateSellerReceives(startingBidValue) && (
-                          <p className="text-sm text-muted-foreground">
-                            Seller receives <span className="font-semibold text-foreground">${calculateSellerReceives(startingBidValue)}</span> after fees
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <Label htmlFor="buyNowPrice">Buy Now Price ($)</Label>
-                        <Input
-                          id="buyNowPrice"
-                          name="buyNowPrice"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="500"
-                        />
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Optional instant purchase price
-                        </p>
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="auctionDuration">Auction Duration *</Label>
-                      <Select name="auctionDuration" required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select duration" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">1 Day</SelectItem>
-                          <SelectItem value="3">3 Days</SelectItem>
-                          <SelectItem value="5">5 Days</SelectItem>
-                          <SelectItem value="7">7 Days</SelectItem>
-                          <SelectItem value="14">14 Days</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        How long the auction will run
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Images */}
-              <div>
-                <Label htmlFor="images">Images</Label>
-                <Input
-                  id="images"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageChange}
-                  className="cursor-pointer"
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  Upload up to 10 images (JPG, PNG, WEBP)
-                </p>
-                {uploadedImages.length > 0 && (
-                  <p className="text-sm text-primary mt-1">
-                    {uploadedImages.length} image(s) selected
-                  </p>
-                )}
-              </div>
-
-              {/* Description */}
-              <div>
-                <Label htmlFor="description">Description *</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  placeholder="Provide details about the material, its condition, dimensions, and any other relevant information..."
-                  rows={6}
-                  required
-                />
-              </div>
-
-              {/* Location */}
-              <div className="space-y-4">
-                <h3 className="font-semibold">Location</h3>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="city">City *</Label>
-                    <Input id="city" name="city" placeholder="Chicago" required />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="state">State *</Label>
-                    <Input
-                      id="state"
-                      name="state"
-                      placeholder="IL"
-                      maxLength={2}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="zip">ZIP Code *</Label>
-                    <Input
-                      id="zip"
-                      name="zip"
-                      placeholder="60601"
-                      maxLength={10}
-                      required
-                    />
-                  </div>
+                  </label>
                 </div>
               </div>
+            </div>
 
-              {/* Delivery Options */}
-              <div className="space-y-4">
-                <h3 className="font-semibold">Delivery Options</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="pickupOnly" name="pickupOnly" defaultChecked />
-                    <Label htmlFor="pickupOnly" className="font-normal">
-                      Pickup only
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="shippingAvailable" name="shippingAvailable" />
-                    <Label htmlFor="shippingAvailable" className="font-normal">
-                      Shipping available
-                    </Label>
-                  </div>
+            {/* Location */}
+            <div className="space-y-6">
+              <SectionHeader title="Location" />
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="city" className={labelClass} style={montserrat}>City *</Label>
+                  <Input id="city" name="city" placeholder="Chicago" required className={inputClass} style={montserrat} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="state" className={labelClass} style={montserrat}>State *</Label>
+                  <Input id="state" name="state" placeholder="IL" maxLength={2} required className={inputClass} style={montserrat} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="zip" className={labelClass} style={montserrat}>ZIP Code *</Label>
+                  <Input id="zip" name="zip" placeholder="60601" maxLength={10} required className={inputClass} style={montserrat} />
                 </div>
               </div>
+            </div>
 
-              <Button type="submit" size="lg" className="w-full" disabled={loading}>
-                {loading ? "Creating..." : "Create Listing"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+            {/* Delivery */}
+            <div className="space-y-6">
+              <SectionHeader title="Delivery Options" />
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Checkbox id="pickupOnly" name="pickupOnly" defaultChecked />
+                  <Label htmlFor="pickupOnly" className="text-sm font-medium text-neutral-700 cursor-pointer" style={montserrat}>Pickup only</Label>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Checkbox id="shippingAvailable" name="shippingAvailable" />
+                  <Label htmlFor="shippingAvailable" className="text-sm font-medium text-neutral-700 cursor-pointer" style={montserrat}>Shipping available</Label>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-12 text-white text-xs font-bold uppercase tracking-wider rounded-sm"
+              style={{ ...montserrat, background: loading ? "#666" : "#111" }}
+              disabled={loading}
+            >
+              {loading ? "Creating Listing…" : "Publish Listing"}
+            </Button>
+
+          </form>
+        </div>
       </div>
     </div>
   );
