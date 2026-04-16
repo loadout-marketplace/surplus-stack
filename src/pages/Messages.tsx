@@ -3,33 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 interface MessageThread {
-  id: string;
-  listing_id: string;
-  buyer_id: string;
-  seller_id: string;
-  created_at: string;
-  status: string;
-  listings: {
-    title: string;
-    slug: string;
-  };
-  buyer_profile: {
-    name: string;
-  };
-  seller_profile: {
-    name: string;
-  };
-  latest_message?: {
-    body: string;
-    created_at: string;
-  };
+  id: string; listing_id: string; buyer_id: string; seller_id: string;
+  created_at: string; status: string;
+  listings: { title: string; slug: string };
+  buyer_profile: { name: string };
+  seller_profile: { name: string };
 }
+
+const playfair: React.CSSProperties = { fontFamily: "'Playfair Display', Georgia, serif" };
+const montserrat: React.CSSProperties = { fontFamily: "'Montserrat', sans-serif" };
 
 const Messages = () => {
   const { user, loading: authLoading } = useAuth();
@@ -38,109 +24,89 @@ const Messages = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      toast.error("Please sign in to view messages");
-      navigate("/auth");
-    }
+    if (!authLoading && !user) { toast.error("Please sign in to view messages"); navigate("/auth"); }
   }, [user, authLoading, navigate]);
 
-  useEffect(() => {
-    if (user) {
-      fetchThreads();
-    }
-  }, [user]);
+  useEffect(() => { if (user) fetchThreads(); }, [user]);
 
   const fetchThreads = async () => {
     if (!user) return;
-
     setLoading(true);
-    const { data, error } = await supabase
-      .from("message_threads")
-      .select(`
-        *,
-        listings(title, slug),
-        buyer_profile:profiles!message_threads_buyer_id_fkey(name),
-        seller_profile:profiles!message_threads_seller_id_fkey(name)
-      `)
+    const { data, error } = await supabase.from("message_threads")
+      .select(`*, listings(title, slug), buyer_profile:profiles!message_threads_buyer_id_fkey(name), seller_profile:profiles!message_threads_seller_id_fkey(name)`)
       .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
       .order("updated_at", { ascending: false });
-
-    if (error) {
-      toast.error("Failed to load messages");
-      console.error(error);
-    } else {
-      setThreads(data || []);
-    }
+    if (error) toast.error("Failed to load messages");
+    else setThreads(data || []);
     setLoading(false);
   };
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container max-w-4xl py-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/3" />
-            <div className="h-32 bg-muted rounded" />
+      <div className="min-h-screen bg-white"><Navbar />
+        <div className="container max-w-3xl py-16">
+          <div className="animate-pulse space-y-3">
+            <div className="h-8 bg-neutral-100 rounded w-1/3" />
+            {[...Array(4)].map((_, i) => <div key={i} className="h-20 bg-neutral-100 rounded" />)}
           </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+  const statusLabel: Record<string, { label: string; color: string }> = {
+    pending: { label: "Pending", color: "#f59e0b" },
+    approved: { label: "Active", color: "#16a34a" },
+    rejected: { label: "Rejected", color: "#dc2626" },
+  };
 
-      <div className="container max-w-4xl py-8">
-        <h1 className="text-3xl font-bold mb-8">Messages</h1>
+  return (
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      <div className="container max-w-3xl px-6" style={{ paddingTop: "96px", paddingBottom: "80px" }}>
+
+        <div className="mb-10">
+          <p className="text-xs uppercase tracking-[0.22em] text-neutral-400 mb-2" style={montserrat}>Inbox</p>
+          <h1 className="text-3xl font-bold text-neutral-900" style={playfair}>Messages</h1>
+          <div className="silver-rule mt-6" />
+        </div>
 
         {threads.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No messages yet</p>
-            </CardContent>
-          </Card>
+          <div className="text-center py-20">
+            <MessageSquare className="h-10 w-10 text-neutral-300 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-neutral-900 mb-2" style={playfair}>No messages yet</h3>
+            <p className="text-sm text-neutral-500" style={montserrat}>When you contact a seller, your conversations will appear here.</p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {threads.map((thread) => {
-              const otherUser = thread.buyer_id === user?.id 
-                ? thread.seller_profile 
-                : thread.buyer_profile;
-              const role = thread.buyer_id === user?.id ? "buyer" : "seller";
-
+              const otherUser = thread.buyer_id === user?.id ? thread.seller_profile : thread.buyer_profile;
+              const role = thread.buyer_id === user?.id ? "Buying" : "Selling";
+              const status = statusLabel[thread.status] || { label: thread.status, color: "#999" };
               return (
-                <Card
+                <div
                   key={thread.id}
-                  className="cursor-pointer hover:border-primary transition-colors"
+                  className="flex items-center justify-between p-5 bg-white cursor-pointer hover:bg-neutral-50 transition-colors rounded-sm"
+                  style={{ border: "1px solid #e8e8e8" }}
                   onClick={() => navigate(`/messages/${thread.id}`)}
                 >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold">{thread.listings?.title || "Unknown Listing"}</h3>
-                          <Badge variant="outline">
-                            {role === "buyer" ? "Buying" : "Selling"}
-                          </Badge>
-                          {thread.status === 'pending' && (
-                            <Badge variant="secondary">
-                              {role === "seller" ? "Request Pending" : "Awaiting Approval"}
-                            </Badge>
-                          )}
-                          {thread.status === 'rejected' && (
-                            <Badge variant="destructive">Rejected</Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          With: {otherUser?.name || "Unknown"}
-                        </p>
-                      </div>
-                      <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="h-10 w-10 rounded-full bg-neutral-100 flex items-center justify-center shrink-0">
+                      <MessageSquare className="h-4 w-4 text-neutral-400" />
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm text-neutral-900 truncate" style={playfair}>
+                        {thread.listings?.title || "Unknown Listing"}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-xs text-neutral-400" style={montserrat}>With: {otherUser?.name || "Unknown"}</p>
+                        <span className="text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm" style={{ ...montserrat, background: "#f5f5f5", color: "#888", fontSize: "10px" }}>{role}</span>
+                        <span className="text-xs font-semibold" style={{ ...montserrat, color: status.color, fontSize: "10px" }}>{status.label}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-neutral-300 shrink-0" />
+                </div>
               );
             })}
           </div>
