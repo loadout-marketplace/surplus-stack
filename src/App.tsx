@@ -24,34 +24,34 @@ import { ChatBot } from "@/components/ChatBot";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <ChatBot />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/listings" element={<Listings />} />
-            <Route path="/listings/:slug" element={<ListingDetail />} />
-            <Route path="/listings/new" element={<CreateListing />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/messages/:id" element={<MessageThread />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/sellers/:id" element={<SellerProfile />} />
-            <Route path="/profile/edit" element={<EditProfile />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+    <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+                <TooltipProvider>
+                        <Toaster />
+                        <Sonner />
+                        <ChatBot />
+                        <BrowserRouter>
+                                  <Routes>
+                                              <Route path="/" element={<Landing />} />
+                                              <Route path="/auth" element={<Auth />} />
+                                              <Route path="/listings" element={<Listings />} />
+                                              <Route path="/listings/:slug" element={<ListingDetail />} />
+                                              <Route path="/listings/new" element={<CreateListing />} />
+                                              <Route path="/create-listing" element={<CreateListing />} />
+                                              <Route path="/dashboard" element={<Dashboard />} />
+                                              <Route path="/orders" element={<Orders />} />
+                                              <Route path="/messages" element={<Messages />} />
+                                              <Route path="/messages/:id" element={<MessageThread />} />
+                                              <Route path="/admin" element={<Admin />} />
+                                              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                                              <Route path="/sellers/:id" element={<SellerProfile />} />
+                                              <Route path="/profile/edit" element={<EditProfile />} />
+                                              <Route path="*" element={<NotFound />} />
+                                  </Routes>Routes>
+                        </BrowserRouter>BrowserRouter>
+                </TooltipProvider>TooltipProvider>
+          </AuthProvider>AuthProvider>
+    </QueryClientProvider>QueryClientProvider>
+  );
 
-export default App;
+export default App;</AuthProvider>
