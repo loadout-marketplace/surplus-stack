@@ -27,25 +27,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
       }
     );
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
   const signUp = async (email: string, password: string, name?: string, zipCode?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/auth/callback`;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: { name: name || '' }
-      }
+      options: { emailRedirectTo: redirectUrl, data: { name: name || '' } }
     });
     if (!error && data.user && zipCode) {
       await supabase.from("profiles").update({ user_zip: zipCode }).eq("id", data.user.id);
@@ -54,43 +49,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (emailOrUsername: string, password: string) => {
-    // Check if input looks like an email
     const isEmail = emailOrUsername.includes("@");
-
     if (isEmail) {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: emailOrUsername,
-        password,
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email: emailOrUsername, password });
       return { error };
     } else {
-      // Look up email by username in profiles table
       const { data: profile, error: lookupError } = await supabase
         .from("profiles")
         .select("id")
         .eq("name", emailOrUsername.trim())
         .maybeSingle();
-
       if (lookupError || !profile) {
-        return { error: { message: "No account found with that username." } };
+        return { error: { message: "No account found with that username. Try signing in with your email." } };
       }
-
-      // Get email from auth.users via the profile id using a workaround:
-      // Sign in attempt will fail with wrong credentials but we need the email.
-      // Instead, use the profile id to fetch the user's email via admin or RPC.
-      // Fallback: prompt user to use email if username lookup fails at auth level.
       const { data: userData, error: userError } = await supabase
         .rpc("get_user_email_by_id", { user_id: profile.id })
         .single();
-
       if (userError || !userData) {
-        return { error: { message: "Could not find account. Please try signing in with your email." } };
+        return { error: { message: "Could not find account. Please sign in with your email instead." } };
       }
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email: userData as string,
-        password,
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email: userData as string, password });
       return { error };
     }
   };
@@ -99,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
     return { error };
