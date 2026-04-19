@@ -30,25 +30,27 @@ export const WelcomeStats = () => {
           .from("profiles")
           .select("full_name")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
         if (profile?.full_name) {
           setUserName(profile.full_name);
         }
 
         // Fetch active listings count
-        const { count: listingsCount } = await supabase
-          .from("listings")
-          .select("*", { count: "exact", head: true })
-          .eq("seller_id", user.id)
-          .eq("status", "active");
+       const { data: listingsData } = await supabase
+        .from("listings")
+        .select("id")
+        .eq("seller_id", user.id)
+        .eq("status", "active");
+       const listingsCount = listingsData?.length || 0;
 
         // Fetch active orders count
-        const { count: ordersCount } = await supabase
-          .from("orders")
-          .select("*", { count: "exact", head: true })
-          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-          .not("status", "in", "(completed,cancelled)");
+       const { data: ordersData } = await supabase
+        .from("orders")
+        .select("id")
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .not("status", "in", "(completed,cancelled)");
+       const ordersCount = ordersData?.length || 0;
 
         // Fetch unread messages count
         const { data: threads } = await supabase
