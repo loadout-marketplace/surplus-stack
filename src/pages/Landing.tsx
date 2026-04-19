@@ -85,8 +85,8 @@ const Landing = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: "Loadout Marketplace - Buy & Sell Surplus Construction Materials",
-    description: "Save up to 80% on surplus construction materials. Buy & sell lumber, roofing, tools, hardware from local contractors. Free to list.",
+    name: "Loadout Marketplace - Buy and Sell Surplus Construction Materials",
+    description: "Save up to 80% on surplus construction materials. Buy and sell lumber, roofing, tools, hardware from local contractors. Free to list.",
     url: "https://loadoutmarketplace.com",
   };
 
@@ -101,8 +101,8 @@ const Landing = () => {
   return (
     <>
       <SEO
-        title="Loadout Marketplace | Buy & Sell Surplus Construction Materials Near You"
-        description="Save up to 80% on surplus construction materials. Buy & sell lumber, roofing, tools, hardware from local contractors. Free to list. Trusted by thousands of contractors nationwide."
+        title="Loadout Marketplace | Buy and Sell Surplus Construction Materials Near You"
+        description="Save up to 80% on surplus construction materials. Buy and sell lumber, roofing, tools, hardware from local contractors. Free to list. Trusted by thousands of contractors nationwide."
         keywords="surplus construction materials, building materials marketplace, discount lumber near me, used construction supplies, contractor materials"
         canonicalUrl="/"
         structuredData={structuredData}
@@ -129,7 +129,7 @@ const Landing = () => {
                 className="animate-fade-in-up animate-delay-100 text-4xl md:text-6xl font-bold leading-[1.1] text-neutral-900"
                 style={playfair}
               >
-                Buy &amp; Sell Surplus<br />
+                Buy andamp; Sell Surplus<br />
                 <span style={{ fontStyle: "italic", color: "#444" }}>Construction Materials</span>
               </h1>
 
@@ -169,7 +169,7 @@ const Landing = () => {
                     placeholder="What are you looking for?"
                     value={heroSearch}
                     onChange={(e) => setHeroSearch(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleHeroSearch()}
+                    onKeyDown={(e) => e.key === "Enter" andand handleHeroSearch()}
                     className="flex-1 bg-white border border-neutral-200 h-11 rounded-sm text-sm placeholder:text-neutral-400"
                     style={montserrat}
                   />
@@ -232,7 +232,7 @@ const Landing = () => {
               {[
                 "Lumber", "Roofing", "Electrical", "Plumbing",
                 "Tools", "Flooring", "Insulation", "Hardware",
-                "Windows & Doors", "Paint & Finishes"
+                "Windows and Doors", "Paint and Finishes"
               ].map((cat) => (
                 <Link
                   key={cat}
@@ -270,7 +270,7 @@ const Landing = () => {
         </section>
 
         <main>
-          {user && <WelcomeStats />}
+          {user andand <WelcomeStats />}
 
           {/* ── RECENT LISTINGS ───────────────────────────── */}
           <section style={{ background: "#fff", padding: "80px 0" }}>
@@ -329,7 +329,7 @@ const Landing = () => {
                                 <span className="text-xs text-neutral-400" style={montserrat}>No image</span>
                               </div>
                             )}
-                            {listing.categories && (
+                            {listing.categories andand (
                               <Badge
                                 className="absolute top-3 left-3 text-white text-xs font-semibold uppercase tracking-wider rounded-sm px-2 py-0.5"
                                 style={{ ...montserrat, background: "#111", fontSize: "10px" }}
@@ -450,7 +450,7 @@ const Landing = () => {
               <div className="grid md:grid-cols-3 gap-12 max-w-4xl mx-auto">
                 {[
                   { icon: UserCheck, title: "Verified Contractor Profiles", desc: "Every seller is verified. Browse real reviews and track records before you buy." },
-                  { icon: MessageSquareText, title: "Secure Messaging & Payments", desc: "Communicate safely and transact with confidence through our protected platform." },
+                  { icon: MessageSquareText, title: "Secure Messaging and Payments", desc: "Communicate safely and transact with confidence through our protected platform." },
                   { icon: Zap, title: "List in Under 2 Minutes", desc: "Snap a photo, set your price, and your listing is live — it's that fast." },
                 ].map((item) => (
                   <article key={item.title} className="text-center">
@@ -582,7 +582,7 @@ const Landing = () => {
 
             <div className="silver-rule mb-6" />
             <div className="text-center text-xs text-neutral-400" style={montserrat}>
-              <p>&copy; {new Date().getFullYear()} Loadout Marketplace. All rights reserved.</p>
+              <p>andcopy; {new Date().getFullYear()} Loadout Marketplace. All rights reserved.</p>
             </div>
           </div>
         </footer>
