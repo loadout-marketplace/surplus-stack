@@ -232,7 +232,7 @@ const Landing = () => {
               {[
                 "Lumber", "Roofing", "Electrical", "Plumbing",
                 "Tools", "Flooring", "Insulation", "Hardware",
-                "Windows and Doors", "Paint and Finishes"
+                "Windows & Doors", "Paint & Finishes"
               ].map((cat) => (
                 <Link
                   key={cat}
