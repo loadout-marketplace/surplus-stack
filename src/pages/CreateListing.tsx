@@ -30,7 +30,7 @@ const listingSchema = z.object({
   fixedPrice: z.number().positive().max(1000000).optional(),
   startingBid: z.number().positive().max(1000000).optional(),
   buyNowPrice: z.number().positive().max(1000000).optional(),
-  quantity: z.number().positive().int().max(10000),
+  quantity: z.number().positive().max(10000),
   city: z.string().trim().min(1, "City is required").max(50),
   state: z.string().trim().length(2, "State must be 2 letters"),
   zip: z.string().trim().regex(/^\d{5}$/, "ZIP must be 5 digits"),
