@@ -65,7 +65,7 @@ const Admin = () => {
     // Fetch all listings
     const { data: listingsData } = await supabase
       .from("listings")
-      .select("*, profiles(name)")
+      .select("*, profiles(full_name)")
       .order("created_at", { ascending: false });
 
     // Fetch all users with their roles
