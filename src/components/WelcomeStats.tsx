@@ -32,8 +32,8 @@ export const WelcomeStats = () => {
           .eq("id", user.id)
           .single();
 
-        if (profile?.name) {
-          setUserName(profile.name);
+        if (profile?.full_name) {
+          setUserName(profile.full_name);
         }
 
         // Fetch active listings count
