@@ -129,7 +129,7 @@ const Landing = () => {
                 className="animate-fade-in-up animate-delay-100 text-4xl md:text-6xl font-bold leading-[1.1] text-neutral-900"
                 style={playfair}
               >
-                Buy andamp; Sell Surplus<br />
+                Buy and Sell Surplus<br />
                 <span style={{ fontStyle: "italic", color: "#444" }}>Construction Materials</span>
               </h1>
 
@@ -169,7 +169,7 @@ const Landing = () => {
                     placeholder="What are you looking for?"
                     value={heroSearch}
                     onChange={(e) => setHeroSearch(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" andand handleHeroSearch()}
+                    onKeyDown={(e) => e.key === "Enter" && handleHeroSearch()}
                     className="flex-1 bg-white border border-neutral-200 h-11 rounded-sm text-sm placeholder:text-neutral-400"
                     style={montserrat}
                   />
@@ -270,7 +270,7 @@ const Landing = () => {
         </section>
 
         <main>
-          {user andand <WelcomeStats />}
+          {user && <WelcomeStats />}
 
           {/* ── RECENT LISTINGS ───────────────────────────── */}
           <section style={{ background: "#fff", padding: "80px 0" }}>
@@ -329,7 +329,7 @@ const Landing = () => {
                                 <span className="text-xs text-neutral-400" style={montserrat}>No image</span>
                               </div>
                             )}
-                            {listing.categories andand (
+                            {listing.categories && (
                               <Badge
                                 className="absolute top-3 left-3 text-white text-xs font-semibold uppercase tracking-wider rounded-sm px-2 py-0.5"
                                 style={{ ...montserrat, background: "#111", fontSize: "10px" }}
@@ -582,7 +582,7 @@ const Landing = () => {
 
             <div className="silver-rule mb-6" />
             <div className="text-center text-xs text-neutral-400" style={montserrat}>
-              <p>andcopy; {new Date().getFullYear()} Loadout Marketplace. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} Loadout Marketplace. All rights reserved.</p>
             </div>
           </div>
         </footer>
