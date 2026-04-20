@@ -357,7 +357,7 @@ const Landing = () => {
                             </div>
                             <div className="flex items-baseline gap-2 pt-1">
                               <span className="text-xl font-bold text-neutral-900" style={playfair}>
-                                ${listing.fixed_price.toLocaleString()}
+                                $(listing.fixed_price ?? listing.starting_bid ?? 0).toLocaleString()}
                               </span>
                               <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider" style={montserrat}>
                                 ~{pctOff}% off retail
