@@ -246,7 +246,7 @@ const ListingDetail = () => {
                     {extending ? "Extending…" : "Extend Auction 24 Hours"}
                   </button>
                 )}
-                {user ? (
+                {user && user.id !== listing.seller_id ? (
                   <>
                     <button onClick={handleContactSeller} disabled={contactingSeller} className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50" style={{ ...montserrat, border: "1px solid #e0e0e0" }}>
                       {contactingSeller ? "Sending…" : "Message Seller"}
