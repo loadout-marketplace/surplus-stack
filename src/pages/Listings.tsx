@@ -13,7 +13,7 @@ import { SellerBadges } from "@/components/SellerBadges";
 import SEO from "@/components/SEO";
 
 interface Listing {
-  id: string; title: string; slug: string; fixed_price: number; condition: string;
+  id: string; title: string; slug: string; fixed_price: number | null; starting_bid: number | null; condition: string;
   location_city: string; location_state: string; location_zip: string | null;
   quantity: number; unit: string; created_at: string; seller_id: string;
   listing_images: { url: string }[];
@@ -256,7 +256,7 @@ const Listings = () => {
                       <SellerBadges completedSales={listing.sellerCompletedSales || 0} averageRating={listing.sellerRating || 0} reviewCount={listing.sellerReviewCount || 0} isVerifiedBusiness={listing.profiles?.is_verified_business || false} variant="compact" />
                       <div className="flex items-baseline justify-between pt-1">
                         <span className="text-xl font-bold text-neutral-900" style={playfair}>${(listing.fixed_price ?? listing.starting_bid ?? 0).toLocaleString()}</span>
-                        <span className="text-xs text-neutral-400 uppercase tracking-wider" style={montserrat}>~{listing.fixed_price ? Math.round((1 - listing.fixed_price / (listing.fixed_price * 2.5)) * 100) : 0}% off retail</span>
+                        <span className="text-xs text-neutral-400 uppercase tracking-wider" style={montserrat}>~{listing.fixed_price ? Math.round(60) : listing.starting_bid ? "Auction" : "0%"}
                       </div>
                     </div>
                   </div>
