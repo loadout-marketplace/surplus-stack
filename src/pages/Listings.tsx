@@ -255,8 +255,8 @@ const Listings = () => {
                       <p className="text-xs text-neutral-400" style={montserrat}>Qty: {listing.quantity} {listing.unit}</p>
                       <SellerBadges completedSales={listing.sellerCompletedSales || 0} averageRating={listing.sellerRating || 0} reviewCount={listing.sellerReviewCount || 0} isVerifiedBusiness={listing.profiles?.is_verified_business || false} variant="compact" />
                       <div className="flex items-baseline justify-between pt-1">
-                        <span className="text-xl font-bold text-neutral-900" style={playfair}>${listing.fixed_price?.toLocaleString()}</span>
-                        <span className="text-xs text-neutral-400 uppercase tracking-wider" style={montserrat}>~{Math.round((1 - listing.fixed_price / (listing.fixed_price * 2.5)) * 100)}% off retail</span>
+                        <span className="text-xl font-bold text-neutral-900" style={playfair}>${(listing.fixed_price ?? listing.starting_bid ?? 0).toLocaleString()}</span>
+                        <span className="text-xs text-neutral-400 uppercase tracking-wider" style={montserrat}>~{listing.fixed_price ? Math.round((1 - listing.fixed_price / (listing.fixed_price * 2.5)) * 100) : 0}% off retail
                       </div>
                     </div>
                   </div>
