@@ -307,9 +307,10 @@ const Landing = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {recentListings.map((listing) => {
+                    const price = listing.fixed_price ?? listing.starting_bid ?? 0;
                     const timeAgo = getTimeAgo(listing.created_at);
-                    const retailEstimate = listing.fixed_price * 2.5;
-                    const pctOff = Math.round((1 - listing.fixed_price / retailEstimate) * 100);
+                    const retailEstimate = price * 2.5;
+                    const pctOff = price > 0 ? Math.round((1 - price / retailEstimate) * 100): 0;
                     return (
                       <Link key={listing.id} to={`/listings/${listing.slug}`}>
                         <Card
@@ -357,7 +358,7 @@ const Landing = () => {
                             </div>
                             <div className="flex items-baseline gap-2 pt-1">
                               <span className="text-xl font-bold text-neutral-900" style={playfair}>
-                                $(listing.fixed_price ?? listing.starting_bid ?? 0).toLocaleString()}
+                                ${(listing.fixed_price ?? listing.starting_bid ?? 0).toLocaleString()}
                               </span>
                               <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider" style={montserrat}>
                                 ~{pctOff}% off retail
