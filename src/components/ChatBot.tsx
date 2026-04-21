@@ -1,75 +1,41 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { MessageCircle, X, ChevronDown, ChevronUp, Mail } from "lucide-react";
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
+const faqs = [
+  {
+    q: "How do I post a listing?",
+    a: "Click 'Post Listing' in the top navigation. Fill out the details, upload photos, and hit Publish. Your listing goes live instantly."
+  },
+  {
+    q: "Is it free to list?",
+    a: "Yes! Listing is 100% free. We only charge a small 4% platform fee on completed transactions."
+  },
+  {
+    q: "How do I contact a seller?",
+    a: "Click 'Message Seller' on any listing page. You'll need to be signed in to send messages."
+  },
+  {
+    q: "How do payments work?",
+    a: "Payments are processed securely through Stripe. Funds are held safely until the transaction is complete."
+  },
+  {
+    q: "How do I edit or delete a listing?",
+    a: "Go to your Dashboard from the Account menu. You can manage all your listings from there."
+  },
+  {
+    q: "What if I have an issue with a transaction?",
+    a: "Email us at support@loadout-marketplace.com and we'll resolve it within 24 hours."
+  },
+];
 
 export const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Hi! I'm here to help you with Loadout Marketplace. How can I assist you today?",
-    },
-  ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: "You are a helpful support assistant for Loadout Marketplace, a platform where contractors buy and sell surplus construction materials. Help users with questions about listings, buying, selling, payments, and general platform usage. Be concise and friendly.",
-          messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content }))
-        }),
-      });
-      const data = await response.json();
-      const assistantMessage = data.content[0].text;
-      setMessages((prev) => [...prev, { role: "assistant", content: assistantMessage }]);
-    } catch (error) {
-      console.error("Chat error:", error);
-      toast.error("Failed to send message");
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "I'm sorry, something went wrong. Please try again.",
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
     <>
-      {/* Chat Button */}
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
@@ -80,7 +46,6 @@ export const ChatBot = () => {
         </Button>
       )}
 
-      {/* Chat Window */}
       {isOpen && (
         <Card className="fixed bottom-6 right-6 w-96 h-[500px] shadow-2xl z-[9999] flex flex-col">
           {/* Header */}
@@ -99,50 +64,39 @@ export const ChatBot = () => {
             </Button>
           </div>
 
-          {/* Messages */}
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-muted rounded-lg p-3">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  </div>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <p className="text-sm text-muted-foreground mb-4">
+              👋 Hi! Find quick answers below or reach out directly.
+            </p>
 
-          {/* Input */}
-          <div className="p-4 border-t">
-            <div className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
-                disabled={isLoading}
-                className="flex-1"
-              />
-              <Button onClick={sendMessage} disabled={isLoading || !input.trim()} size="icon">
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
+            {faqs.map((faq, i) => (
+              <div key={i} className="border rounded-sm overflow-hidden">
+                <button
+                  className="w-full text-left px-4 py-3 text-sm font-medium flex items-center justify-between hover:bg-neutral-50 transition-colors"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                >
+                  <span>{faq.q}</span>
+                  {openFaq === i ? <ChevronUp className="h-4 w-4 shrink-0 text-neutral-400" /> : <ChevronDown className="h-4 w-4 shrink-0 text-neutral-400" />}
+                </button>
+                {openFaq === i && (
+                  <div className="px-4 py-3 text-sm text-neutral-600 bg-neutral-50 border-t">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Footer */}
+          <div className="p-4 border-t bg-neutral-50 rounded-b-lg">
+            
+              href="mailto:support@loadout-marketplace.com"
+              className="flex items-center justify-center gap-2 w-full h-10 text-xs font-bold uppercase tracking-wider text-white rounded-sm bg-neutral-900 hover:bg-neutral-700 transition-colors"
+            >
+              <Mail className="h-4 w-4" />
+              Email Support
+            </a>
           </div>
         </Card>
       )}
