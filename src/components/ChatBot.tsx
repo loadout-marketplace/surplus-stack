@@ -32,36 +32,19 @@ export const ChatBot = () => {
     setIsLoading(true);
 
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        toast.error("You must be logged in to use the chat support");
-        setIsLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke("chat-support", {
-        body: { messages: [...messages, userMessage] },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: "You are a helpful support assistant for Loadout Marketplace, a platform where contractors buy and sell surplus construction materials. Help users with questions about listings, buying, selling, payments, and general platform usage. Be concise and friendly.",
+          messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content }))
+        }),
       });
-
-      if (error) throw error;
-
-      if (data.error) {
-        toast.error(data.error);
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: "I'm sorry, I'm having trouble responding right now. Please try again later.",
-          },
-        ]);
-      } else {
-        const assistantMessage = data.choices[0].message.content;
-        setMessages((prev) => [...prev, { role: "assistant", content: assistantMessage }]);
-      }
+      const data = await response.json();
+      const assistantMessage = data.content[0].text;
+      setMessages((prev) => [...prev, { role: "assistant", content: assistantMessage }]);
     } catch (error) {
       console.error("Chat error:", error);
       toast.error("Failed to send message");
