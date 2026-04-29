@@ -256,9 +256,14 @@ const ListingDetail = () => {
                         Bid / Purchase
                       </button>
                     ) : (
-                      <button className="w-full h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: "#111" }}>
-                        Purchase
-                      </button>
+                      <button
+  onClick={handlePurchase}
+  disabled={purchasing}
+  className="w-full h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm"
+  style={{ ...montserrat, background: purchasing ? "#666" : "#111" }}
+>
+  {purchasing ? "Redirecting to Checkout…" : "Purchase"}
+</button>
                     )}
                   </>
                 ) : user && user.id === listing.seller_id ? (
