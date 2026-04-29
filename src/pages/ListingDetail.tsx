@@ -108,6 +108,29 @@ const ListingDetail = () => {
     finally { setExtending(false); }
   };
 
+  const handleRelist = async () => {
+  if (!listing) return;
+  setRelisting(true);
+  try {
+    const newEnd = new Date();
+    newEnd.setDate(newEnd.getDate() + 7);
+    const { error } = await supabase
+      .from("listings")
+      .update({
+        auction_end_time: newEnd.toISOString(),
+        status: "active",
+      })
+      .eq("id", listing.id);
+    if (error) throw error;
+    toast.success("Listing re-listed for 7 days!");
+    fetchListing();
+  } catch {
+    toast.error("Failed to re-list");
+  } finally {
+    setRelisting(false);
+  }
+};
+  
   const handleContactSeller = async () => {
     if (!user || !listing) return;
     setContactingSeller(true);
@@ -273,6 +296,21 @@ const ListingDetail = () => {
                     {extending ? "Extending…" : "Extend Auction 24 Hours"}
                   </button>
                 )}
+                {user && user.id === listing.seller_id && 
+ listing.price_type === 'auction' && 
+ listing.status === 'active' &&
+ listing.auction_end_time &&
+ Date.now() >= new Date(listing.auction_end_time).getTime() &&
+ (bidsCount === 0 || (highestBid !== null && listing.starting_bid !== null && highestBid < listing.starting_bid)) && (
+  <button
+    onClick={handleRelist}
+    disabled={relisting}
+    className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50"
+    style={{ ...montserrat, border: "1px solid #e0e0e0" }}
+  >
+    {relisting ? "Re-listing…" : "Re-list This Item"}
+  </button>
+)}
                 {user && user.id !== listing.seller_id ? (
                   <>
                     <button onClick={handleContactSeller} disabled={contactingSeller} className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50" style={{ ...montserrat, border: "1px solid #e0e0e0" }}>
