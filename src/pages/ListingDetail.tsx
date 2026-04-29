@@ -54,6 +54,33 @@ const ListingDetail = () => {
     }
   }, [listing]);
 
+  const handlePurchase = async () => {
+  if (!user || !listing) return;
+  setPurchasing(true);
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const { data, error } = await supabase.functions.invoke("create-checkout", {
+      body: {
+        listing_id: listing.id,
+        amount: listing.fixed_price,
+        seller_id: listing.seller_id,
+        title: listing.title,
+        success_url: `${window.location.origin}/orders?success=true`,
+        cancel_url: window.location.href,
+      },
+      headers: { Authorization: `Bearer ${session?.access_token}` }
+    });
+    if (error) throw error;
+    if (data?.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error("No checkout URL returned");
+    }
+  } catch (error: any) {
+    toast.error(error.message || "Failed to start checkout");
+    setPurchasing(false);
+  }
+};
   const fetchListing = async () => {
     setLoading(true);
     const { data, error } = await supabase.from("listings").select(`*, listing_images (url), categories (name), profiles (name, company_name)`).eq("slug", slug).single();
