@@ -91,12 +91,10 @@ export const ChatBot = () => {
           {/* Footer */}
           <div className="p-4 border-t bg-neutral-50 rounded-b-lg">
             
-              href="mailto:support@loadout-marketplace.com"
-              className="flex items-center justify-center gap-2 w-full h-10 text-xs font-bold uppercase tracking-wider text-white rounded-sm bg-neutral-900 hover:bg-neutral-700 transition-colors"
-            >
-              <Mail className="h-4 w-4" />
-              Email Support
-            </a>
+              <a href="mailto:support@loadout-marketplace.com" className="flex items-center justify-center gap-2 w-full h-10 text-xs font-bold uppercase tracking-wider text-white rounded-sm bg-neutral-900 hover:bg-neutral-700 transition-colors">
+  <Mail className="h-4 w-4" />
+  Email Support
+</a>
           </div>
         </Card>
       )}
