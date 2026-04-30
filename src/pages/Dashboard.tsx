@@ -10,7 +10,7 @@ import { Package, Edit, Archive, Plus, Eye, BarChart2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Listing {
-  id: string; title: string; slug: string; fixed_price: number;
+  id: string; title: string; slug: string; fixed_price: number | null; starting_bid: number | null;
   status: string; quantity: number; unit: string; created_at: string; views_count: number;
 }
 
@@ -145,15 +145,15 @@ const Dashboard = () => {
                             <td className="py-3 pr-4">
                               <Link to={`/listings/${listing.slug}`} className="font-medium text-neutral-900 hover:underline line-clamp-1">{listing.title}</Link>
                             </td>
-                            <td className="py-3 pr-4 font-semibold text-neutral-900">${listing.fixed_price?.toLocaleString()}</td>
+                            <td className="py-3 pr-4 font-semibold text-neutral-900">${(listing.fixed_price ?? listing.starting_bid ?? 0).toLocaleString()}</td>
                             <td className="py-3 pr-4 text-neutral-500">{listing.quantity} {listing.unit}</td>
                             <td className="py-3 pr-4 text-neutral-500">{listing.views_count || 0}</td>
                             <td className="py-3 pr-4 text-neutral-400">{new Date(listing.created_at).toLocaleDateString()}</td>
                             <td className="py-3 text-right">
                               <div className="flex items-center justify-end gap-1">
-                                <button className="p-1.5 rounded hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 transition-colors">
-                                  <Edit className="h-3.5 w-3.5" />
-                                </button>
+                                <button className="p-1.5 rounded hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 transition-colors" onClick={() => navigate(`/listings/${listing.slug}`)}>
+  <Edit className="h-3.5 w-3.5" />
+</button>
                                 <button className="p-1.5 rounded hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 transition-colors" onClick={() => handleArchive(listing.id)}>
                                   <Archive className="h-3.5 w-3.5" />
                                 </button>
