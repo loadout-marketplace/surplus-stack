@@ -33,6 +33,8 @@ const ListingDetail = () => {
   const [highestBid, setHighestBid] = useState<number | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [extending, setExtending] = useState(false);
+  const [relisting, setRelisting] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
   const [contactingSeller, setContactingSeller] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
