@@ -38,7 +38,9 @@ const ListingDetail = () => {
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
   const [contactingSeller, setContactingSeller] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
-
+  const [relistDialogOpen, setRelistDialogOpen] = useState(false);
+  const [relistDuration, setRelistDuration] = useState("7");
+  
   useEffect(() => { fetchListing(); }, [slug]);
 
   useEffect(() => {
@@ -115,16 +117,14 @@ const ListingDetail = () => {
   setRelisting(true);
   try {
     const newEnd = new Date();
-    newEnd.setDate(newEnd.getDate() + 7);
+    newEnd.setDate(newEnd.getDate() + parseInt(relistDuration));
     const { error } = await supabase
       .from("listings")
-      .update({
-        auction_end_time: newEnd.toISOString(),
-        status: "active",
-      })
+      .update({ auction_end_time: newEnd.toISOString(), status: "active" })
       .eq("id", listing.id);
     if (error) throw error;
-    toast.success("Listing re-listed for 7 days!");
+    toast.success(`Listing re-listed for ${relistDuration} days!`);
+    setRelistDialogOpen(false);
     fetchListing();
   } catch {
     toast.error("Failed to re-list");
@@ -305,7 +305,7 @@ const ListingDetail = () => {
  Date.now() >= new Date(listing.auction_end_time).getTime() &&
  (bidsCount === 0 || (highestBid !== null && listing.starting_bid !== null && highestBid < listing.starting_bid)) && (
   <button
-    onClick={handleRelist}
+    onClick={() => setRelistDialogOpen(true)}
     disabled={relisting}
     className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50"
     style={{ ...montserrat, border: "1px solid #e0e0e0" }}
@@ -366,7 +366,45 @@ const ListingDetail = () => {
             <SellerRating sellerId={listing.seller_id} sellerName={listing.profiles?.name || "Seller"} />
           </div>
         </main>
-
+        
+{relistDialogOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="bg-white rounded-sm p-8 max-w-sm w-full mx-4" style={{ border: "1px solid #e8e8e8", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
+      <h2 className="text-xl font-bold mb-2 text-neutral-900" style={playfair}>Re-list This Item</h2>
+      <p className="text-sm text-neutral-500 mb-6" style={montserrat}>Choose how long to re-list your auction.</p>
+      <select
+        value={relistDuration}
+        onChange={(e) => setRelistDuration(e.target.value)}
+        className="w-full h-11 rounded-sm border border-neutral-200 text-sm px-3 mb-6"
+        style={montserrat}
+      >
+        <option value="1">1 Day</option>
+        <option value="3">3 Days</option>
+        <option value="5">5 Days</option>
+        <option value="7">7 Days</option>
+        <option value="14">14 Days</option>
+      </select>
+      <div className="flex gap-3">
+        <button
+          onClick={() => setRelistDialogOpen(false)}
+          className="flex-1 h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm"
+          style={{ ...montserrat, border: "1px solid #e0e0e0" }}
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleRelist}
+          disabled={relisting}
+          className="flex-1 h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm"
+          style={{ ...montserrat, background: relisting ? "#666" : "#111" }}
+        >
+          {relisting ? "Re-listing…" : "Confirm"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+        
         {listing.price_type === 'auction' && (
           <BidDialog open={bidDialogOpen} onOpenChange={setBidDialogOpen} listingId={listing.id} listingTitle={listing.title} currentHighestBid={highestBid} startingBid={listing.starting_bid} onBidPlaced={fetchListing} />
         )}
