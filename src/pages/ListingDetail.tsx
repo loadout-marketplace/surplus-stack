@@ -65,13 +65,11 @@ const ListingDetail = () => {
     const { data: { session } } = await supabase.auth.getSession();
     const { data, error } = await supabase.functions.invoke("create-checkout", {
       body: {
-        listing_id: listing.id,
-        amount: listing.fixed_price,
-        seller_id: listing.seller_id,
-        title: listing.title,
-        success_url: `${window.location.origin}/orders?success=true`,
-        cancel_url: window.location.href,
-      },
+  listingId: listing.id,
+  listingTitle: listing.title,
+  price: listing.fixed_price,
+  sellerId: listing.seller_id,
+},
       headers: { Authorization: `Bearer ${session?.access_token}` }
     });
     if (error) throw error;
