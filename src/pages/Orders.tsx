@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { ReviewDialog } from "@/components/ReviewDialog";
 
 interface Order {
-  id: string; status: string; total_price: number; quantity: number;
+  id: string; status: string; amount: number;
   created_at: string; listing_id: string; seller_id: string;
   listings: { title: string; slug: string } | null;
   profiles: { name: string } | null;
@@ -42,7 +42,7 @@ const Orders = () => {
     if (!user) return;
     setLoading(true);
     const { data, error } = await supabase.from("orders")
-      .select(`*, listings (title, slug), profiles!orders_seller_id_fkey (name), reviews (id)`)
+      .select(`*, listings (title, slug), profiles!seller_id (name), reviews (id)`)
       .eq("buyer_id", user.id).order("created_at", { ascending: false });
     if (error) toast.error("Failed to load orders");
     else setOrders(data || []);
@@ -114,11 +114,11 @@ const Orders = () => {
                     <div className="flex gap-6 text-sm" style={montserrat}>
                       <div>
                         <p className="text-xs uppercase tracking-wider text-neutral-400 mb-0.5">Quantity</p>
-                        <p className="font-semibold text-neutral-900">{order.quantity}</p>
+                        <p className="font-semibold text-neutral-900">{order.amount ? `$${order.amount}` : "N/A"}</p>
                       </div>
                       <div>
                         <p className="text-xs uppercase tracking-wider text-neutral-400 mb-0.5">Total</p>
-                        <p className="font-semibold text-neutral-900">${order.total_price.toFixed(2)}</p>
+                        <p className="font-semibold text-neutral-900">${(order.amount || 0).toFixed(2)}</p>
                       </div>
                     </div>
 
