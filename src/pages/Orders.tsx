@@ -11,7 +11,6 @@ interface Order {
   id: string; status: string; amount: number;
   created_at: string; listing_id: string; seller_id: string;
   listings: { title: string; slug: string } | null;
-  profiles: { name: string } | null;
   reviews: { id: string }[];
 }
 
@@ -42,7 +41,7 @@ const Orders = () => {
     if (!user) return;
     setLoading(true);
     const { data, error } = await supabase.from("orders")
-      .select(`*, listings (title, slug), profiles!seller_id (name), reviews (id)`)
+      .select(`*, listings (title, slug), reviews (id)`)
       .eq("buyer_id", user.id).order("created_at", { ascending: false });
     if (error) toast.error("Failed to load orders");
     else setOrders(data || []);
@@ -102,8 +101,8 @@ const Orders = () => {
                         {order.listings?.title || "Listing Unavailable"}
                       </h3>
                       <p className="text-xs text-neutral-400" style={montserrat}>
-                        Seller: {order.profiles?.name || "Unknown"} · Ordered {new Date(order.created_at).toLocaleDateString()}
-                      </p>
+  Ordered {new Date(order.created_at).toLocaleDateString()}
+</p>
                     </div>
                     <span className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-sm whitespace-nowrap" style={{ ...montserrat, background: status.bg, color: status.color }}>
                       {status.label}
