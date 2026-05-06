@@ -65,11 +65,14 @@ const CreateListing = () => {
   const [minQuantityIncrement, setMinQuantityIncrement] = useState<string>("");
   const [fixedPriceValue, setFixedPriceValue] = useState<string>("");
   const [startingBidValue, setStartingBidValue] = useState<string>("");
+  const [stripeConnectLoading, setStripeConnectLoading] = useState(false);
+  const [showStripeModal, setShowStripeModal] = useState(false);
+  const [stripeConnected, setStripeConnected] = useState(false);
 
   const calculateSellerReceives = (price: string) => {
     const numPrice = parseFloat(price);
     if (isNaN(numPrice) || numPrice <= 0) return null;
-    return (numPrice * 0.9).toFixed(2);
+    return (numPrice * 0.96).toFixed(2);
   };
 
   useEffect(() => {
@@ -78,14 +81,46 @@ const CreateListing = () => {
 
   useEffect(() => { fetchCategories(); }, []);
 
+  useEffect(() => {
+    const checkStripeStatus = async () => {
+      if (!user) return;
+      const { data } = await supabase.from("profiles").select("stripe_account_id, stripe_onboarded").eq("id", user.id).single();
+      if (data?.stripe_onboarded) setStripeConnected(true);
+    };
+    checkStripeStatus();
+  }, [user]);
+
   const fetchCategories = async () => {
     const { data } = await supabase.from("categories").select("*").order("name");
     setCategories(data || []);
   };
 
+  const handleConnectStripe = async () => {
+    if (!user) return;
+    setStripeConnectLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("create-connect-account", {
+        headers: { Authorization: `Bearer ${session?.access_token}` }
+      });
+      if (error) throw error;
+      if (data?.url) window.location.href = data.url;
+    } catch (err: any) {
+      toast.error(err.message || "Failed to connect Stripe");
+    } finally {
+      setStripeConnectLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
+
+    if (!stripeConnected) {
+      setShowStripeModal(true);
+      return;
+    }
+
     setLoading(true);
     try {
       const formData = new FormData(e.currentTarget);
@@ -185,22 +220,15 @@ const CreateListing = () => {
       <Navbar />
       <div className="container max-w-3xl py-16 px-6">
 
-        {/* Page Header */}
         <div className="mb-12 text-center">
-          <p className="text-xs uppercase tracking-[0.22em] text-neutral-400 mb-4" style={montserrat}>
-            Sell Your Materials
-          </p>
-          <h1 className="text-3xl md:text-4xl font-bold text-neutral-900" style={playfair}>
-            Create a Listing
-          </h1>
+          <p className="text-xs uppercase tracking-[0.22em] text-neutral-400 mb-4" style={montserrat}>Sell Your Materials</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-neutral-900" style={playfair}>Create a Listing</h1>
           <div className="silver-rule max-w-[60px] mx-auto mt-6" />
         </div>
 
-        {/* Form Card */}
         <div className="bg-white" style={{ border: "1px solid #e8e8e8", borderRadius: "2px", boxShadow: "0 2px 24px rgba(0,0,0,0.05)" }}>
           <form onSubmit={handleSubmit} className="p-8 md:p-10 space-y-10">
 
-            {/* Basic Info */}
             <div className="space-y-6">
               <SectionHeader title="Basic Information" />
               <div className="space-y-1.5">
@@ -237,16 +265,12 @@ const CreateListing = () => {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="description" className={labelClass} style={montserrat}>Description *</Label>
-                <Textarea
-                  id="description" name="description" rows={5} required
+                <Textarea id="description" name="description" rows={5} required
                   placeholder="Describe the material, its condition, dimensions, and any other relevant details..."
-                  className="rounded-sm border-neutral-200 text-sm placeholder:text-neutral-300 resize-none"
-                  style={montserrat}
-                />
+                  className="rounded-sm border-neutral-200 text-sm placeholder:text-neutral-300 resize-none" style={montserrat} />
               </div>
             </div>
 
-            {/* Quantity */}
             <div className="space-y-6">
               <SectionHeader title="Quantity & Unit" />
               <div className="grid md:grid-cols-2 gap-4">
@@ -293,7 +317,6 @@ const CreateListing = () => {
               </div>
             </div>
 
-            {/* Pricing */}
             <div className="space-y-6">
               <SectionHeader title="Pricing" />
               <RadioGroup name="priceType" value={priceType} onValueChange={(v: "fixed" | "auction") => setPriceType(v)} className="flex gap-6">
@@ -313,7 +336,7 @@ const CreateListing = () => {
                   <Input id="fixedPrice" name="fixedPrice" type="number" step="0.01" min="0" placeholder="500" value={fixedPriceValue} onChange={(e) => setFixedPriceValue(e.target.value)} required className={inputClass} style={montserrat} />
                   {calculateSellerReceives(fixedPriceValue) && (
                     <p className="text-xs text-neutral-400 mt-1" style={montserrat}>
-                      You receive <span className="font-semibold text-neutral-700">${calculateSellerReceives(fixedPriceValue)}</span> after the 10% platform fee
+                      You receive <span className="font-semibold text-neutral-700">${calculateSellerReceives(fixedPriceValue)}</span> after the 4% platform fee
                     </p>
                   )}
                 </div>
@@ -354,7 +377,6 @@ const CreateListing = () => {
               )}
             </div>
 
-            {/* Images */}
             <div className="space-y-6">
               <SectionHeader title="Photos" />
               <div className="space-y-1.5">
@@ -372,7 +394,6 @@ const CreateListing = () => {
               </div>
             </div>
 
-            {/* Location */}
             <div className="space-y-6">
               <SectionHeader title="Location" />
               <div className="grid md:grid-cols-3 gap-4">
@@ -391,7 +412,6 @@ const CreateListing = () => {
               </div>
             </div>
 
-            {/* Delivery */}
             <div className="space-y-6">
               <SectionHeader title="Delivery Options" />
               <div className="space-y-3">
@@ -418,6 +438,34 @@ const CreateListing = () => {
           </form>
         </div>
       </div>
+
+      {showStripeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-sm p-8 max-w-sm w-full mx-4" style={{ border: "1px solid #e8e8e8", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
+            <h2 className="text-xl font-bold mb-2 text-neutral-900" style={playfair}>Connect Your Bank Account</h2>
+            <p className="text-sm text-neutral-500 mb-6" style={montserrat}>
+              You need to connect your bank account through Stripe to receive payments before you can list items on Loadout.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowStripeModal(false)}
+                className="flex-1 h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm"
+                style={{ ...montserrat, border: "1px solid #e0e0e0" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConnectStripe}
+                disabled={stripeConnectLoading}
+                className="flex-1 h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm"
+                style={{ ...montserrat, background: stripeConnectLoading ? "#666" : "#111" }}
+              >
+                {stripeConnectLoading ? "Connecting…" : "Connect Bank"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
