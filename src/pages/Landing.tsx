@@ -390,7 +390,7 @@ const Landing = () => {
                   <Shield className="h-4 w-4 text-neutral-600" />
                 </div>
                 <p className="text-sm text-neutral-500 max-w-xl" style={montserrat}>
-                  <span className="font-semibold text-neutral-800">Secure checkout powered by Loadout</span>
+                  <span className="font-semibold text-neutral-800">Secure checkout powered by Stripe</span>
                   {" "}— a small 9.9% platform fee applies to completed transactions, keeping this marketplace running and fraud-free.
                 </p>
               </div>
