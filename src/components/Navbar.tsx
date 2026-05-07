@@ -82,8 +82,8 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-10">
           <Link to="/listings" className={navLinkClass}>Browse</Link>
           <a href="#how-it-works" className={navLinkClass}>How It Works</a>
-          <a href="#for-contractors" className={navLinkClass}>Contractors</a>
-          <a href="#pricing" className={navLinkClass}>Pricing</a>
+          <a href="/contractors" className={navLinkClass}>Contractors</a>
+          <a href="/pricing" className={navLinkClass}>Pricing</a>
         </div>
 
         {/* Right side */}
