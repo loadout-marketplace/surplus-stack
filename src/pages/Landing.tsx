@@ -391,7 +391,7 @@ const Landing = () => {
                 </div>
                 <p className="text-sm text-neutral-500 max-w-xl" style={montserrat}>
                   <span className="font-semibold text-neutral-800">Secure checkout powered by Loadout</span>
-                  {" "}— a small 4% platform fee applies to completed transactions, keeping this marketplace running and fraud-free.
+                  {" "}— a small 9.9% platform fee applies to completed transactions, keeping this marketplace running and fraud-free.
                 </p>
               </div>
             </div>
