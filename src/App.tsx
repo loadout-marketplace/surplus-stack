@@ -21,7 +21,8 @@ import SellerProfile from "./pages/SellerProfile";
 import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
 import { ChatBot } from "@/components/ChatBot";
-
+import Contractors from "@/pages/Contractors";
+import Pricing from "@/pages/Pricing";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -49,6 +50,8 @@ const App = () => (
             <Route path="/sellers/:id" element={<SellerProfile />} />
             <Route path="/profile/edit" element={<EditProfile />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/contractors" element={<Contractors />} />
+            <Route path="/pricing" element={<Pricing />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
