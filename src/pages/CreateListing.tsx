@@ -72,7 +72,7 @@ const CreateListing = () => {
   const calculateSellerReceives = (price: string) => {
     const numPrice = parseFloat(price);
     if (isNaN(numPrice) || numPrice <= 0) return null;
-    return (numPrice * 0.96).toFixed(2);
+    return (numPrice * 0.901).toFixed(2);
   };
 
   useEffect(() => {
@@ -336,7 +336,7 @@ const CreateListing = () => {
                   <Input id="fixedPrice" name="fixedPrice" type="number" step="0.01" min="0" placeholder="500" value={fixedPriceValue} onChange={(e) => setFixedPriceValue(e.target.value)} required className={inputClass} style={montserrat} />
                   {calculateSellerReceives(fixedPriceValue) && (
                     <p className="text-xs text-neutral-400 mt-1" style={montserrat}>
-                      You receive <span className="font-semibold text-neutral-700">${calculateSellerReceives(fixedPriceValue)}</span> after the 4% platform fee
+                      You receive <span className="font-semibold text-neutral-700">${calculateSellerReceives(fixedPriceValue)}</span> after the 9.9% platform fee
                     </p>
                   )}
                 </div>
