@@ -21,9 +21,9 @@ const Pricing = () => {
         <section style={{ paddingTop: "120px", paddingBottom: "60px", background: "#fafafa", borderBottom: "1px solid #ebebeb" }}>
           <div className="container max-w-3xl px-6 text-center">
             <p className="text-xs uppercase tracking-[0.22em] text-neutral-400 mb-4" style={montserrat}>Simple Pricing</p>
-            <h1 className="text-4xl font-bold text-neutral-900 mb-4" style={playfair}>Free to List.<br />
-              <span style={{ fontStyle: "italic" }}>You Only Pay When You Sell.</span>
-            </h1>
+            <h1 className="text-4xl font-bold text-neutral-900 mb-4" style={playfair}>List Free. Sell Fast.<br />
+  <span style={{ fontStyle: "italic" }}>Get Paid.</span>
+</h1>
             <div className="w-12 h-px bg-neutral-300 mx-auto mt-6" />
           </div>
         </section>
@@ -88,27 +88,7 @@ const Pricing = () => {
               </div>
             </div>
 
-            {/* Fee breakdown */}
-            <div className="p-8 rounded-sm mb-16" style={{ background: "#f7f7f7", border: "1px solid #ebebeb" }}>
-              <h3 className="text-xl font-bold text-neutral-900 mb-6" style={playfair}>How the 9.9% Fee Works</h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                {[
-                  { label: "You sell for", value: "$500", sub: "Listing price" },
-                  { label: "Platform fee", value: "$49.50", sub: "9.9% of sale" },
-                  { label: "You receive", value: "$450.50", sub: "Into your account" },
-                ].map((item) => (
-                  <div key={item.label} className="text-center">
-                    <p className="text-xs uppercase tracking-wider text-neutral-400 mb-1" style={montserrat}>{item.label}</p>
-                    <p className="text-2xl font-bold text-neutral-900 mb-1" style={playfair}>{item.value}</p>
-                    <p className="text-xs text-neutral-400" style={montserrat}>{item.sub}</p>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-neutral-400 text-center mt-6" style={montserrat}>
-                Payment processing handled by Stripe. Funds deposited within 2 business days of completed sale.
-              </p>
-            </div>
-
+           
             {/* Comparison */}
             <div className="mb-16">
               <h3 className="text-xl font-bold text-neutral-900 mb-6 text-center" style={playfair}>How We Compare</h3>
@@ -126,8 +106,6 @@ const Pricing = () => {
                     {[
                       { platform: "Loadout", listing: "Free", sale: "9.9%", focused: true, highlight: true },
                       { platform: "eBay", listing: "$0.35+", sale: "12-15%", focused: false },
-                      { platform: "Craigslist", listing: "Free", sale: "No protection", focused: false },
-                      { platform: "Facebook Marketplace", listing: "Free", sale: "5%", focused: false },
                     ].map((row) => (
                       <tr key={row.platform} style={{ borderBottom: "1px solid #f0f0f0", background: row.highlight ? "#f9f9f9" : "#fff" }}>
                         <td className="px-5 py-4 font-semibold text-neutral-900">{row.platform}{row.highlight && <span className="ml-2 text-xs bg-neutral-900 text-white px-2 py-0.5 rounded-sm">You're here</span>}</td>
@@ -143,6 +121,15 @@ const Pricing = () => {
               </div>
             </div>
 
+            {/* Stripe Climate */}
+<div className="p-8 rounded-sm mb-16 text-center" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
+  <p className="text-xs font-bold uppercase tracking-wider text-green-700 mb-2" style={montserrat}>🌱 Climate Commitment</p>
+  <h3 className="text-xl font-bold text-neutral-900 mb-3" style={playfair}>Every Transaction Fights Climate Change</h3>
+  <p className="text-sm text-neutral-600 max-w-lg mx-auto" style={montserrat}>
+    Loadout is proud to partner with Stripe Climate. A portion of every transaction on our platform goes directly toward carbon removal, funding the technologies pulling CO₂ out of the atmosphere for good.
+  </p>
+</div>
+            
             {/* FAQ */}
             <div>
               <h3 className="text-xl font-bold text-neutral-900 mb-6 text-center" style={playfair}>Common Questions</h3>
