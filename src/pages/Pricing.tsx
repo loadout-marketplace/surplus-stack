@@ -137,7 +137,7 @@ const Pricing = () => {
                 {[
                   { q: "When do I get paid?", a: "Funds are deposited to your connected bank account within 2 business days of a completed sale." },
                   { q: "Are there any hidden fees?", a: "No. Listing is free. The only fee is 9.9% on completed sales — no monthly subscriptions, no listing fees, nothing else." },
-                  { q: "What if a sale falls through?", a: "If a buyer doesn't complete pickup within the agreed timeframe, contact support and we'll resolve it." },
+                  { q: "What if a sale falls through?", a: "Loadout connects buyers and sellers directly. We recommend agreeing on a pickup timeframe before completing payment. For any issues, email support@loadout-marketplace.com." },
                   { q: "Do buyers pay any fees?", a: "No. Buyers pay only the listing price plus applicable sales tax. There are no buyer fees on Loadout." },
                   { q: "How do I receive my money?", a: "Connect your bank account through Stripe when you create your first listing. It takes about 2 minutes." },
                 ].map((item) => (
