@@ -114,6 +114,23 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const isWebView = /LinkedIn|FBAN|FBAV|Instagram|Twitter/i.test(navigator.userAgent);
+
+if (isWebView) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "#f7f7f7" }}>
+      <div className="w-full max-w-sm bg-white text-center p-10" style={{ border: "1px solid #e5e5e5", borderRadius: "2px", boxShadow: "0 4px 32px rgba(0,0,0,0.07)" }}>
+        <img src={loadoutLogo} alt="Loadout Marketplace" className="h-10 w-auto mx-auto mb-6" />
+        <h2 className="text-xl font-bold text-neutral-900 mb-3" style={playfair}>Open in Browser to Sign In</h2>
+        <p className="text-sm text-neutral-500 mb-6" style={montserrat}>
+          Google sign-in doesn't work inside LinkedIn's browser. Tap the menu icon and select "Open in browser" to continue.
+        </p>
+        <p className="text-xs text-neutral-400" style={montserrat}>loadout-marketplace.com/auth</p>
+      </div>
+    </div>
+  );
+}
+  
   const inputClass = "h-11 rounded-sm border-neutral-200 bg-white text-sm text-neutral-900 placeholder:text-neutral-300 focus:border-neutral-500 focus:ring-0";
   const labelClass = "text-xs font-semibold uppercase tracking-wider text-neutral-500";
 
