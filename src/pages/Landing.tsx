@@ -191,7 +191,7 @@ const Landing = () => {
               >
                 {[
                   { n: "12,400+", label: "Active Listings" },
-                  { n: "3,800+", label: "Verified Contractors" },
+                  { n: "3,800+", label: "Active Sellers" },
                   { n: "48 States", label: "Covered" },
                 ].map((s, i) => (
                   <div key={i} className="text-center">
@@ -450,9 +450,9 @@ const Landing = () => {
 
               <div className="grid md:grid-cols-3 gap-12 max-w-4xl mx-auto">
                 {[
-                  { icon: UserCheck, title: "Verified Contractor Profiles", desc: "Every seller is verified. Browse real reviews and track records before you buy." },
-                  { icon: MessageSquareText, title: "Secure Messaging and Payments", desc: "Communicate safely and transact with confidence through our protected platform." },
-                  { icon: Zap, title: "List in Under 2 Minutes", desc: "Snap a photo, set your price, and your listing is live — it's that fast." },
+                  { icon: UserCheck, title: "Real Seller Profiles", desc: "Browse seller reviews and transaction history before you buy. Real people, real materials." },
+{ icon: MessageSquareText, title: "Secure Messaging and Payments", desc: "Communicate safely and transact with confidence through our protected platform." },
+{ icon: Zap, title: "List in Under 2 Minutes", desc: "Snap a photo, set your price, and your listing is live. It's that fast." },
                 ].map((item) => (
                   <article key={item.title} className="text-center">
                     <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-white border border-neutral-200 mb-5"
