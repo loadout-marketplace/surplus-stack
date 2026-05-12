@@ -65,6 +65,12 @@ const CreateListing = () => {
   const [minQuantityIncrement, setMinQuantityIncrement] = useState<string>("");
   const [fixedPriceValue, setFixedPriceValue] = useState<string>("");
   const [startingBidValue, setStartingBidValue] = useState<string>("");
+  const [titleValue, setTitleValue] = useState<string>("");
+  const [descriptionValue, setDescriptionValue] = useState<string>("");
+  const [cityValue, setCityValue] = useState<string>("");
+  const [stateValue, setStateValue] = useState<string>("");
+  const [zipValue, setZipValue] = useState<string>("");
+  const [quantityValue, setQuantityValue] = useState<string>("");
   const [stripeConnectLoading, setStripeConnectLoading] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
@@ -90,6 +96,36 @@ const CreateListing = () => {
     checkStripeStatus();
   }, [user]);
 
+  // Restore form data after Stripe Connect redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('stripe') === 'success') {
+      setStripeConnected(true);
+      const saved = localStorage.getItem('savedListingDraft');
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          if (data.priceType) setPriceType(data.priceType as "fixed" | "auction");
+          if (data.selectedUnit) setSelectedUnit(data.selectedUnit);
+          if (data.fixedPrice) setFixedPriceValue(data.fixedPrice);
+          if (data.startingBid) setStartingBidValue(data.startingBid);
+          if (data.title) setTitleValue(data.title);
+          if (data.description) setDescriptionValue(data.description);
+          if (data.city) setCityValue(data.city);
+          if (data.state) setStateValue(data.state);
+          if (data.zip) setZipValue(data.zip);
+          if (data.quantity) setQuantityValue(data.quantity);
+          localStorage.removeItem('savedListingDraft');
+          toast.success("Bank account connected! Your listing draft has been restored.");
+        } catch (e) {
+          console.error("Failed to restore draft", e);
+        }
+      } else {
+        toast.success("Bank account connected! You can now publish listings.");
+      }
+    }
+  }, []);
+
   const fetchCategories = async () => {
     const { data } = await supabase.from("categories").select("*").order("name");
     setCategories(data || []);
@@ -99,6 +135,21 @@ const CreateListing = () => {
     if (!user) return;
     setStripeConnectLoading(true);
     try {
+      // Save form data before redirecting
+      const draft = {
+        title: titleValue,
+        description: descriptionValue,
+        city: cityValue,
+        state: stateValue,
+        zip: zipValue,
+        quantity: quantityValue,
+        fixedPrice: fixedPriceValue,
+        startingBid: startingBidValue,
+        priceType,
+        selectedUnit,
+      };
+      localStorage.setItem('savedListingDraft', JSON.stringify(draft));
+
       const { data: { session } } = await supabase.auth.getSession();
       const { data, error } = await supabase.functions.invoke("create-connect-account", {
         headers: { Authorization: `Bearer ${session?.access_token}` }
@@ -124,16 +175,16 @@ const CreateListing = () => {
     setLoading(true);
     try {
       const formData = new FormData(e.currentTarget);
-      const title = formData.get("title") as string;
-      const description = formData.get("description") as string;
-      const selectedPriceType = formData.get("priceType") as "fixed" | "auction";
-      const fixedPrice = formData.get("fixedPrice") ? parseFloat(formData.get("fixedPrice") as string) : undefined;
-      const startingBid = formData.get("startingBid") ? parseFloat(formData.get("startingBid") as string) : undefined;
+      const title = titleValue;
+      const description = descriptionValue;
+      const selectedPriceType = priceType;
+      const fixedPrice = fixedPriceValue ? parseFloat(fixedPriceValue) : undefined;
+      const startingBid = startingBidValue ? parseFloat(startingBidValue) : undefined;
       const buyNowPrice = formData.get("buyNowPrice") ? parseFloat(formData.get("buyNowPrice") as string) : undefined;
-      const quantity = parseFloat(formData.get("quantity") as string);
-      const city = formData.get("city") as string;
-      const state = formData.get("state") as string;
-      const zip = formData.get("zip") as string;
+      const quantity = parseFloat(quantityValue);
+      const city = cityValue;
+      const state = stateValue;
+      const zip = zipValue;
 
       const validation = listingSchema.safeParse({ title, description, priceType: selectedPriceType, fixedPrice, startingBid, buyNowPrice, quantity, city, state, zip });
       if (!validation.success) { toast.error(validation.error.errors[0].message); setLoading(false); return; }
@@ -233,7 +284,7 @@ const CreateListing = () => {
               <SectionHeader title="Basic Information" />
               <div className="space-y-1.5">
                 <Label htmlFor="title" className={labelClass} style={montserrat}>Title *</Label>
-                <Input id="title" name="title" placeholder="e.g., 2x4 Pine Lumber — 100 pieces" required className={inputClass} style={montserrat} />
+                <Input id="title" name="title" value={titleValue} onChange={(e) => setTitleValue(e.target.value)} placeholder="e.g., 2x4 Pine Lumber — 100 pieces" required className={inputClass} style={montserrat} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="category" className={labelClass} style={montserrat}>Category *</Label>
@@ -265,7 +316,7 @@ const CreateListing = () => {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="description" className={labelClass} style={montserrat}>Description *</Label>
-                <Textarea id="description" name="description" rows={5} required
+                <Textarea id="description" name="description" value={descriptionValue} onChange={(e) => setDescriptionValue(e.target.value)} rows={5} required
                   placeholder="Describe the material, its condition, dimensions, and any other relevant details..."
                   className="rounded-sm border-neutral-200 text-sm placeholder:text-neutral-300 resize-none" style={montserrat} />
               </div>
@@ -276,7 +327,7 @@ const CreateListing = () => {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="quantity" className={labelClass} style={montserrat}>Quantity *</Label>
-                  <Input id="quantity" name="quantity" type="number" step="0.01" min="0" placeholder="100" required className={inputClass} style={montserrat} />
+                  <Input id="quantity" name="quantity" type="number" step="0.01" min="0" value={quantityValue} onChange={(e) => setQuantityValue(e.target.value)} placeholder="100" required className={inputClass} style={montserrat} />
                 </div>
                 <div className="space-y-1.5">
                   <Label className={labelClass} style={montserrat}>Unit *</Label>
@@ -399,15 +450,15 @@ const CreateListing = () => {
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="city" className={labelClass} style={montserrat}>City *</Label>
-                  <Input id="city" name="city" placeholder="Chicago" required className={inputClass} style={montserrat} />
+                  <Input id="city" name="city" value={cityValue} onChange={(e) => setCityValue(e.target.value)} placeholder="Chicago" required className={inputClass} style={montserrat} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="state" className={labelClass} style={montserrat}>State *</Label>
-                  <Input id="state" name="state" placeholder="IL" maxLength={2} required className={inputClass} style={montserrat} />
+                  <Input id="state" name="state" value={stateValue} onChange={(e) => setStateValue(e.target.value)} placeholder="IL" maxLength={2} required className={inputClass} style={montserrat} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="zip" className={labelClass} style={montserrat}>ZIP Code *</Label>
-                  <Input id="zip" name="zip" placeholder="60601" maxLength={10} required className={inputClass} style={montserrat} />
+                  <Input id="zip" name="zip" value={zipValue} onChange={(e) => setZipValue(e.target.value)} placeholder="60601" maxLength={10} required className={inputClass} style={montserrat} />
                 </div>
               </div>
             </div>
