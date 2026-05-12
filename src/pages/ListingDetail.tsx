@@ -40,7 +40,7 @@ const ListingDetail = () => {
   const [activeImage, setActiveImage] = useState(0);
   const [relistDialogOpen, setRelistDialogOpen] = useState(false);
   const [relistDuration, setRelistDuration] = useState("7");
-  
+
   useEffect(() => { fetchListing(); }, [slug]);
 
   useEffect(() => {
@@ -59,30 +59,31 @@ const ListingDetail = () => {
   }, [listing]);
 
   const handlePurchase = async () => {
-  if (!user || !listing) return;
-  setPurchasing(true);
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const { data, error } = await supabase.functions.invoke("create-checkout", {
-      body: {
-  listingId: listing.id,
-  listingTitle: listing.title,
-  price: listing.fixed_price,
-  sellerId: listing.seller_id,
-},
-      headers: { Authorization: `Bearer ${session?.access_token}` }
-    });
-    if (error) throw error;
-    if (data?.url) {
-      window.location.href = data.url;
-    } else {
-      throw new Error("No checkout URL returned");
+    if (!user || !listing) return;
+    setPurchasing(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: {
+          listingId: listing.id,
+          listingTitle: listing.title,
+          price: listing.fixed_price,
+          sellerId: listing.seller_id,
+        },
+        headers: { Authorization: `Bearer ${session?.access_token}` }
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to start checkout");
+      setPurchasing(false);
     }
-  } catch (error: any) {
-    toast.error(error.message || "Failed to start checkout");
-    setPurchasing(false);
-  }
-};
+  };
+
   const fetchListing = async () => {
     setLoading(true);
     const { data, error } = await supabase.from("listings").select(`*, listing_images (url), categories (name), profiles (name, company_name)`).eq("slug", slug).single();
@@ -111,26 +112,26 @@ const ListingDetail = () => {
   };
 
   const handleRelist = async () => {
-  if (!listing) return;
-  setRelisting(true);
-  try {
-    const newEnd = new Date();
-    newEnd.setDate(newEnd.getDate() + parseInt(relistDuration));
-    const { error } = await supabase
-      .from("listings")
-      .update({ auction_end_time: newEnd.toISOString(), status: "active" })
-      .eq("id", listing.id);
-    if (error) throw error;
-    toast.success(`Listing re-listed for ${relistDuration} days!`);
-    setRelistDialogOpen(false);
-    fetchListing();
-  } catch {
-    toast.error("Failed to re-list");
-  } finally {
-    setRelisting(false);
-  }
-};
-  
+    if (!listing) return;
+    setRelisting(true);
+    try {
+      const newEnd = new Date();
+      newEnd.setDate(newEnd.getDate() + parseInt(relistDuration));
+      const { error } = await supabase
+        .from("listings")
+        .update({ auction_end_time: newEnd.toISOString(), status: "active" })
+        .eq("id", listing.id);
+      if (error) throw error;
+      toast.success(`Listing re-listed for ${relistDuration} days!`);
+      setRelistDialogOpen(false);
+      fetchListing();
+    } catch {
+      toast.error("Failed to re-list");
+    } finally {
+      setRelisting(false);
+    }
+  };
+
   const handleContactSeller = async () => {
     if (!user || !listing) return;
     setContactingSeller(true);
@@ -291,58 +292,80 @@ const ListingDetail = () => {
 
               {/* Actions */}
               <div className="space-y-2">
+
+                {/* Sold banner for seller */}
+                {listing.status === "sold" && user?.id === listing.seller_id && (
+                  <div className="p-4 rounded-sm mb-2" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
+                    <p className="text-sm font-bold text-green-700 mb-1" style={playfair}>This item has sold!</p>
+                    <p className="text-xs text-green-600" style={montserrat}>Check your messages to coordinate pickup with the buyer. Payment will be released to your account once the buyer confirms receipt.</p>
+                  </div>
+                )}
+
+                {/* Sold banner for buyers */}
+                {listing.status === "sold" && user?.id !== listing.seller_id && (
+                  <div className="p-4 rounded-sm mb-2" style={{ background: "#fef2f2", border: "1px solid #fecaca" }}>
+                    <p className="text-sm font-bold text-red-700 mb-1" style={playfair}>This item has been sold.</p>
+                    <p className="text-xs text-red-500" style={montserrat}>Check back for similar listings or browse other materials.</p>
+                  </div>
+                )}
+
                 {canExtendAuction() && (
                   <button onClick={handleExtendAuction} disabled={extending} className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50" style={{ ...montserrat, border: "1px solid #e0e0e0" }}>
                     {extending ? "Extending…" : "Extend Auction 24 Hours"}
                   </button>
                 )}
-                {user && user.id === listing.seller_id && 
- listing.price_type === 'auction' && 
- listing.status === 'active' &&
- listing.auction_end_time &&
- Date.now() >= new Date(listing.auction_end_time).getTime() &&
- (bidsCount === 0 || (highestBid !== null && listing.starting_bid !== null && highestBid < listing.starting_bid)) && (
-  <button
-    onClick={() => setRelistDialogOpen(true)}
-    disabled={relisting}
-    className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50"
-    style={{ ...montserrat, border: "1px solid #e0e0e0" }}
-  >
-    {relisting ? "Re-listing…" : "Re-list This Item"}
-  </button>
-)}
-                {user && user.id !== listing.seller_id ? (
-                  <>
-                    <button onClick={handleContactSeller} disabled={contactingSeller} className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50" style={{ ...montserrat, border: "1px solid #e0e0e0" }}>
-                      {contactingSeller ? "Sending…" : "Message Seller"}
+                {user && user.id === listing.seller_id &&
+                  listing.price_type === 'auction' &&
+                  listing.status === 'active' &&
+                  listing.auction_end_time &&
+                  Date.now() >= new Date(listing.auction_end_time).getTime() &&
+                  (bidsCount === 0 || (highestBid !== null && listing.starting_bid !== null && highestBid < listing.starting_bid)) && (
+                    <button
+                      onClick={() => setRelistDialogOpen(true)}
+                      disabled={relisting}
+                      className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50"
+                      style={{ ...montserrat, border: "1px solid #e0e0e0" }}
+                    >
+                      {relisting ? "Re-listing…" : "Re-list This Item"}
                     </button>
-                    {listing.price_type === 'auction' ? (
-                      <button onClick={() => setBidDialogOpen(true)} className="w-full h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: "#111" }}>
-                        Bid / Purchase
-                      </button>
+                  )}
+
+                {listing.status !== "sold" && (
+                  <>
+                    {user && user.id !== listing.seller_id ? (
+                      <>
+                        <button onClick={handleContactSeller} disabled={contactingSeller} className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50" style={{ ...montserrat, border: "1px solid #e0e0e0" }}>
+                          {contactingSeller ? "Sending…" : "Message Seller"}
+                        </button>
+                        {listing.price_type === 'auction' ? (
+                          <button onClick={() => setBidDialogOpen(true)} className="w-full h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: "#111" }}>
+                            Bid / Purchase
+                          </button>
+                        ) : (
+                          <button
+                            onClick={handlePurchase}
+                            disabled={purchasing}
+                            className="w-full h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm"
+                            style={{ ...montserrat, background: purchasing ? "#666" : "#111" }}
+                          >
+                            {purchasing ? "Redirecting to Checkout…" : "Purchase"}
+                          </button>
+                        )}
+                      </>
+                    ) : user && user.id === listing.seller_id ? (
+                      <Link to="/dashboard">
+                        <button className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50" style={{ ...montserrat, border: "1px solid #e0e0e0" }}>
+                          Manage Your Listing
+                        </button>
+                      </Link>
                     ) : (
-                      <button
-  onClick={handlePurchase}
-  disabled={purchasing}
-  className="w-full h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm"
-  style={{ ...montserrat, background: purchasing ? "#666" : "#111" }}
->
-  {purchasing ? "Redirecting to Checkout…" : "Purchase"}
-</button>
+                      <Link to="/auth">
+                        <button className="w-full h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: "#111" }}>
+                          Sign In to {listing.price_type === 'auction' ? 'Bid / Purchase' : 'Purchase'}
+                        </button>
+                      </Link>
                     )}
                   </>
-                ) : user && user.id === listing.seller_id ? (
-                  <Link to="/dashboard">
-                    <button className="w-full h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors hover:bg-neutral-50" style={{ ...montserrat, border: "1px solid #e0e0e0" }}>
-                      Manage Your Listing
-                    </button>
-                  </Link>
-                ) : (
-                  <Link to="/auth">
-                    <button className="w-full h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: "#111" }}>
-                      Sign In to {listing.price_type === 'auction' ? 'Bid / Purchase' : 'Purchase'}
-                    </button>
-                  </Link>
                 )}
               </div>
             </div>
@@ -364,45 +387,45 @@ const ListingDetail = () => {
             <SellerRating sellerId={listing.seller_id} sellerName={listing.profiles?.name || "Seller"} />
           </div>
         </main>
-        
-{relistDialogOpen && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div className="bg-white rounded-sm p-8 max-w-sm w-full mx-4" style={{ border: "1px solid #e8e8e8", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
-      <h2 className="text-xl font-bold mb-2 text-neutral-900" style={playfair}>Re-list This Item</h2>
-      <p className="text-sm text-neutral-500 mb-6" style={montserrat}>Choose how long to re-list your auction.</p>
-      <select
-        value={relistDuration}
-        onChange={(e) => setRelistDuration(e.target.value)}
-        className="w-full h-11 rounded-sm border border-neutral-200 text-sm px-3 mb-6"
-        style={montserrat}
-      >
-        <option value="1">1 Day</option>
-        <option value="3">3 Days</option>
-        <option value="5">5 Days</option>
-        <option value="7">7 Days</option>
-        <option value="14">14 Days</option>
-      </select>
-      <div className="flex gap-3">
-        <button
-          onClick={() => setRelistDialogOpen(false)}
-          className="flex-1 h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm"
-          style={{ ...montserrat, border: "1px solid #e0e0e0" }}
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleRelist}
-          disabled={relisting}
-          className="flex-1 h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm"
-          style={{ ...montserrat, background: relisting ? "#666" : "#111" }}
-        >
-          {relisting ? "Re-listing…" : "Confirm"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-        
+
+        {relistDialogOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-sm p-8 max-w-sm w-full mx-4" style={{ border: "1px solid #e8e8e8", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
+              <h2 className="text-xl font-bold mb-2 text-neutral-900" style={playfair}>Re-list This Item</h2>
+              <p className="text-sm text-neutral-500 mb-6" style={montserrat}>Choose how long to re-list your auction.</p>
+              <select
+                value={relistDuration}
+                onChange={(e) => setRelistDuration(e.target.value)}
+                className="w-full h-11 rounded-sm border border-neutral-200 text-sm px-3 mb-6"
+                style={montserrat}
+              >
+                <option value="1">1 Day</option>
+                <option value="3">3 Days</option>
+                <option value="5">5 Days</option>
+                <option value="7">7 Days</option>
+                <option value="14">14 Days</option>
+              </select>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setRelistDialogOpen(false)}
+                  className="flex-1 h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm"
+                  style={{ ...montserrat, border: "1px solid #e0e0e0" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRelist}
+                  disabled={relisting}
+                  className="flex-1 h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm"
+                  style={{ ...montserrat, background: relisting ? "#666" : "#111" }}
+                >
+                  {relisting ? "Re-listing…" : "Confirm"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {listing.price_type === 'auction' && (
           <BidDialog open={bidDialogOpen} onOpenChange={setBidDialogOpen} listingId={listing.id} listingTitle={listing.title} currentHighestBid={highestBid} startingBid={listing.starting_bid} onBidPlaced={fetchListing} />
         )}
