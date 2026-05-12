@@ -6,12 +6,12 @@ import Navbar from "@/components/Navbar";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, Edit, Archive, Plus, Eye, BarChart2 } from "lucide-react";
+import { Package, Edit, Archive, Plus, Eye, BarChart2, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 
 interface Listing {
   id: string; title: string; slug: string; fixed_price: number | null; starting_bid: number | null;
-  status: string; quantity: number; unit: string; created_at: string; views_count: number;
+  status: string; quantity: number; unit: string; created_at: string; views_count: number; sold_at: string | null;
 }
 
 const playfair: React.CSSProperties = { fontFamily: "'Playfair Display', Georgia, serif" };
@@ -58,6 +58,7 @@ const Dashboard = () => {
   }
 
   const activeListings = listings.filter((l) => l.status === "active");
+  const soldListings = listings.filter((l) => l.status === "sold");
   const archivedListings = listings.filter((l) => l.status === "archived");
   const totalViews = listings.reduce((sum, l) => sum + (l.views_count || 0), 0);
 
@@ -82,9 +83,10 @@ const Dashboard = () => {
         <div className="silver-rule mb-10" />
 
         {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-5 mb-10">
+        <div className="grid md:grid-cols-4 gap-5 mb-10">
           {[
             { icon: Package, label: "Active Listings", value: activeListings.length },
+            { icon: DollarSign, label: "Items Sold", value: soldListings.length },
             { icon: Eye, label: "Total Views", value: totalViews },
             { icon: BarChart2, label: "Total Listings", value: listings.length },
           ].map((stat) => (
@@ -110,6 +112,9 @@ const Dashboard = () => {
               <TabsList className="bg-neutral-100 rounded-sm p-0.5 mb-6">
                 <TabsTrigger value="active" className="rounded-sm text-xs font-semibold uppercase tracking-wider data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-sm text-neutral-400" style={montserrat}>
                   Active ({activeListings.length})
+                </TabsTrigger>
+                <TabsTrigger value="sold" className="rounded-sm text-xs font-semibold uppercase tracking-wider data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-sm text-neutral-400" style={montserrat}>
+                  Sold ({soldListings.length})
                 </TabsTrigger>
                 <TabsTrigger value="archived" className="rounded-sm text-xs font-semibold uppercase tracking-wider data-[state=active]:bg-white data-[state=active]:text-neutral-900 data-[state=active]:shadow-sm text-neutral-400" style={montserrat}>
                   Archived ({archivedListings.length})
@@ -152,12 +157,47 @@ const Dashboard = () => {
                             <td className="py-3 text-right">
                               <div className="flex items-center justify-end gap-1">
                                 <button className="p-1.5 rounded hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 transition-colors" onClick={() => navigate(`/listings/${listing.slug}`)}>
-  <Edit className="h-3.5 w-3.5" />
-</button>
+                                  <Edit className="h-3.5 w-3.5" />
+                                </button>
                                 <button className="p-1.5 rounded hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 transition-colors" onClick={() => handleArchive(listing.id)}>
                                   <Archive className="h-3.5 w-3.5" />
                                 </button>
                               </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="sold">
+                {soldListings.length === 0 ? (
+                  <div className="text-center py-10 text-sm text-neutral-400" style={montserrat}>No sold listings yet</div>
+                ) : (
+                  <div style={{ overflowX: "auto" }}>
+                    <table className="w-full text-sm" style={montserrat}>
+                      <thead>
+                        <tr style={{ borderBottom: "1px solid #f0f0f0" }}>
+                          {["Title", "Price", "Quantity", "Sold Date", "Actions"].map((h) => (
+                            <th key={h} className="text-left text-xs font-semibold uppercase tracking-wider text-neutral-400 pb-3 pr-4">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {soldListings.map((listing) => (
+                          <tr key={listing.id} style={{ borderBottom: "1px solid #f9f9f9" }}>
+                            <td className="py-3 pr-4">
+                              <Link to={`/listings/${listing.slug}`} className="font-medium text-neutral-900 hover:underline line-clamp-1">{listing.title}</Link>
+                            </td>
+                            <td className="py-3 pr-4 font-semibold text-neutral-900">${(listing.fixed_price ?? listing.starting_bid ?? 0).toLocaleString()}</td>
+                            <td className="py-3 pr-4 text-neutral-500">{listing.quantity} {listing.unit}</td>
+                            <td className="py-3 pr-4 text-neutral-400">{listing.sold_at ? new Date(listing.sold_at).toLocaleDateString() : "N/A"}</td>
+                            <td className="py-3">
+                              <button className="p-1.5 rounded hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 transition-colors" onClick={() => navigate(`/listings/${listing.slug}`)}>
+                                <Eye className="h-3.5 w-3.5" />
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -183,7 +223,7 @@ const Dashboard = () => {
                       {archivedListings.map((listing) => (
                         <tr key={listing.id} style={{ borderBottom: "1px solid #f9f9f9" }}>
                           <td className="py-3 pr-4 text-neutral-500">{listing.title}</td>
-                          <td className="py-3 pr-4 text-neutral-500">${listing.fixed_price?.toLocaleString()}</td>
+                          <td className="py-3 pr-4 text-neutral-500">${(listing.fixed_price ?? listing.starting_bid ?? 0).toLocaleString()}</td>
                           <td className="py-3 text-neutral-400">{new Date(listing.created_at).toLocaleDateString()}</td>
                         </tr>
                       ))}
