@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Ban } from "lucide-react";
+import { ArrowLeft, Send, Ban, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -29,10 +29,13 @@ const MessageThread = () => {
   const [updating, setUpdating] = useState(false);
   const [blocking, setBlocking] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<any>(null);
+  const [confirming, setConfirming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { if (!authLoading && !user) { toast.error("Please sign in"); navigate("/auth"); } }, [user, authLoading, navigate]);
   useEffect(() => { if (user && id) { fetchThread(); fetchMessages(); } }, [user, id]);
+  useEffect(() => { if (user && thread) { fetchPendingOrder(); } }, [user, thread]);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const fetchThread = async () => {
@@ -44,13 +47,23 @@ const MessageThread = () => {
 
   const fetchMessages = async () => {
     const { data: messagesData } = await supabase.from("messages").select("*").eq("thread_id", id).order("created_at", { ascending: true });
+    const messagesWithSenders = await Promise.all((messagesData || []).map(async (msg) => {
+      const { data: profile } = await supabase.from("profiles").select("full_name, name, company_name, avatar_url").eq("id", msg.sender_id).single();
+      return { ...msg, sender: { name: profile?.company_name || profile?.full_name || profile?.name || "Unknown", avatar_url: profile?.avatar_url } };
+    }));
+    setMessages(messagesWithSenders);
+  };
 
-// Fetch sender names separately
-const messagesWithSenders = await Promise.all((messagesData || []).map(async (msg) => {
-  const { data: profile } = await supabase.from("profiles").select("full_name, name, company_name, avatar_url").eq("id", msg.sender_id).single();
-return { ...msg, sender: { name: profile?.company_name || profile?.full_name || profile?.name || "Unknown", avatar_url: profile?.avatar_url } };
-}));
-setMessages(messagesWithSenders);
+  const fetchPendingOrder = async () => {
+    if (!user || !thread) return;
+    const { data } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("listing_id", thread.listing_id)
+      .eq("buyer_id", user.id)
+      .eq("status", "pending_pickup")
+      .maybeSingle();
+    setPendingOrder(data);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -92,6 +105,25 @@ setMessages(messagesWithSenders);
     if (error) toast.error("Failed to block user");
     else { toast.success("User blocked"); navigate("/messages"); }
     setBlocking(false);
+  };
+
+  const handleConfirmPickup = async () => {
+    if (!pendingOrder || !user) return;
+    setConfirming(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("release-payment", {
+        body: { order_id: pendingOrder.id },
+        headers: { Authorization: `Bearer ${session?.access_token}` }
+      });
+      if (error) throw error;
+      toast.success("Pickup confirmed! Payment released to seller.");
+      setPendingOrder(null);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to confirm pickup");
+    } finally {
+      setConfirming(false);
+    }
   };
 
   if (authLoading || loading) {
@@ -160,6 +192,25 @@ setMessages(messagesWithSenders);
           </div>
         )}
 
+        {/* Pending Pickup Banner */}
+        {pendingOrder && user?.id === thread.buyer_id && (
+          <div className="mb-6 p-5 rounded-sm" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
+            <p className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-1" style={montserrat}>Payment Held Securely</p>
+            <p className="text-sm text-amber-600 mb-3" style={montserrat}>
+              Your payment of ${pendingOrder.amount} is being held. Once you have picked up your materials, confirm below to release payment to the seller.
+            </p>
+            <button
+              onClick={handleConfirmPickup}
+              disabled={confirming}
+              className="flex items-center gap-2 h-9 px-5 text-white text-xs font-bold uppercase tracking-wider rounded-sm"
+              style={{ ...montserrat, background: confirming ? "#666" : "#111" }}
+            >
+              <CheckCircle className="h-3.5 w-3.5" />
+              {confirming ? "Confirming…" : "Confirm Pickup & Release Payment"}
+            </button>
+          </div>
+        )}
+
         {/* Messages */}
         <div className="bg-white rounded-sm overflow-hidden" style={{ border: "1px solid #e8e8e8" }}>
           {(thread.status === 'accepted' || thread.status === 'active') ? (
@@ -172,38 +223,38 @@ setMessages(messagesWithSenders);
                     const isMe = message.sender_id === user?.id;
                     return (
                       <div key={message.id} className={`flex items-end gap-2 ${isMe ? "justify-end" : "justify-start"}`}>
-  {!isMe && (
-    <div className="h-8 w-8 rounded-full bg-neutral-200 overflow-hidden shrink-0 mb-5">
-      {message.sender.avatar_url ? (
-        <img src={message.sender.avatar_url} alt={message.sender.name} className="w-full h-full object-cover" />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-neutral-500">
-          {message.sender.name.charAt(0).toUpperCase()}
-        </div>
-      )}
-    </div>
-  )}
-  <div className="max-w-[75%]">
-    <p className="text-xs font-semibold uppercase tracking-wider mb-1 px-1" style={{ ...montserrat, color: isMe ? "#111" : "#999" }}>
-      {isMe ? "You" : message.sender.name}
-    </p>
-    <div className="px-4 py-3 rounded-sm" style={{ background: isMe ? "#111" : "#fff", border: isMe ? "none" : "1px solid #e8e8e8" }}>
-      <p className="text-sm leading-relaxed" style={{ ...montserrat, color: isMe ? "#fff" : "#333" }}>{message.content || message.body}</p>
-    </div>
-    <p className="text-xs text-neutral-400 mt-1 px-1" style={montserrat}>{new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-  </div>
-  {isMe && (
-    <div className="h-8 w-8 rounded-full bg-neutral-200 overflow-hidden shrink-0 mb-5">
-      {message.sender.avatar_url ? (
-        <img src={message.sender.avatar_url} alt="You" className="w-full h-full object-cover" />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-neutral-500">
-          Y
-        </div>
-      )}
-    </div>
-  )}
-</div>
+                        {!isMe && (
+                          <div className="h-8 w-8 rounded-full bg-neutral-200 overflow-hidden shrink-0 mb-5">
+                            {message.sender.avatar_url ? (
+                              <img src={message.sender.avatar_url} alt={message.sender.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-xs font-bold text-neutral-500">
+                                {message.sender.name.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className="max-w-[75%]">
+                          <p className="text-xs font-semibold uppercase tracking-wider mb-1 px-1" style={{ ...montserrat, color: isMe ? "#111" : "#999" }}>
+                            {isMe ? "You" : message.sender.name}
+                          </p>
+                          <div className="px-4 py-3 rounded-sm" style={{ background: isMe ? "#111" : "#fff", border: isMe ? "none" : "1px solid #e8e8e8" }}>
+                            <p className="text-sm leading-relaxed" style={{ ...montserrat, color: isMe ? "#fff" : "#333" }}>{message.content || message.body}</p>
+                          </div>
+                          <p className="text-xs text-neutral-400 mt-1 px-1" style={montserrat}>{new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        </div>
+                        {isMe && (
+                          <div className="h-8 w-8 rounded-full bg-neutral-200 overflow-hidden shrink-0 mb-5">
+                            {message.sender.avatar_url ? (
+                              <img src={message.sender.avatar_url} alt="You" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-xs font-bold text-neutral-500">
+                                Y
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     );
                   })
                 )}
