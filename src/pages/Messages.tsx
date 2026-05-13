@@ -9,9 +9,7 @@ import { toast } from "sonner";
 interface MessageThread {
   id: string; listing_id: string; buyer_id: string; seller_id: string;
   created_at: string; status: string;
-  listings: { title: string; slug: string };
-  buyer_profile: { name: string };
-  seller_profile: { name: string };
+  listings: { title: string; slug: string } | null;
 }
 
 const playfair: React.CSSProperties = { fontFamily: "'Playfair Display', Georgia, serif" };
@@ -20,7 +18,7 @@ const montserrat: React.CSSProperties = { fontFamily: "'Montserrat', sans-serif"
 const Messages = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [threads, setThreads] = useState<MessageThread[]>([]);
+  const [threads, setThreads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,12 +30,35 @@ const Messages = () => {
   const fetchThreads = async () => {
     if (!user) return;
     setLoading(true);
-    const { data, error } = await supabase.from("message_threads")
-      .select(`*, listings(title, slug), buyer_profile:profiles!message_threads_buyer_id_fkey(name), seller_profile:profiles!message_threads_seller_id_fkey(name)`)
-      .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-      .order("updated_at", { ascending: false });
-    if (error) toast.error("Failed to load messages");
-    else setThreads(data || []);
+    try {
+      const { data: threadData, error } = await supabase
+        .from("message_threads")
+        .select("*, listings(title, slug)")
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch the other user's profile for each thread separately
+      const threadsWithProfiles = await Promise.all((threadData || []).map(async (thread) => {
+        const otherUserId = thread.buyer_id === user.id ? thread.seller_id : thread.buyer_id;
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, name")
+          .eq("id", otherUserId)
+          .single();
+        return {
+          ...thread,
+          otherUserName: profile?.full_name || profile?.name || "Unknown",
+          role: thread.buyer_id === user.id ? "Buying" : "Selling",
+        };
+      }));
+
+      setThreads(threadsWithProfiles);
+    } catch (err: any) {
+      toast.error("Failed to load messages");
+      console.error(err);
+    }
     setLoading(false);
   };
 
@@ -56,6 +77,7 @@ const Messages = () => {
 
   const statusLabel: Record<string, { label: string; color: string }> = {
     pending: { label: "Pending", color: "#f59e0b" },
+    active: { label: "Active", color: "#16a34a" },
     approved: { label: "Active", color: "#16a34a" },
     rejected: { label: "Rejected", color: "#dc2626" },
   };
@@ -75,13 +97,11 @@ const Messages = () => {
           <div className="text-center py-20">
             <MessageSquare className="h-10 w-10 text-neutral-300 mx-auto mb-4" />
             <h3 className="text-lg font-bold text-neutral-900 mb-2" style={playfair}>No messages yet</h3>
-            <p className="text-sm text-neutral-500" style={montserrat}>When you contact a seller, your conversations will appear here.</p>
+            <p className="text-sm text-neutral-500" style={montserrat}>When you contact a seller or make a purchase, your conversations will appear here.</p>
           </div>
         ) : (
           <div className="space-y-2">
             {threads.map((thread) => {
-              const otherUser = thread.buyer_id === user?.id ? thread.seller_profile : thread.buyer_profile;
-              const role = thread.buyer_id === user?.id ? "Buying" : "Selling";
               const status = statusLabel[thread.status] || { label: thread.status, color: "#999" };
               return (
                 <div
@@ -99,9 +119,15 @@ const Messages = () => {
                         {thread.listings?.title || "Unknown Listing"}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <p className="text-xs text-neutral-400" style={montserrat}>With: {otherUser?.name || "Unknown"}</p>
-                        <span className="text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm" style={{ ...montserrat, background: "#f5f5f5", color: "#888", fontSize: "10px" }}>{role}</span>
-                        <span className="text-xs font-semibold" style={{ ...montserrat, color: status.color, fontSize: "10px" }}>{status.label}</span>
+                        <p className="text-xs text-neutral-400" style={montserrat}>
+                          With: {thread.otherUserName}
+                        </p>
+                        <span className="text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm" style={{ ...montserrat, background: "#f5f5f5", color: "#888", fontSize: "10px" }}>
+                          {thread.role}
+                        </span>
+                        <span className="text-xs font-semibold" style={{ ...montserrat, color: status.color, fontSize: "10px" }}>
+                          {status.label}
+                        </span>
                       </div>
                     </div>
                   </div>
