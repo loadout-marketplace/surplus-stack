@@ -43,8 +43,14 @@ const MessageThread = () => {
   };
 
   const fetchMessages = async () => {
-    const { data } = await supabase.from("messages").select(`*, sender:profiles!sender_id(name)`).eq("thread_id", id).order("created_at", { ascending: true });
-    setMessages(data || []);
+    const { data: messagesData } = await supabase.from("messages").select("*").eq("thread_id", id).order("created_at", { ascending: true });
+
+// Fetch sender names separately
+const messagesWithSenders = await Promise.all((messagesData || []).map(async (msg) => {
+  const { data: profile } = await supabase.from("profiles").select("full_name, name").eq("id", msg.sender_id).single();
+  return { ...msg, sender: { name: profile?.full_name || profile?.name || "Unknown" } };
+}));
+setMessages(messagesWithSenders);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
