@@ -256,7 +256,6 @@ const ListingDetail = () => {
                   <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-1" style={montserrat}>Price</p>
                   <div className="flex items-baseline gap-3 mb-3">
                     <p className="text-3xl font-bold text-neutral-900" style={playfair}>${listing.fixed_price?.toLocaleString()}</p>
-                    <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider" style={montserrat}>~{pctOff}% off retail</span>
                   </div>
                   <div className="silver-rule mb-3" />
                   <div className="space-y-1 text-xs" style={montserrat}>
