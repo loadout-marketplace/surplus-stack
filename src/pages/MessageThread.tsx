@@ -11,7 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 const messageSchema = z.object({ body: z.string().trim().min(1, "Message cannot be empty").max(5000) });
 
-interface Message { id: string; sender_id: string; body: string; created_at: string; sender: { name: string }; }
+interface Message { id: string; sender_id: string; body?: string; content?: string; created_at: string; sender: { name: string }; }
 interface Thread { id: string; listing_id: string; listings: { title: string; slug: string }; buyer_id: string; seller_id: string; status: string; }
 
 const playfair: React.CSSProperties = { fontFamily: "'Playfair Display', Georgia, serif" };
@@ -43,18 +43,18 @@ const MessageThread = () => {
   };
 
   const fetchMessages = async () => {
-    const { data } = await supabase.from("messages").select(`*, sender:profiles(name)`).eq("thread_id", id).order("created_at", { ascending: true });
+    const { data } = await supabase.from("messages").select(`*, sender:profiles!sender_id(name)`).eq("thread_id", id).order("created_at", { ascending: true });
     setMessages(data || []);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !id || !thread) return;
-    if (thread.status !== 'accepted') { toast.error("Request must be accepted first"); return; }
+    if (thread.status !== 'accepted' && thread.status !== 'active') { toast.error("Request must be accepted first"); return; }
     const v = messageSchema.safeParse({ body: newMessage });
     if (!v.success) { toast.error(v.error.errors[0].message); return; }
     setSending(true);
-    const { error } = await supabase.from("messages").insert({ thread_id: id, sender_id: user.id, body: v.data.body });
+    const { error } = await supabase.from("messages").insert({ thread_id: id, sender_id: user.id, content: v.data.body, recipient_id: thread.buyer_id === user.id ? thread.seller_id : thread.buyer_id });
     if (error) toast.error("Failed to send message");
     else { setNewMessage(""); fetchMessages(); await supabase.from("message_threads").update({ updated_at: new Date().toISOString() }).eq("id", id); }
     setSending(false);
@@ -110,7 +110,7 @@ const MessageThread = () => {
             <h1 className="text-2xl font-bold text-neutral-900 cursor-pointer hover:underline flex-1 mr-4" style={playfair} onClick={() => navigate(`/listings/${thread.listings.slug}`)}>
               {thread.listings.title}
             </h1>
-            {thread.status === 'accepted' && (
+            {(thread.status === 'accepted' || thread.status === 'active') && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <button className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-400 hover:text-red-500 transition-colors" style={montserrat} disabled={blocking}>
@@ -156,7 +156,7 @@ const MessageThread = () => {
 
         {/* Messages */}
         <div className="bg-white rounded-sm overflow-hidden" style={{ border: "1px solid #e8e8e8" }}>
-          {thread.status === 'accepted' ? (
+          {(thread.status === 'accepted' || thread.status === 'active') ? (
             <>
               <div className="p-6 space-y-4 max-h-[480px] overflow-y-auto" style={{ background: "#fafafa" }}>
                 {messages.length === 0 ? (
@@ -171,7 +171,7 @@ const MessageThread = () => {
                             {isMe ? "You" : message.sender.name}
                           </p>
                           <div className="px-4 py-3 rounded-sm" style={{ background: isMe ? "#111" : "#fff", border: isMe ? "none" : "1px solid #e8e8e8" }}>
-                            <p className="text-sm leading-relaxed" style={{ ...montserrat, color: isMe ? "#fff" : "#333" }}>{message.body}</p>
+                            <p className="text-sm leading-relaxed" style={{ ...montserrat, color: isMe ? "#fff" : "#333" }}>{message.content || message.body}</p>
                           </div>
                           <p className="text-xs text-neutral-400 mt-1 px-1" style={montserrat}>{new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
