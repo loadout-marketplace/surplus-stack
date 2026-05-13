@@ -11,7 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 const messageSchema = z.object({ body: z.string().trim().min(1, "Message cannot be empty").max(5000) });
 
-interface Message { id: string; sender_id: string; body?: string; content?: string; created_at: string; sender: { name: string }; }
+interface Message { id: string; sender_id: string; body?: string; content?: string; created_at: string; sender: { name: string; avatar_url?: string | null }; }
 interface Thread { id: string; listing_id: string; listings: { title: string; slug: string }; buyer_id: string; seller_id: string; status: string; }
 
 const playfair: React.CSSProperties = { fontFamily: "'Playfair Display', Georgia, serif" };
@@ -47,8 +47,8 @@ const MessageThread = () => {
 
 // Fetch sender names separately
 const messagesWithSenders = await Promise.all((messagesData || []).map(async (msg) => {
-  const { data: profile } = await supabase.from("profiles").select("full_name, name").eq("id", msg.sender_id).single();
-  return { ...msg, sender: { name: profile?.full_name || profile?.name || "Unknown" } };
+  const { data: profile } = await supabase.from("profiles").select("full_name, name, company_name, avatar_url").eq("id", msg.sender_id).single();
+return { ...msg, sender: { name: profile?.company_name || profile?.full_name || profile?.name || "Unknown", avatar_url: profile?.avatar_url } };
 }));
 setMessages(messagesWithSenders);
   };
@@ -171,17 +171,39 @@ setMessages(messagesWithSenders);
                   messages.map((message) => {
                     const isMe = message.sender_id === user?.id;
                     return (
-                      <div key={message.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                        <div className="max-w-[75%]">
-                          <p className="text-xs font-semibold uppercase tracking-wider mb-1 px-1" style={{ ...montserrat, color: isMe ? "#111" : "#999" }}>
-                            {isMe ? "You" : message.sender.name}
-                          </p>
-                          <div className="px-4 py-3 rounded-sm" style={{ background: isMe ? "#111" : "#fff", border: isMe ? "none" : "1px solid #e8e8e8" }}>
-                            <p className="text-sm leading-relaxed" style={{ ...montserrat, color: isMe ? "#fff" : "#333" }}>{message.content || message.body}</p>
-                          </div>
-                          <p className="text-xs text-neutral-400 mt-1 px-1" style={montserrat}>{new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                        </div>
-                      </div>
+                      <div key={message.id} className={`flex items-end gap-2 ${isMe ? "justify-end" : "justify-start"}`}>
+  {!isMe && (
+    <div className="h-8 w-8 rounded-full bg-neutral-200 overflow-hidden shrink-0 mb-5">
+      {message.sender.avatar_url ? (
+        <img src={message.sender.avatar_url} alt={message.sender.name} className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-neutral-500">
+          {message.sender.name.charAt(0).toUpperCase()}
+        </div>
+      )}
+    </div>
+  )}
+  <div className="max-w-[75%]">
+    <p className="text-xs font-semibold uppercase tracking-wider mb-1 px-1" style={{ ...montserrat, color: isMe ? "#111" : "#999" }}>
+      {isMe ? "You" : message.sender.name}
+    </p>
+    <div className="px-4 py-3 rounded-sm" style={{ background: isMe ? "#111" : "#fff", border: isMe ? "none" : "1px solid #e8e8e8" }}>
+      <p className="text-sm leading-relaxed" style={{ ...montserrat, color: isMe ? "#fff" : "#333" }}>{message.content || message.body}</p>
+    </div>
+    <p className="text-xs text-neutral-400 mt-1 px-1" style={montserrat}>{new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+  </div>
+  {isMe && (
+    <div className="h-8 w-8 rounded-full bg-neutral-200 overflow-hidden shrink-0 mb-5">
+      {message.sender.avatar_url ? (
+        <img src={message.sender.avatar_url} alt="You" className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-neutral-500">
+          Y
+        </div>
+      )}
+    </div>
+  )}
+</div>
                     );
                   })
                 )}
