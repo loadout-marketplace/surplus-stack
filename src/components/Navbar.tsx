@@ -79,7 +79,7 @@ const Navbar = () => {
         {/* Center nav — only show on large screens */}
         <div className="hidden lg:flex items-center gap-8">
           <Link to="/listings" className={navLinkClass}>Browse</Link>
-          <<Link to="/sell" className={navLinkClass}>Sell</Link>
+          <Link to="/sell" className={navLinkClass}>Sell</Link>
           <Link to="/pricing" className={navLinkClass}>Pricing</Link>
         </div>
 
