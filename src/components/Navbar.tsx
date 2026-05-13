@@ -79,7 +79,7 @@ const Navbar = () => {
         {/* Center nav — only show on large screens */}
         <div className="hidden lg:flex items-center gap-8">
           <Link to="/listings" className={navLinkClass}>Browse</Link>
-          <Link to="/contractors" className={navLinkClass}>Contractors</Link>
+          <<Link to="/sell" className={navLinkClass}>Sell</Link>
           <Link to="/pricing" className={navLinkClass}>Pricing</Link>
         </div>
 
@@ -180,11 +180,11 @@ const Navbar = () => {
                     <Search className="h-4 w-4 mr-3" /> Browse
                   </Button>
                 </Link>
-                <Link to="/contractors" className="w-full" onClick={() => setMobileOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium">
-                    Contractors
-                  </Button>
-                </Link>
+                <Link to="/sell" className="w-full" onClick={() => setMobileOpen(false)}>
+  <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium">
+    Sell
+  </Button>
+</Link>
                 <Link to="/pricing" className="w-full" onClick={() => setMobileOpen(false)}>
                   <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium">
                     Pricing
