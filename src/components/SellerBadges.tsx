@@ -1,11 +1,13 @@
 import { Badge } from "@/components/ui/badge";
-import { Star, ShieldCheck, Award, TrendingUp } from "lucide-react";
+import { Star, ShieldCheck, Award, TrendingUp, Sparkles } from "lucide-react";
 
 interface SellerBadgesProps {
   completedSales: number;
   averageRating: number;
   reviewCount: number;
   isVerifiedBusiness?: boolean;
+  isFoundingSeller?: boolean;
+  completedPurchases?: number;
   variant?: "compact" | "full";
 }
 
@@ -14,29 +16,31 @@ export const SellerBadges = ({
   averageRating,
   reviewCount,
   isVerifiedBusiness = false,
+  isFoundingSeller = false,
+  completedPurchases = 0,
   variant = "full",
 }: SellerBadgesProps) => {
   const badges = [];
 
-  // Verified Business badge
-  if (isVerifiedBusiness) {
+  // Founding Seller badge — early adopter
+  if (isFoundingSeller && completedSales < 10) {
     badges.push({
-      key: "verified",
-      icon: ShieldCheck,
-      label: variant === "compact" ? "Verified" : "Verified Business",
-      className: "bg-blue-500 text-white hover:bg-blue-600",
+      key: "founding",
+      icon: Sparkles,
+      label: variant === "compact" ? "Founding" : "Founding Seller",
+      className: "bg-amber-500 text-white hover:bg-amber-600",
     });
   }
 
-  // Power Seller badge (10+ completed sales)
+  // Verified Seller badge (10+ completed sales)
   if (completedSales >= 10) {
     badges.push({
-      key: "power",
-      icon: TrendingUp,
-      label: variant === "compact" ? "Power" : "Power Seller",
-      className: "bg-purple-500 text-white hover:bg-purple-600",
+      key: "verified-seller",
+      icon: ShieldCheck,
+      label: variant === "compact" ? "Verified" : "Verified Seller",
+      className: "bg-blue-500 text-white hover:bg-blue-600",
     });
-  } 
+  }
   // Trusted Seller badge (5-9 completed sales)
   else if (completedSales >= 5) {
     badges.push({
@@ -44,6 +48,16 @@ export const SellerBadges = ({
       icon: Award,
       label: variant === "compact" ? "Trusted" : "Trusted Seller",
       className: "bg-green-500 text-white hover:bg-green-600",
+    });
+  }
+
+  // Verified Buyer badge (5+ completed purchases)
+  if (completedPurchases >= 5) {
+    badges.push({
+      key: "verified-buyer",
+      icon: ShieldCheck,
+      label: variant === "compact" ? "Buyer" : "Verified Buyer",
+      className: "bg-indigo-500 text-white hover:bg-indigo-600",
     });
   }
 
