@@ -49,7 +49,26 @@ const Landing = () => {
   const [heroSearch, setHeroSearch] = useState("");
   const [recentListings, setRecentListings] = useState<RecentListing[]>([]);
   const [loadingListings, setLoadingListings] = useState(true);
+  const [stats, setStats] = useState({ listings: 0, sellers: 0 });
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      const { count: listingCount } = await supabase
+        .from("listings")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "active");
+      const { count: sellerCount } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .not("stripe_account_id", "is", null);
+      setStats({
+        listings: listingCount || 0,
+        sellers: sellerCount || 0,
+      });
+    };
+    fetchStats();
+  }, []);
+  
   useEffect(() => {
     const fetchRecent = async () => {
       const { data } = await supabase
@@ -153,15 +172,15 @@ const Landing = () => {
               {/* Stats row */}
               <div className="animate-fade-in-up animate-delay-400 flex items-center justify-center gap-10 pt-4" style={montserrat}>
                 {[
-                  { n: "12,400+", label: "Active Listings" },
-                  { n: "3,800+", label: "Active Sellers" },
-                  { n: "48 States", label: "Covered" },
-                ].map((s, i) => (
-                  <div key={i} className="text-center">
-                    <p className="text-2xl font-bold text-neutral-900" style={playfair}>{s.n}</p>
-                    <p className="text-xs text-neutral-400 uppercase tracking-wider mt-0.5">{s.label}</p>
-                  </div>
-                ))}
+  { n: stats.listings.toLocaleString(), label: "Active Listings" },
+  { n: stats.sellers.toLocaleString(), label: "Active Sellers" },
+  { n: "Less Waste", label: "Our Mission" },
+].map((s, i) => (
+  <div key={i} className="text-center">
+    <p className="text-2xl font-bold text-neutral-900" style={playfair}>{s.n}</p>
+    <p className="text-xs text-neutral-400 uppercase tracking-wider mt-0.5">{s.label}</p>
+  </div>
+))}
               </div>
 
               {/* CTA buttons */}
@@ -199,9 +218,9 @@ const Landing = () => {
           <div className="container max-w-5xl">
             <ul className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-neutral-200 list-none">
               {[
-                { number: "12,400+", label: "Active Listings" },
-                { number: "3,800+", label: "Active Sellers" },
-                { number: "48", label: "States Covered" },
+                { number: stats.listings.toLocaleString(), label: "Active Listings" },
+                { number: stats.sellers.toLocaleString(), label: "Active Sellers" },
+                { number: "Less Waste", label: "Our Mission" },
               ].map((stat) => (
                 <li key={stat.label} className="flex flex-col items-center py-10 gap-1">
                   <span className="text-3xl md:text-4xl font-bold text-neutral-900" style={playfair}>{stat.number}</span>
