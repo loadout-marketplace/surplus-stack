@@ -53,19 +53,18 @@ const Landing = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const { count: listingCount } = await supabase
-        .from("listings")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "active");
-      const { count: sellerCount } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .not("stripe_account_id", "is", null);
-      setStats({
-        listings: listingCount || 0,
-        sellers: sellerCount || 0,
-      });
-    };
+  const { count: listingCount } = await supabase
+    .from("listings")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "active");
+  const { count: userCount } = await supabase
+    .from("profiles")
+    .select("*", { count: "exact", head: true });
+  setStats({
+    listings: listingCount || 0,
+    sellers: userCount || 0,
+  });
+};
     fetchStats();
   }, []);
   
@@ -173,7 +172,7 @@ const Landing = () => {
               <div className="animate-fade-in-up animate-delay-400 flex items-center justify-center gap-10 pt-4" style={montserrat}>
                 {[
   { n: stats.listings.toLocaleString(), label: "Active Listings" },
-  { n: stats.sellers.toLocaleString(), label: "Active Sellers" },
+  { n: stats.sellers.toLocaleString(), label: "Members" },
   { n: "Less Waste", label: "Our Mission" },
 ].map((s, i) => (
   <div key={i} className="text-center">
