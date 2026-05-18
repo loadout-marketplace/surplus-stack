@@ -92,7 +92,7 @@ const Pricing = () => {
             {/* Comparison */}
             <div className="mb-16">
               <h3 className="text-xl font-bold text-neutral-900 mb-6 text-center" style={playfair}>How We Compare</h3>
-              <div className="rounded-sm overflow-hidden" style={{ border: "1px solid #e8e8e8" }}>
+              <div className="rounded-sm overflow-hidden" style={{ border: "1px solid #e8e8e8", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
                 <table className="w-full text-sm" style={montserrat}>
                   <thead>
                     <tr style={{ background: "#111" }}>
