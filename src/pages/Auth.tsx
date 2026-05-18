@@ -57,26 +57,18 @@ const Auth = () => {
     let email = emailOrUsername;
 
     if (!isEmail) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .or(`name.ilike.${emailOrUsername},full_name.ilike.${emailOrUsername}`)
-        .maybeSingle();
-      if (!profile) {
-        toast.error("No account found with that username");
-        setLoading(false);
-        return;
-      }
-      const { data: emailData } = await supabase
-        .rpc("get_user_email_by_id", { user_id: profile.id })
-        .single();
-      if (!emailData) {
-        toast.error("Could not find account. Try signing in with your email.");
-        setLoading(false);
-        return;
-      }
-      email = emailData as string;
-    }
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, email")
+    .or(`name.ilike.${emailOrUsername},full_name.ilike.${emailOrUsername}`)
+    .maybeSingle();
+  if (!profile || !profile.email) {
+    toast.error("No account found with that username");
+    setLoading(false);
+    return;
+  }
+  email = profile.email;
+}
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) toast.error(error.message);
