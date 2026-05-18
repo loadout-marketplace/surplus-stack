@@ -167,11 +167,12 @@ const CreateListing = () => {
     e.preventDefault();
     if (!user) return;
 
-    if (!stripeConnected) {
-      setShowStripeModal(true);
-      return;
-    }
-
+    // Stripe Connect is optional — seller can connect later when item sells
+// if (!stripeConnected) {
+//   setShowStripeModal(true);
+//   return;
+// }
+    
     setLoading(true);
     try {
       const formData = new FormData(e.currentTarget);
