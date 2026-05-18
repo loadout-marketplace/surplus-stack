@@ -191,16 +191,28 @@ if (isWebView) {
   <button
     type="button"
     onClick={async () => {
-      const email = (document.getElementById('signin-email') as HTMLInputElement)?.value?.trim();
-      if (!email || !email.includes('@')) {
-        toast.error("Enter your email address above first");
+      const emailInput = (document.getElementById('signin-email') as HTMLInputElement)?.value?.trim();
+      
+      if (!emailInput || !emailInput.includes('@')) {
+        // Prompt them to enter email if not already filled
+        const email = window.prompt("Enter your email address to reset your password:");
+        if (!email || !email.includes('@')) {
+          toast.error("Please enter a valid email address");
+          return;
+        }
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/reset-password`,
+        });
+        if (error) toast.error(error.message);
+        else toast.success("Password reset email sent! Check your inbox and spam folder.");
         return;
       }
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+
+      const { error } = await supabase.auth.resetPasswordForEmail(emailInput, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
       if (error) toast.error(error.message);
-      else toast.success("Password reset email sent! Check your inbox.");
+      else toast.success("Password reset email sent! Check your inbox and spam folder.");
     }}
     className="text-xs text-neutral-400 hover:text-neutral-700 underline transition-colors"
     style={montserrat}
