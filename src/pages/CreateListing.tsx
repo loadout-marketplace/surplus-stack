@@ -351,22 +351,6 @@ const CreateListing = () => {
                   )}
                 </div>
               </div>
-              <div className="p-5 rounded-sm" style={{ background: "#f9f9f9", border: "1px solid #f0f0f0" }}>
-                <div className="flex items-center space-x-3">
-                  <Checkbox id="allowPartialQuantity" checked={allowPartialQuantity} onCheckedChange={(c) => setAllowPartialQuantity(c === true)} />
-                  <Label htmlFor="allowPartialQuantity" className="text-sm font-medium text-neutral-700 cursor-pointer" style={montserrat}>
-                    Allow bids/purchases on partial quantities
-                  </Label>
-                </div>
-                <p className="text-xs text-neutral-400 mt-2 ml-7" style={montserrat}>Enable this to let buyers purchase a portion of your total quantity</p>
-                {allowPartialQuantity && (
-                  <div className="mt-4 space-y-1.5">
-                    <Label className={labelClass} style={montserrat}>Minimum Quantity Increment *</Label>
-                    <Input type="number" step="0.01" min="1" value={minQuantityIncrement} onChange={(e) => setMinQuantityIncrement(e.target.value)} placeholder="e.g., 5" required className={inputClass} style={montserrat} />
-                    <p className="text-xs text-neutral-400" style={montserrat}>Buyers can bid/purchase in multiples of this amount</p>
-                  </div>
-                )}
-              </div>
             </div>
 
             <div className="space-y-6">
