@@ -46,10 +46,10 @@ export const WelcomeStats = () => {
 
         // Fetch active orders count
        const { data: ordersData } = await supabase
-        .from("orders")
-        .select("id")
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .not("status", "in", "(completed,cancelled)");
+  .from("orders")
+  .select("id")
+  .eq("buyer_id", user.id)
+  .eq("status", "pending_pickup");
        const ordersCount = ordersData?.length || 0;
 
         // Fetch unread messages count
