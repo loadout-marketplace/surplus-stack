@@ -109,8 +109,7 @@ const Auth = () => {
     if (data.user && zipcode) {
       await supabase.from("profiles").update({ user_zip: zipcode }).eq("id", data.user.id);
     }
-    toast.success("Account created! Welcome to Loadout.");
-    navigate("/");
+    navigate("/confirm-email");
     setLoading(false);
   };
 
