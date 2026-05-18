@@ -60,7 +60,7 @@ const Auth = () => {
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("name", emailOrUsername)
+        .or(`name.eq.${emailOrUsername},full_name.eq.${emailOrUsername}`)
         .maybeSingle();
       if (!profile) {
         toast.error("No account found with that username");
