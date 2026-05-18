@@ -144,6 +144,18 @@ if (isWebView) {
         </div>
 
         <div className="px-10 py-8">
+          {new URLSearchParams(window.location.search).get('confirmed') === 'false' && (
+  <div className="mb-5 p-4 rounded-sm text-center" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
+    <p className="text-sm font-semibold text-green-700 mb-1" style={montserrat}>Check your email!</p>
+    <p className="text-xs text-green-600" style={montserrat}>We sent a confirmation link to your email address. Click it to activate your account, then sign in here.</p>
+  </div>
+)}
+{new URLSearchParams(window.location.search).get('email_confirmed') === 'true' && (
+  <div className="mb-5 p-4 rounded-sm text-center" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
+    <p className="text-sm font-semibold text-green-700 mb-1" style={montserrat}>Email confirmed!</p>
+    <p className="text-xs text-green-600" style={montserrat}>Your account is now active. Sign in below to get started.</p>
+  </div>
+)}
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-neutral-100 rounded-sm p-0.5 mb-6">
               <TabsTrigger value="signin" className="rounded-sm text-xs font-semibold uppercase tracking-wider data-[state=active]:bg-white data-[state=active]:shadow-sm" style={montserrat}>Sign In</TabsTrigger>
