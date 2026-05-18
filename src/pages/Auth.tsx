@@ -187,6 +187,27 @@ if (isWebView) {
                 <button type="submit" disabled={loading} className="w-full h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: "#111" }}>
                   {loading ? "Signing In…" : "Sign In"}
                 </button>
+                <div className="text-center mt-3">
+  <button
+    type="button"
+    onClick={async () => {
+      const email = (document.getElementById('signin-email') as HTMLInputElement)?.value?.trim();
+      if (!email || !email.includes('@')) {
+        toast.error("Enter your email address above first");
+        return;
+      }
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+      if (error) toast.error(error.message);
+      else toast.success("Password reset email sent! Check your inbox.");
+    }}
+    className="text-xs text-neutral-400 hover:text-neutral-700 underline transition-colors"
+    style={montserrat}
+  >
+    Forgot your password?
+  </button>
+</div>
               </form>
             </TabsContent>
 
