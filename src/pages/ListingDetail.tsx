@@ -285,9 +285,6 @@ const ListingDetail = () => {
                   </div>
                 ))}
               </div>
-              {listing.min_quantity_increment && (
-                <p className="text-xs text-neutral-500 px-1" style={montserrat}>Partial purchases available — minimum {listing.min_quantity_increment} {listing.unit}</p>
-              )}
 
               {/* Actions */}
               <div className="space-y-2">
