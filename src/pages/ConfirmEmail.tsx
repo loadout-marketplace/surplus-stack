@@ -15,8 +15,8 @@ const ConfirmEmail = () => {
         </div>
         <h1 className="text-3xl font-bold text-neutral-900 mb-3 text-center" style={playfair}>Check your email</h1>
         <p className="text-sm text-neutral-500 text-center mb-8 leading-relaxed" style={montserrat}>
-          We sent a confirmation link to your email address. Click it to activate your account before signing in.
-        </p>
+  We sent a confirmation link to your email address. Click it to activate your account before signing in. If you don't see it, check your junk or spam folder.
+</p>
         <div className="p-4 rounded-sm w-full mb-8" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
           <p className="text-xs text-green-600 text-center" style={montserrat}>
             Once confirmed, come back here and sign in to start listing or browsing materials.
