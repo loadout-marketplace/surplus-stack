@@ -24,6 +24,7 @@ import { ChatBot } from "@/components/ChatBot";
 import Contractors from "@/pages/Contractors";
 import Pricing from "@/pages/Pricing";
 import ConfirmEmail from "@/pages/ConfirmEmail";
+import ResetPassword from "@/pages/ResetPassword";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/sellers/:id" element={<SellerProfile />} />
             <Route path="/profile/edit" element={<EditProfile />} />
             <Route path="/confirm-email" element={<ConfirmEmail />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
             <Route path="/sell" element={<Contractors />} />
             <Route path="/pricing" element={<Pricing />} />
