@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import { ChatBot } from "@/components/ChatBot";
 import Contractors from "@/pages/Contractors";
 import Pricing from "@/pages/Pricing";
+import ConfirmEmail from "@/pages/ConfirmEmail";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/sellers/:id" element={<SellerProfile />} />
             <Route path="/profile/edit" element={<EditProfile />} />
+            <Route path="/confirm-email" element={<ConfirmEmail />} />
             <Route path="*" element={<NotFound />} />
             <Route path="/sell" element={<Contractors />} />
             <Route path="/pricing" element={<Pricing />} />
