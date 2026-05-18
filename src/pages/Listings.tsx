@@ -65,7 +65,7 @@ const Listings = () => {
 
   const fetchListings = async () => {
     setLoading(true);
-    let query = supabase.from("listings").select(`*, listing_images (url), categories (name), profiles (name, company_name, is_verified_business)`).eq("status", "active").order("created_at", { ascending: false }).limit(50);
+    let query = supabase.from("listings").select(`*, listing_images (url), categories (name), profiles (name, full_name, company_name, is_verified_business)`).eq("status", "active").order("created_at", { ascending: false }).limit(50);
     if (selectedCategory && selectedCategory !== "all") query = query.eq("category_id", selectedCategory);
     const { data, error } = await query;
     if (error) { toast.error("Failed to load listings"); setLoading(false); return; }
@@ -105,7 +105,10 @@ const Listings = () => {
     let matchesSeller = true;
     if (sellerSearch.trim()) {
       const term = sellerSearch.toLowerCase().trim();
-      matchesSeller = (listing.profiles?.name?.toLowerCase() || "").includes(term) || (listing.profiles?.company_name?.toLowerCase() || "").includes(term);
+      const profileName = (listing.profiles?.name?.toLowerCase() || "");
+      const fullName = ((listing.profiles as any)?.full_name?.toLowerCase() || "");
+      const companyName = (listing.profiles?.company_name?.toLowerCase() || "");
+      matchesSeller = profileName.includes(term) || fullName.includes(term) || companyName.includes(term);
     }
     let withinRadius = true;
     if (listing.distance !== null && listing.distance !== undefined) {
@@ -187,6 +190,14 @@ const Listings = () => {
                 <Input type="number" placeholder="Miles" value={customRadius} onChange={(e) => setCustomRadius(e.target.value)}
                   className="h-11 rounded-sm border-neutral-200 text-sm w-24" min="1" style={montserrat} />
               )}
+              <button
+                onClick={() => fetchListings()}
+                className="h-11 px-6 text-white text-xs font-bold uppercase tracking-wider rounded-sm shrink-0"
+                style={{ ...montserrat, background: "#111" }}
+              >
+                <Search className="h-4 w-4 inline mr-2" />
+                Search
+              </button>
             </div>
           </div>
 
