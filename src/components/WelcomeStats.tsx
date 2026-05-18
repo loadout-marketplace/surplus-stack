@@ -27,14 +27,16 @@ export const WelcomeStats = () => {
       try {
         // Fetch user profile
         const { data: profile } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", user.id)
-          .maybeSingle();
+  .from("profiles")
+  .select("full_name, name")
+  .eq("id", user.id)
+  .maybeSingle();
 
-        if (profile?.full_name) {
-          setUserName(profile.full_name);
-        }
+if (profile?.name) {
+  setUserName(profile.name);
+} else if (profile?.full_name) {
+  setUserName(profile.full_name);
+}
 
         // Fetch active listings count
        const { data: listingsData } = await supabase
