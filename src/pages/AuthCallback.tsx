@@ -13,9 +13,16 @@ const AuthCallback = () => {
     // Listen for the SIGNED_IN event which fires after token exchange
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
-        subscription.unsubscribe();
-        navigate("/", { replace: true });
-      }
+  subscription.unsubscribe();
+  // Check if this is an email confirmation
+  const params = new URLSearchParams(window.location.search);
+  const isEmailConfirm = params.get('type') === 'signup' || window.location.hash.includes('type=signup');
+  if (isEmailConfirm) {
+    navigate("/auth?email_confirmed=true", { replace: true });
+  } else {
+    navigate("/", { replace: true });
+  }
+}
     });
 
     // Also check immediately in case session already exists
