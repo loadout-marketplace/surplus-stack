@@ -171,8 +171,7 @@ const Landing = () => {
               {/* Stats row */}
               <div className="animate-fade-in-up animate-delay-400 flex items-center justify-center gap-10 pt-4" style={montserrat}>
                 {[
-  { n: stats.listings.toLocaleString(), label: "Active Listings" },
-  { n: stats.sellers.toLocaleString(), label: "Members" },
+  { n: "139", label: "Members" },
   { n: "Less Waste", label: "Our Mission" },
 ].map((s, i) => (
   <div key={i} className="text-center">
@@ -217,10 +216,9 @@ const Landing = () => {
           <div className="container max-w-5xl">
             <ul className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-neutral-200 list-none">
               {[
-                { number: stats.listings.toLocaleString(), label: "Active Listings" },
-                { number: stats.sellers.toLocaleString(), label: "Active Sellers" },
-                { number: "Less Waste", label: "Our Mission" },
-              ].map((stat) => (
+  { number: "139", label: "Members" },
+  { number: "Less Waste", label: "Our Mission" },
+].map((stat) => (
                 <li key={stat.label} className="flex flex-col items-center py-10 gap-1">
                   <span className="text-3xl md:text-4xl font-bold text-neutral-900" style={playfair}>{stat.number}</span>
                   <span className="text-xs text-neutral-400 uppercase tracking-widest" style={montserrat}>{stat.label}</span>
