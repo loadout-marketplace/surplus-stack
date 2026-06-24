@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Sparkles, Loader2 } from "lucide-react";
 
 const sanitizeText = (text: string): string => {
   return text
@@ -52,6 +53,20 @@ const SectionHeader = ({ title }: { title: string }) => (
   </div>
 );
 
+const CATEGORY_MAP: Record<string, string> = {
+  "Lumber": "lumber",
+  "Roofing": "roofing",
+  "Electrical": "electrical",
+  "Plumbing": "plumbing",
+  "Tools": "tools",
+  "Flooring": "flooring",
+  "Insulation": "insulation",
+  "Hardware": "hardware",
+  "Windows & Doors": "windows-doors",
+  "Paint & Finishes": "paint-finishes",
+  "Other": "other",
+};
+
 const CreateListing = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -61,8 +76,6 @@ const CreateListing = () => {
   const [priceType, setPriceType] = useState<"fixed" | "auction">("fixed");
   const [selectedUnit, setSelectedUnit] = useState<string>("");
   const [customUnit, setCustomUnit] = useState<string>("");
-  const [allowPartialQuantity, setAllowPartialQuantity] = useState(false);
-  const [minQuantityIncrement, setMinQuantityIncrement] = useState<string>("");
   const [fixedPriceValue, setFixedPriceValue] = useState<string>("");
   const [startingBidValue, setStartingBidValue] = useState<string>("");
   const [titleValue, setTitleValue] = useState<string>("");
@@ -74,6 +87,9 @@ const CreateListing = () => {
   const [stripeConnectLoading, setStripeConnectLoading] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCondition, setSelectedCondition] = useState<string>("");
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
 
   const calculateSellerReceives = (price: string) => {
     const numPrice = parseFloat(price);
@@ -96,7 +112,6 @@ const CreateListing = () => {
     checkStripeStatus();
   }, [user]);
 
-  // Restore form data after Stripe Connect redirect
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('stripe') === 'success') {
@@ -131,22 +146,71 @@ const CreateListing = () => {
     setCategories(data || []);
   };
 
+  const handleAnalyzeWithAI = async () => {
+    if (uploadedImages.length === 0) {
+      toast.error("Upload a photo first, then click Analyze with AI");
+      return;
+    }
+
+    setAiAnalyzing(true);
+    try {
+      const file = uploadedImages[0];
+      const reader = new FileReader();
+
+      reader.onload = async (e) => {
+        try {
+          const base64 = (e.target?.result as string).split(',')[1];
+          const mediaType = file.type || 'image/jpeg';
+
+          const { data: { session } } = await supabase.auth.getSession();
+          const { data, error } = await supabase.functions.invoke("analyze-listing-image", {
+            body: { imageBase64: base64, mediaType },
+            headers: { Authorization: `Bearer ${session?.access_token}` }
+          });
+
+          if (error) throw error;
+          if (!data.success) throw new Error(data.error || "Analysis failed");
+
+          const listing = data.listing;
+
+          if (listing.title) setTitleValue(listing.title);
+          if (listing.description) setDescriptionValue(listing.description);
+          if (listing.quantity) setQuantityValue(String(listing.quantity));
+          if (listing.unit) setSelectedUnit(listing.unit);
+          if (listing.suggestedPrice) setFixedPriceValue(String(listing.suggestedPrice));
+          if (listing.condition) setSelectedCondition(listing.condition);
+
+          if (listing.category && categories.length > 0) {
+            const match = categories.find(c =>
+              c.name.toLowerCase().includes(listing.category.toLowerCase()) ||
+              listing.category.toLowerCase().includes(c.name.toLowerCase())
+            );
+            if (match) setSelectedCategory(match.id);
+          }
+
+          toast.success("AI filled in your listing! Review and adjust before publishing.");
+        } catch (err: any) {
+          toast.error(err.message || "AI analysis failed");
+        } finally {
+          setAiAnalyzing(false);
+        }
+      };
+
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to analyze image");
+      setAiAnalyzing(false);
+    }
+  };
+
   const handleConnectStripe = async () => {
     if (!user) return;
     setStripeConnectLoading(true);
     try {
-      // Save form data before redirecting
       const draft = {
-        title: titleValue,
-        description: descriptionValue,
-        city: cityValue,
-        state: stateValue,
-        zip: zipValue,
-        quantity: quantityValue,
-        fixedPrice: fixedPriceValue,
-        startingBid: startingBidValue,
-        priceType,
-        selectedUnit,
+        title: titleValue, description: descriptionValue, city: cityValue,
+        state: stateValue, zip: zipValue, quantity: quantityValue,
+        fixedPrice: fixedPriceValue, startingBid: startingBidValue, priceType, selectedUnit,
       };
       localStorage.setItem('savedListingDraft', JSON.stringify(draft));
 
@@ -166,13 +230,6 @@ const CreateListing = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
-
-    // Stripe Connect is optional — seller can connect later when item sells
-// if (!stripeConnected) {
-//   setShowStripeModal(true);
-//   return;
-// }
-    
     setLoading(true);
     try {
       const formData = new FormData(e.currentTarget);
@@ -199,16 +256,10 @@ const CreateListing = () => {
         auctionEndTime = endDate.toISOString();
       }
 
-      const minIncrement = allowPartialQuantity && minQuantityIncrement ? parseFloat(minQuantityIncrement) : null;
-      if (allowPartialQuantity && minIncrement) {
-        if (minIncrement <= 0) { toast.error("Minimum quantity increment must be greater than 0"); setLoading(false); return; }
-        if (minIncrement > validation.data.quantity) { toast.error("Minimum increment cannot exceed total quantity"); setLoading(false); return; }
-      }
-
       const listingData = {
         seller_id: user.id, title: validation.data.title, slug, description: validation.data.description,
-        category_id: formData.get("category") as string,
-        condition: formData.get("condition") as "new" | "like_new" | "good" | "fair" | "salvage",
+        category_id: selectedCategory || formData.get("category") as string,
+        condition: selectedCondition || formData.get("condition") as "new" | "like_new" | "good" | "fair" | "salvage",
         quantity: validation.data.quantity, unit: selectedUnit === "other" ? customUnit : selectedUnit,
         fixed_price: validation.data.priceType === "fixed" ? validation.data.fixedPrice : null,
         starting_bid: validation.data.priceType === "auction" ? validation.data.startingBid : null,
@@ -216,7 +267,7 @@ const CreateListing = () => {
         auction_end_time: auctionEndTime,
         location_city: validation.data.city, location_state: validation.data.state, location_zip: validation.data.zip,
         pickup_only: formData.get("pickupOnly") === "on", shipping_available: formData.get("shippingAvailable") === "on",
-        price_type: validation.data.priceType, status: "active" as const, min_quantity_increment: minIncrement,
+        price_type: validation.data.priceType, status: "active" as const, min_quantity_increment: null,
       };
 
       const { data: listing, error } = await supabase.from("listings").insert(listingData).select().single();
@@ -281,15 +332,64 @@ const CreateListing = () => {
         <div className="bg-white" style={{ border: "1px solid #e8e8e8", borderRadius: "2px", boxShadow: "0 2px 24px rgba(0,0,0,0.05)" }}>
           <form onSubmit={handleSubmit} className="p-8 md:p-10 space-y-10">
 
+            {/* Photos — MOVED TO TOP so AI can analyze before filling form */}
+            <div className="space-y-4">
+              <SectionHeader title="Photos" />
+              <div className="space-y-1.5">
+                <Label htmlFor="images" className={labelClass} style={montserrat}>Upload Images</Label>
+                <div className="border border-dashed border-neutral-300 rounded-sm p-6 text-center hover:border-neutral-400 transition-colors">
+                  <Input id="images" type="file" accept="image/*" multiple onChange={handleImageChange} className="cursor-pointer opacity-0 absolute" style={{ width: "1px", height: "1px" }} />
+                  <label htmlFor="images" className="cursor-pointer">
+                    <p className="text-sm text-neutral-500" style={montserrat}>Click to upload up to 10 photos</p>
+                    <p className="text-xs text-neutral-400 mt-1" style={montserrat}>JPG, PNG, WEBP accepted</p>
+                    {uploadedImages.length > 0 && (
+                      <p className="text-sm font-semibold text-neutral-800 mt-2" style={montserrat}>{uploadedImages.length} image{uploadedImages.length > 1 ? "s" : ""} selected</p>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              {/* AI ANALYZE BUTTON */}
+              <button
+                type="button"
+                onClick={handleAnalyzeWithAI}
+                disabled={aiAnalyzing || uploadedImages.length === 0}
+                className="w-full h-12 flex items-center justify-center gap-3 rounded-sm text-white text-xs font-bold uppercase tracking-wider transition-all"
+                style={{
+                  ...montserrat,
+                  background: aiAnalyzing ? "#666" : uploadedImages.length === 0 ? "#ccc" : "linear-gradient(135deg, #111 0%, #333 100%)",
+                  cursor: uploadedImages.length === 0 ? "not-allowed" : "pointer"
+                }}
+              >
+                {aiAnalyzing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    AI is analyzing your photo...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    Auto-Fill with AI
+                  </>
+                )}
+              </button>
+              {uploadedImages.length === 0 && (
+                <p className="text-xs text-neutral-400 text-center" style={montserrat}>Upload a photo to enable AI auto-fill</p>
+              )}
+              {uploadedImages.length > 0 && !aiAnalyzing && (
+                <p className="text-xs text-neutral-400 text-center" style={montserrat}>AI will analyze your photo and fill in title, description, price, and more</p>
+              )}
+            </div>
+
             <div className="space-y-6">
               <SectionHeader title="Basic Information" />
               <div className="space-y-1.5">
                 <Label htmlFor="title" className={labelClass} style={montserrat}>Title *</Label>
-                <Input id="title" name="title" value={titleValue} onChange={(e) => setTitleValue(e.target.value)} placeholder="e.g., 2x4 Pine Lumber — 100 pieces" required className={inputClass} style={montserrat} />
+                <Input id="title" name="title" value={titleValue} onChange={(e) => setTitleValue(e.target.value)} placeholder="e.g., 2x4 Pine Lumber 100 pieces" required className={inputClass} style={montserrat} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="category" className={labelClass} style={montserrat}>Category *</Label>
-                <Select name="category" required>
+                <Select name="category" value={selectedCategory} onValueChange={setSelectedCategory} required>
                   <SelectTrigger className="h-11 rounded-sm border-neutral-200 text-sm" style={montserrat}>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -302,7 +402,7 @@ const CreateListing = () => {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="condition" className={labelClass} style={montserrat}>Condition *</Label>
-                <Select name="condition" required>
+                <Select name="condition" value={selectedCondition} onValueChange={setSelectedCondition} required>
                   <SelectTrigger className="h-11 rounded-sm border-neutral-200 text-sm" style={montserrat}>
                     <SelectValue placeholder="Select condition" />
                   </SelectTrigger>
@@ -414,36 +514,19 @@ const CreateListing = () => {
             </div>
 
             <div className="space-y-6">
-              <SectionHeader title="Photos" />
-              <div className="space-y-1.5">
-                <Label htmlFor="images" className={labelClass} style={montserrat}>Upload Images</Label>
-                <div className="border border-dashed border-neutral-300 rounded-sm p-6 text-center hover:border-neutral-400 transition-colors">
-                  <Input id="images" type="file" accept="image/*" multiple onChange={handleImageChange} className="cursor-pointer opacity-0 absolute" style={{ width: "1px", height: "1px" }} />
-                  <label htmlFor="images" className="cursor-pointer">
-                    <p className="text-sm text-neutral-500" style={montserrat}>Click to upload up to 10 photos</p>
-                    <p className="text-xs text-neutral-400 mt-1" style={montserrat}>JPG, PNG, WEBP accepted</p>
-                    {uploadedImages.length > 0 && (
-                      <p className="text-sm font-semibold text-neutral-800 mt-2" style={montserrat}>{uploadedImages.length} image{uploadedImages.length > 1 ? "s" : ""} selected</p>
-                    )}
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
               <SectionHeader title="Location" />
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="city" className={labelClass} style={montserrat}>City *</Label>
-                  <Input id="city" name="city" value={cityValue} onChange={(e) => setCityValue(e.target.value)} placeholder="Chicago" required className={inputClass} style={montserrat} />
+                  <Input id="city" name="city" value={cityValue} onChange={(e) => setCityValue(e.target.value)} placeholder="Nashville" required className={inputClass} style={montserrat} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="state" className={labelClass} style={montserrat}>State *</Label>
-                  <Input id="state" name="state" value={stateValue} onChange={(e) => setStateValue(e.target.value)} placeholder="IL" maxLength={2} required className={inputClass} style={montserrat} />
+                  <Input id="state" name="state" value={stateValue} onChange={(e) => setStateValue(e.target.value)} placeholder="TN" maxLength={2} required className={inputClass} style={montserrat} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="zip" className={labelClass} style={montserrat}>ZIP Code *</Label>
-                  <Input id="zip" name="zip" value={zipValue} onChange={(e) => setZipValue(e.target.value)} placeholder="60601" maxLength={10} required className={inputClass} style={montserrat} />
+                  <Input id="zip" name="zip" value={zipValue} onChange={(e) => setZipValue(e.target.value)} placeholder="37201" maxLength={10} required className={inputClass} style={montserrat} />
                 </div>
               </div>
             </div>
@@ -483,19 +566,10 @@ const CreateListing = () => {
               You need to connect your bank account through Stripe to receive payments before you can list items on Loadout.
             </p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowStripeModal(false)}
-                className="flex-1 h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm"
-                style={{ ...montserrat, border: "1px solid #e0e0e0" }}
-              >
+              <button onClick={() => setShowStripeModal(false)} className="flex-1 h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, border: "1px solid #e0e0e0" }}>
                 Cancel
               </button>
-              <button
-                onClick={handleConnectStripe}
-                disabled={stripeConnectLoading}
-                className="flex-1 h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm"
-                style={{ ...montserrat, background: stripeConnectLoading ? "#666" : "#111" }}
-              >
+              <button onClick={handleConnectStripe} disabled={stripeConnectLoading} className="flex-1 h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: stripeConnectLoading ? "#666" : "#111" }}>
                 {stripeConnectLoading ? "Connecting…" : "Connect Bank"}
               </button>
             </div>
