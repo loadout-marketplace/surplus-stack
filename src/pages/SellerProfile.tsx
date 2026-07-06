@@ -38,7 +38,7 @@ const SellerProfile = () => {
 
   const fetchSellerData = async () => {
     setLoading(true);
-    const { data: sellerData, error } = await supabase.from("profiles_secure").select("id, name, company_name, avatar_url, bio, created_at, is_verified_business").eq("id", id).single();
+    const { data: sellerData, error } = await supabase.from("profiles").select("id, name, company_name, avatar_url, bio, created_at, is_verified_business").eq("id", id).single();
     if (error) { toast.error("Failed to load seller profile"); setLoading(false); return; }
     setSeller(sellerData);
     const { data: reviewsData } = await supabase.from("reviews").select(`id, rating, comment, created_at, profiles!reviews_reviewer_id_fkey (name)`).eq("reviewed_user_id", id).order("created_at", { ascending: false });
