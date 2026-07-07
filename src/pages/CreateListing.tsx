@@ -143,7 +143,12 @@ const CreateListing = () => {
 
   const fetchCategories = async () => {
     const { data } = await supabase.from("categories").select("*").order("name");
-    setCategories(data || []);
+    const sorted = (data || []).sort((a, b) => {
+      if (a.name === "Other") return 1;
+      if (b.name === "Other") return -1;
+      return 0;
+    });
+    setCategories(sorted);
   };
 
   const handleAnalyzeWithAI = async () => {
