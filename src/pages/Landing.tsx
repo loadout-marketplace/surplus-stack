@@ -50,7 +50,8 @@ const Landing = () => {
   const [recentListings, setRecentListings] = useState<RecentListing[]>([]);
   const [loadingListings, setLoadingListings] = useState(true);
   const [stats, setStats] = useState({ listings: 0, sellers: 0 });
-
+  const [heroCategories, setHeroCategories] = useState([{ value: "all", label: "All Categories" }]);
+  
   useEffect(() => {
     const fetchStats = async () => {
   const { count: listingCount } = await supabase
@@ -64,6 +65,19 @@ const Landing = () => {
     listings: listingCount || 0,
     sellers: userCount || 0,
   });
+
+  const { data: cats } = await supabase.from("categories").select("*").order("name");
+  if (cats) {
+    const sorted = cats.sort((a, b) => {
+      if (a.name === "Other") return 1;
+      if (b.name === "Other") return -1;
+      return 0;
+    });
+    setHeroCategories([
+      { value: "all", label: "All Categories" },
+      ...sorted.map(c => ({ value: c.slug, label: c.name }))
+    ]);
+  }
 };
     fetchStats();
   }, []);
@@ -82,17 +96,7 @@ const Landing = () => {
     fetchRecent();
   }, []);
 
-  const heroCategories = [
-    { value: "all", label: "All Categories" },
-    { value: "lumber", label: "Lumber" },
-    { value: "roofing", label: "Roofing" },
-    { value: "electrical", label: "Electrical" },
-    { value: "plumbing", label: "Plumbing" },
-    { value: "tools", label: "Tools" },
-    { value: "flooring", label: "Flooring" },
-    { value: "insulation", label: "Insulation" },
-    { value: "hardware", label: "Hardware" },
-  ];
+  
 
   const handleHeroSearch = () => {
     const params = new URLSearchParams();
