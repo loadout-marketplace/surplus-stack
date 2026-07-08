@@ -22,6 +22,19 @@ interface ListingDetail {
 
 const playfair: React.CSSProperties = { fontFamily: "'Playfair Display', Georgia, serif" };
 const montserrat: React.CSSProperties = { fontFamily: "'Montserrat', sans-serif" };
+const STATE_TAX_RATES: Record<string, number> = {
+  AL: 0.04, AK: 0, AZ: 0.056, AR: 0.065, CA: 0.0725,
+  CO: 0.029, CT: 0.0635, DE: 0, FL: 0.06, GA: 0.04,
+  HI: 0.04, ID: 0.06, IL: 0.0625, IN: 0.07, IA: 0.06,
+  KS: 0.065, KY: 0.06, LA: 0.0445, ME: 0.055, MD: 0.06,
+  MA: 0.0625, MI: 0.06, MN: 0.06875, MS: 0.07, MO: 0.04225,
+  MT: 0, NE: 0.055, NV: 0.0685, NH: 0, NJ: 0.06625,
+  NM: 0.05, NY: 0.04, NC: 0.0475, ND: 0.05, OH: 0.0575,
+  OK: 0.045, OR: 0, PA: 0.06, RI: 0.07, SC: 0.06,
+  SD: 0.042, TN: 0.07, TX: 0.0625, UT: 0.061, VT: 0.06,
+  VA: 0.053, WA: 0.065, WV: 0.06, WI: 0.05, WY: 0.04,
+  DC: 0.06
+};
 
 const ListingDetail = () => {
   const { slug } = useParams();
@@ -40,7 +53,8 @@ const ListingDetail = () => {
   const [activeImage, setActiveImage] = useState(0);
   const [relistDialogOpen, setRelistDialogOpen] = useState(false);
   const [relistDuration, setRelistDuration] = useState("7");
-
+  const [taxRate, setTaxRate] = useState<number | null>(null);
+  
   useEffect(() => { fetchListing(); }, [slug]);
 
   useEffect(() => {
@@ -56,8 +70,15 @@ const ListingDetail = () => {
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [listing]);
+}, [listing]);
 
+  useEffect(() => {
+    if (!listing) return;
+    if (listing.pickup_only) {
+      const rate = STATE_TAX_RATES[listing.location_state?.toUpperCase()] ?? null;
+      setTaxRate(rate);
+    }
+  }, [listing]); 
   const handlePurchase = async () => {
     if (!user || !listing) return;
     setPurchasing(true);
@@ -174,9 +195,9 @@ const ListingDetail = () => {
   );
 
   const retailEstimate = listing.fixed_price ? listing.fixed_price * 2.5 : 0;
-  const pctOff = retailEstimate ? Math.round((1 - listing.fixed_price / retailEstimate) * 100) : 0;
-  const tax = ((listing.fixed_price || 0) * 0.0925);
-  const total = ((listing.fixed_price || 0) * 1.0925);
+const pctOff = retailEstimate ? Math.round((1 - listing.fixed_price / retailEstimate) * 100) : 0;
+const tax = taxRate !== null ? (listing.fixed_price || 0) * taxRate : null;
+const total = tax !== null ? (listing.fixed_price || 0) + tax : null;
 
   return (
     <>
@@ -259,9 +280,22 @@ const ListingDetail = () => {
                   </div>
                   <div className="silver-rule mb-3" />
                   <div className="space-y-1 text-xs" style={montserrat}>
-                    <div className="flex justify-between text-neutral-400"><span>Sales Tax (9.25%)</span><span>${tax.toFixed(2)}</span></div>
-                    <div className="flex justify-between font-bold text-neutral-900"><span>Total</span><span>${total.toFixed(2)}</span></div>
-                  </div>
+  {listing.pickup_only && taxRate !== null ? (
+    <>
+      <div className="flex justify-between text-neutral-400">
+        <span>Est. Sales Tax ({(taxRate * 100).toFixed(2)}% — {listing.location_state})</span>
+        <span>${tax!.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between font-bold text-neutral-900">
+        <span>Total</span><span>${total!.toFixed(2)}</span>
+      </div>
+    </>
+  ) : (
+    <div className="text-neutral-400 text-xs leading-relaxed">
+      Sales tax calculated at checkout based on your delivery address.
+    </div>
+  )}
+</div>
                 </div>
               )}
 
