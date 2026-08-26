@@ -22,8 +22,8 @@ const getTimeAgo = (dateStr: string) => {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
-  return `${Math.floor(days / 30)}mo ago`;
+  if (days < 14) return `${days}d ago`;
+  return `2+ weeks ago`;
 };
 
 interface RecentListing {
@@ -220,8 +220,9 @@ const Landing = () => {
           <div className="container max-w-5xl">
             <ul className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-neutral-200 list-none">
               {[
-  { number: "316", label: "Members" },
-  { number: "Less Waste", label: "Our Mission" },
+{ n: "316", label: "Members" },
+{ n: "Less Waste", label: "Our Mission" },
+{ n: "Stripe", label: "Protected Payments" },
 ].map((stat) => (
                 <li key={stat.label} className="flex flex-col items-center py-10 gap-1">
                   <span className="text-3xl md:text-4xl font-bold text-neutral-900" style={playfair}>{stat.number}</span>
