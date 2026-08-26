@@ -33,7 +33,8 @@ const getTimeAgo = (dateStr: string) => {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
-  return days < 30 ? `${days}d ago` : `${Math.floor(days / 30)}mo ago`;
+  if (days < 14) return `${days}d ago`;
+  return `2+ weeks ago`;
 };
 
 const Listings = () => {
