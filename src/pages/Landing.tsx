@@ -176,7 +176,8 @@ const Landing = () => {
               <div className="animate-fade-in-up animate-delay-400 flex items-center justify-center gap-10 pt-4" style={montserrat}>
                 {[
   { n: "316", label: "Members" },
-  { n: "Less Waste", label: "Our Mission" },
+{ n: "Less Waste", label: "Our Mission" },
+{ n: "Stripe", label: "Protected Payments" },
 ].map((s, i) => (
   <div key={i} className="text-center">
     <p className="text-2xl font-bold text-neutral-900" style={playfair}>{s.n}</p>
