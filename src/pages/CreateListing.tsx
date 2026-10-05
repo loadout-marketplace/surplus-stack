@@ -315,7 +315,51 @@ if (listing.isConstructionMaterial === false) {
       setUploadedImages(files);
     }
   };
+const [aiAnalyzing, setAiAnalyzing] = useState(false);
 
+const handleAnalyzeWithAI = async () => {
+  if (uploadedImages.length === 0) {
+    toast.error("Upload at least one photo first");
+    return;
+  }
+  setAiAnalyzing(true);
+  try {
+    const file = uploadedImages[0];
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = (reader.result as string).split(",")[1];
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("analyze-listing-image", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+        body: { imageBase64: base64, mimeType: file.type },
+      });
+      if (error) throw error;
+      const listing = data?.listing;
+      if (!listing) throw new Error("No analysis returned");
+
+      // Construction material check
+      if (listing.isConstructionMaterial === false) {
+        toast.error("This listing doesn't appear to contain construction materials. Loadout is a marketplace for surplus building materials only.");
+        setAiAnalyzing(false);
+        return;
+      }
+
+      if (listing.title) setTitleValue(listing.title);
+      if (listing.description) setDescriptionValue(listing.description);
+      if (listing.city) setCityValue(listing.city);
+      if (listing.state) setStateValue(listing.state);
+      if (listing.zip) setZipValue(listing.zip);
+      if (listing.quantity) setQuantityValue(String(listing.quantity));
+      if (listing.fixedPrice) setFixedPriceValue(String(listing.fixedPrice));
+      toast.success("AI filled in your listing details. Review and adjust before publishing.");
+    };
+    reader.readAsDataURL(file);
+  } catch (err: any) {
+    toast.error(err.message || "AI analysis failed");
+  } finally {
+    setAiAnalyzing(false);
+  }
+};
   if (authLoading) {
     return (
       <div className="min-h-screen bg-white">
