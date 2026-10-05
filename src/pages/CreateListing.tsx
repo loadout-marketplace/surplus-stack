@@ -178,6 +178,13 @@ const CreateListing = () => {
 
           const listing = data.listing;
 
+if (listing.isConstructionMaterial === false) {
+  toast.error("This listing doesn't appear to contain construction materials. Loadout is a marketplace for surplus building materials only.");
+  setAiAnalyzing(false);
+  return;
+}
+          const listing = data.listing;
+
           if (listing.title) setTitleValue(listing.title);
           if (listing.description) setDescriptionValue(listing.description);
           if (listing.quantity) setQuantityValue(String(listing.quantity));
