@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 const sanitizeText = (text: string): string => {
   return text
@@ -53,29 +53,18 @@ const SectionHeader = ({ title }: { title: string }) => (
   </div>
 );
 
-const CATEGORY_MAP: Record<string, string> = {
-  "Lumber": "lumber",
-  "Roofing": "roofing",
-  "Electrical": "electrical",
-  "Plumbing": "plumbing",
-  "Tools": "tools",
-  "Flooring": "flooring",
-  "Insulation": "insulation",
-  "Hardware": "hardware",
-  "Windows & Doors": "windows-doors",
-  "Paint & Finishes": "paint-finishes",
-  "Other": "other",
-};
-
 const CreateListing = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [priceType, setPriceType] = useState<"fixed" | "auction">("fixed");
   const [selectedUnit, setSelectedUnit] = useState<string>("");
   const [customUnit, setCustomUnit] = useState<string>("");
+  const [allowPartialQuantity, setAllowPartialQuantity] = useState(false);
+  const [minQuantityIncrement, setMinQuantityIncrement] = useState<string>("");
   const [fixedPriceValue, setFixedPriceValue] = useState<string>("");
   const [startingBidValue, setStartingBidValue] = useState<string>("");
   const [titleValue, setTitleValue] = useState<string>("");
@@ -87,9 +76,7 @@ const CreateListing = () => {
   const [stripeConnectLoading, setStripeConnectLoading] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedCondition, setSelectedCondition] = useState<string>("");
-  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
 
   const calculateSellerReceives = (price: string) => {
     const numPrice = parseFloat(price);
@@ -112,6 +99,7 @@ const CreateListing = () => {
     checkStripeStatus();
   }, [user]);
 
+  // Restore form data after Stripe Connect redirect
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('stripe') === 'success') {
@@ -130,6 +118,7 @@ const CreateListing = () => {
           if (data.state) setStateValue(data.state);
           if (data.zip) setZipValue(data.zip);
           if (data.quantity) setQuantityValue(data.quantity);
+          if (data.categoryId) setSelectedCategoryId(data.categoryId);
           localStorage.removeItem('savedListingDraft');
           toast.success("Bank account connected! Your listing draft has been restored.");
         } catch (e) {
@@ -143,76 +132,7 @@ const CreateListing = () => {
 
   const fetchCategories = async () => {
     const { data } = await supabase.from("categories").select("*").order("name");
-    const sorted = (data || []).sort((a, b) => {
-      if (a.name === "Other") return 1;
-      if (b.name === "Other") return -1;
-      return 0;
-    });
-    setCategories(sorted);
-  };
-
-  const handleAnalyzeWithAI = async () => {
-    if (uploadedImages.length === 0) {
-      toast.error("Upload a photo first, then click Analyze with AI");
-      return;
-    }
-
-    setAiAnalyzing(true);
-    try {
-      const file = uploadedImages[0];
-      const reader = new FileReader();
-
-      reader.onload = async (e) => {
-        try {
-          const base64 = (e.target?.result as string).split(',')[1];
-          const mediaType = file.type || 'image/jpeg';
-
-          const { data: { session } } = await supabase.auth.getSession();
-          const { data, error } = await supabase.functions.invoke("analyze-listing-image", {
-            body: { imageBase64: base64, mediaType },
-            headers: { Authorization: `Bearer ${session?.access_token}` }
-          });
-
-          if (error) throw error;
-          if (!data.success) throw new Error(data.error || "Analysis failed");
-
-          const listing = data.listing;
-
-if (listing.isConstructionMaterial === false) {
-  toast.error("This listing doesn't appear to contain construction materials. Loadout is a marketplace for surplus building materials only.");
-  setAiAnalyzing(false);
-  return;
-}
-          const listing = data.listing;
-
-          if (listing.title) setTitleValue(listing.title);
-          if (listing.description) setDescriptionValue(listing.description);
-          if (listing.quantity) setQuantityValue(String(listing.quantity));
-          if (listing.unit) setSelectedUnit(listing.unit);
-          if (listing.suggestedPrice) setFixedPriceValue(String(listing.suggestedPrice));
-          if (listing.condition) setSelectedCondition(listing.condition);
-
-          if (listing.category && categories.length > 0) {
-            const match = categories.find(c =>
-              c.name.toLowerCase().includes(listing.category.toLowerCase()) ||
-              listing.category.toLowerCase().includes(c.name.toLowerCase())
-            );
-            if (match) setSelectedCategory(match.id);
-          }
-
-          toast.success("AI filled in your listing! Review and adjust before publishing.");
-        } catch (err: any) {
-          toast.error(err.message || "AI analysis failed");
-        } finally {
-          setAiAnalyzing(false);
-        }
-      };
-
-      reader.readAsDataURL(file);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to analyze image");
-      setAiAnalyzing(false);
-    }
+    setCategories(data || []);
   };
 
   const handleConnectStripe = async () => {
@@ -220,9 +140,17 @@ if (listing.isConstructionMaterial === false) {
     setStripeConnectLoading(true);
     try {
       const draft = {
-        title: titleValue, description: descriptionValue, city: cityValue,
-        state: stateValue, zip: zipValue, quantity: quantityValue,
-        fixedPrice: fixedPriceValue, startingBid: startingBidValue, priceType, selectedUnit,
+        title: titleValue,
+        description: descriptionValue,
+        city: cityValue,
+        state: stateValue,
+        zip: zipValue,
+        quantity: quantityValue,
+        fixedPrice: fixedPriceValue,
+        startingBid: startingBidValue,
+        priceType,
+        selectedUnit,
+        categoryId: selectedCategoryId,
       };
       localStorage.setItem('savedListingDraft', JSON.stringify(draft));
 
@@ -239,9 +167,70 @@ if (listing.isConstructionMaterial === false) {
     }
   };
 
+  const handleAnalyzeWithAI = async () => {
+    if (uploadedImages.length === 0) {
+      toast.error("Upload at least one photo first");
+      return;
+    }
+    setAiAnalyzing(true);
+    try {
+      const file = uploadedImages[0];
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64 = (reader.result as string).split(",")[1];
+          const { data: { session } } = await supabase.auth.getSession();
+          const { data, error } = await supabase.functions.invoke("analyze-listing-image", {
+            headers: { Authorization: `Bearer ${session?.access_token}` },
+            body: { imageBase64: base64, mimeType: file.type },
+          });
+          if (error) throw error;
+          const listing = data?.listing;
+          if (!listing) throw new Error("No analysis returned");
+
+          // Block non-construction-material listings
+          if (listing.isConstructionMaterial === false) {
+            toast.error("This listing doesn't appear to contain construction materials. Loadout is a marketplace for surplus building materials only.");
+            setAiAnalyzing(false);
+            return;
+          }
+
+          if (listing.title) setTitleValue(listing.title);
+          if (listing.description) setDescriptionValue(listing.description);
+          if (listing.city) setCityValue(listing.city);
+          if (listing.state) setStateValue(listing.state);
+          if (listing.zip) setZipValue(listing.zip);
+          if (listing.quantity) setQuantityValue(String(listing.quantity));
+          if (listing.fixedPrice) setFixedPriceValue(String(listing.fixedPrice));
+          if (listing.unit) setSelectedUnit(listing.unit);
+          toast.success("AI filled in your listing details. Review before publishing.");
+        } catch (err: any) {
+          toast.error(err.message || "AI analysis failed");
+        } finally {
+          setAiAnalyzing(false);
+        }
+      };
+      reader.onerror = () => {
+        toast.error("Failed to read image file");
+        setAiAnalyzing(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      toast.error(err.message || "AI analysis failed");
+      setAiAnalyzing(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
+
+    // Stripe Connect is optional — seller can connect later when item sells
+    // if (!stripeConnected) {
+    //   setShowStripeModal(true);
+    //   return;
+    // }
+
     setLoading(true);
     try {
       const formData = new FormData(e.currentTarget);
@@ -268,10 +257,16 @@ if (listing.isConstructionMaterial === false) {
         auctionEndTime = endDate.toISOString();
       }
 
+      const minIncrement = allowPartialQuantity && minQuantityIncrement ? parseFloat(minQuantityIncrement) : null;
+      if (allowPartialQuantity && minIncrement) {
+        if (minIncrement <= 0) { toast.error("Minimum quantity increment must be greater than 0"); setLoading(false); return; }
+        if (minIncrement > validation.data.quantity) { toast.error("Minimum increment cannot exceed total quantity"); setLoading(false); return; }
+      }
+
       const listingData = {
         seller_id: user.id, title: validation.data.title, slug, description: validation.data.description,
-        category_id: selectedCategory || formData.get("category") as string,
-        condition: selectedCondition || formData.get("condition") as "new" | "like_new" | "good" | "fair" | "salvage",
+        category_id: selectedCategoryId || (formData.get("category") as string),
+        condition: formData.get("condition") as "new" | "like_new" | "good" | "fair" | "salvage",
         quantity: validation.data.quantity, unit: selectedUnit === "other" ? customUnit : selectedUnit,
         fixed_price: validation.data.priceType === "fixed" ? validation.data.fixedPrice : null,
         starting_bid: validation.data.priceType === "auction" ? validation.data.startingBid : null,
@@ -279,7 +274,7 @@ if (listing.isConstructionMaterial === false) {
         auction_end_time: auctionEndTime,
         location_city: validation.data.city, location_state: validation.data.state, location_zip: validation.data.zip,
         pickup_only: formData.get("pickupOnly") === "on", shipping_available: formData.get("shippingAvailable") === "on",
-        price_type: validation.data.priceType, status: "active" as const, min_quantity_increment: null,
+        price_type: validation.data.priceType, status: "active" as const, min_quantity_increment: minIncrement,
       };
 
       const { data: listing, error } = await supabase.from("listings").insert(listingData).select().single();
@@ -315,51 +310,7 @@ if (listing.isConstructionMaterial === false) {
       setUploadedImages(files);
     }
   };
-const [aiAnalyzing, setAiAnalyzing] = useState(false);
 
-const handleAnalyzeWithAI = async () => {
-  if (uploadedImages.length === 0) {
-    toast.error("Upload at least one photo first");
-    return;
-  }
-  setAiAnalyzing(true);
-  try {
-    const file = uploadedImages[0];
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64 = (reader.result as string).split(",")[1];
-      const { data: { session } } = await supabase.auth.getSession();
-      const { data, error } = await supabase.functions.invoke("analyze-listing-image", {
-        headers: { Authorization: `Bearer ${session?.access_token}` },
-        body: { imageBase64: base64, mimeType: file.type },
-      });
-      if (error) throw error;
-      const listing = data?.listing;
-      if (!listing) throw new Error("No analysis returned");
-
-      // Construction material check
-      if (listing.isConstructionMaterial === false) {
-        toast.error("This listing doesn't appear to contain construction materials. Loadout is a marketplace for surplus building materials only.");
-        setAiAnalyzing(false);
-        return;
-      }
-
-      if (listing.title) setTitleValue(listing.title);
-      if (listing.description) setDescriptionValue(listing.description);
-      if (listing.city) setCityValue(listing.city);
-      if (listing.state) setStateValue(listing.state);
-      if (listing.zip) setZipValue(listing.zip);
-      if (listing.quantity) setQuantityValue(String(listing.quantity));
-      if (listing.fixedPrice) setFixedPriceValue(String(listing.fixedPrice));
-      toast.success("AI filled in your listing details. Review and adjust before publishing.");
-    };
-    reader.readAsDataURL(file);
-  } catch (err: any) {
-    toast.error(err.message || "AI analysis failed");
-  } finally {
-    setAiAnalyzing(false);
-  }
-};
   if (authLoading) {
     return (
       <div className="min-h-screen bg-white">
@@ -388,64 +339,15 @@ const handleAnalyzeWithAI = async () => {
         <div className="bg-white" style={{ border: "1px solid #e8e8e8", borderRadius: "2px", boxShadow: "0 2px 24px rgba(0,0,0,0.05)" }}>
           <form onSubmit={handleSubmit} className="p-8 md:p-10 space-y-10">
 
-            {/* Photos — MOVED TO TOP so AI can analyze before filling form */}
-            <div className="space-y-4">
-              <SectionHeader title="Photos" />
-              <div className="space-y-1.5">
-                <Label htmlFor="images" className={labelClass} style={montserrat}>Upload Images</Label>
-                <div className="border border-dashed border-neutral-300 rounded-sm p-6 text-center hover:border-neutral-400 transition-colors">
-                  <Input id="images" type="file" accept="image/*" multiple onChange={handleImageChange} className="cursor-pointer opacity-0 absolute" style={{ width: "1px", height: "1px" }} />
-                  <label htmlFor="images" className="cursor-pointer">
-                    <p className="text-sm text-neutral-500" style={montserrat}>Click to upload up to 10 photos</p>
-                    <p className="text-xs text-neutral-400 mt-1" style={montserrat}>JPG, PNG, WEBP accepted</p>
-                    {uploadedImages.length > 0 && (
-                      <p className="text-sm font-semibold text-neutral-800 mt-2" style={montserrat}>{uploadedImages.length} image{uploadedImages.length > 1 ? "s" : ""} selected</p>
-                    )}
-                  </label>
-                </div>
-              </div>
-
-              {/* AI ANALYZE BUTTON */}
-              <button
-                type="button"
-                onClick={handleAnalyzeWithAI}
-                disabled={aiAnalyzing || uploadedImages.length === 0}
-                className="w-full h-12 flex items-center justify-center gap-3 rounded-sm text-white text-xs font-bold uppercase tracking-wider transition-all"
-                style={{
-                  ...montserrat,
-                  background: aiAnalyzing ? "#666" : uploadedImages.length === 0 ? "#ccc" : "linear-gradient(135deg, #111 0%, #333 100%)",
-                  cursor: uploadedImages.length === 0 ? "not-allowed" : "pointer"
-                }}
-              >
-                {aiAnalyzing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    AI is analyzing your photo...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" />
-                    Auto-Fill with AI
-                  </>
-                )}
-              </button>
-              {uploadedImages.length === 0 && (
-                <p className="text-xs text-neutral-400 text-center" style={montserrat}>Upload a photo to enable AI auto-fill</p>
-              )}
-              {uploadedImages.length > 0 && !aiAnalyzing && (
-                <p className="text-xs text-neutral-400 text-center" style={montserrat}>AI will analyze your photo and fill in title, description, price, and more</p>
-              )}
-            </div>
-
             <div className="space-y-6">
               <SectionHeader title="Basic Information" />
               <div className="space-y-1.5">
                 <Label htmlFor="title" className={labelClass} style={montserrat}>Title *</Label>
-                <Input id="title" name="title" value={titleValue} onChange={(e) => setTitleValue(e.target.value)} placeholder="e.g., 2x4 Pine Lumber 100 pieces" required className={inputClass} style={montserrat} />
+                <Input id="title" name="title" value={titleValue} onChange={(e) => setTitleValue(e.target.value)} placeholder="e.g., 2x4 Pine Lumber — 100 pieces" required className={inputClass} style={montserrat} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="category" className={labelClass} style={montserrat}>Category *</Label>
-                <Select name="category" value={selectedCategory} onValueChange={setSelectedCategory} required>
+                <Select name="category" value={selectedCategoryId} onValueChange={setSelectedCategoryId} required>
                   <SelectTrigger className="h-11 rounded-sm border-neutral-200 text-sm" style={montserrat}>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -458,7 +360,7 @@ const handleAnalyzeWithAI = async () => {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="condition" className={labelClass} style={montserrat}>Condition *</Label>
-                <Select name="condition" value={selectedCondition} onValueChange={setSelectedCondition} required>
+                <Select name="condition" required>
                   <SelectTrigger className="h-11 rounded-sm border-neutral-200 text-sm" style={montserrat}>
                     <SelectValue placeholder="Select condition" />
                   </SelectTrigger>
@@ -570,6 +472,42 @@ const handleAnalyzeWithAI = async () => {
             </div>
 
             <div className="space-y-6">
+              <SectionHeader title="Photos" />
+              <div className="space-y-1.5">
+                <Label htmlFor="images" className={labelClass} style={montserrat}>Upload Images</Label>
+                <div className="border border-dashed border-neutral-300 rounded-sm p-6 text-center hover:border-neutral-400 transition-colors relative">
+                  <Input id="images" type="file" accept="image/*" multiple onChange={handleImageChange} className="cursor-pointer opacity-0 absolute inset-0 w-full h-full" />
+                  <label htmlFor="images" className="cursor-pointer pointer-events-none">
+                    <p className="text-sm text-neutral-500" style={montserrat}>Click to upload up to 10 photos</p>
+                    <p className="text-xs text-neutral-400 mt-1" style={montserrat}>JPG, PNG, WEBP accepted</p>
+                    {uploadedImages.length > 0 && (
+                      <p className="text-sm font-semibold text-neutral-800 mt-2" style={montserrat}>{uploadedImages.length} image{uploadedImages.length > 1 ? "s" : ""} selected</p>
+                    )}
+                  </label>
+                </div>
+
+                {/* AI Auto-Fill Button */}
+                {uploadedImages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleAnalyzeWithAI}
+                    disabled={aiAnalyzing}
+                    className="mt-3 w-full h-11 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider rounded-sm border transition-colors"
+                    style={{
+                      ...montserrat,
+                      borderColor: aiAnalyzing ? "#ccc" : "#111",
+                      color: aiAnalyzing ? "#999" : "#111",
+                      background: "white",
+                    }}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {aiAnalyzing ? "Analyzing photo..." : "Auto-Fill with AI"}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-6">
               <SectionHeader title="Location" />
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
@@ -607,7 +545,7 @@ const handleAnalyzeWithAI = async () => {
               style={{ ...montserrat, background: loading ? "#666" : "#111" }}
               disabled={loading}
             >
-              {loading ? "Creating Listing…" : "Publish Listing"}
+              {loading ? "Creating Listing..." : "Publish Listing"}
             </Button>
 
           </form>
@@ -622,11 +560,20 @@ const handleAnalyzeWithAI = async () => {
               You need to connect your bank account through Stripe to receive payments before you can list items on Loadout.
             </p>
             <div className="flex gap-3">
-              <button onClick={() => setShowStripeModal(false)} className="flex-1 h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, border: "1px solid #e0e0e0" }}>
+              <button
+                onClick={() => setShowStripeModal(false)}
+                className="flex-1 h-11 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-sm"
+                style={{ ...montserrat, border: "1px solid #e0e0e0" }}
+              >
                 Cancel
               </button>
-              <button onClick={handleConnectStripe} disabled={stripeConnectLoading} className="flex-1 h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm" style={{ ...montserrat, background: stripeConnectLoading ? "#666" : "#111" }}>
-                {stripeConnectLoading ? "Connecting…" : "Connect Bank"}
+              <button
+                onClick={handleConnectStripe}
+                disabled={stripeConnectLoading}
+                className="flex-1 h-11 text-white text-xs font-bold uppercase tracking-wider rounded-sm"
+                style={{ ...montserrat, background: stripeConnectLoading ? "#666" : "#111" }}
+              >
+                {stripeConnectLoading ? "Connecting..." : "Connect Bank"}
               </button>
             </div>
           </div>
