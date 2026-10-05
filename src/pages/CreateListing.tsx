@@ -232,6 +232,23 @@ const CreateListing = () => {
     // }
 
     setLoading(true);
+
+    // Backend construction material validation on every submit
+    try {
+      const { data: { session: validationSession } } = await supabase.auth.getSession();
+      const { data: validationData, error: validationError } = await supabase.functions.invoke("validate-listing", {
+        headers: { Authorization: `Bearer ${validationSession?.access_token}` },
+        body: { title: titleValue, description: descriptionValue },
+      });
+      if (!validationError && validationData?.valid === false) {
+        toast.error("This listing doesn't appear to be a construction material. Loadout is for surplus building materials only.");
+        setLoading(false);
+        return;
+      }
+    } catch {
+      // Fail open — don't block legitimate listings if validation crashes
+    }
+
     try {
       const formData = new FormData(e.currentTarget);
       const title = titleValue;
