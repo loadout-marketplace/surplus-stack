@@ -1,73 +1,77 @@
-# Welcome to your Lovable project
+# Loadout Marketplace
 
-## Project info
+**A two-sided marketplace for surplus and salvage construction materials.**
+Contractors list leftover lumber, roofing, electrical, and other materials; buyers purchase them at a discount through fixed-price listings or timed auctions.
 
-**URL**: https://lovable.dev/projects/af78784e-c9cd-4cec-b41f-37176d50b469
+🔗 **Live site:** [loadout-marketplace.com](https://www.loadout-marketplace.com)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## Highlights
 
-**Use Lovable**
+- **AI-powered listings.** Sellers upload a photo, and a vision model (Anthropic Claude) identifies the material and auto-fills the title, description, category, condition, quantity, unit, and a suggested price. This cut average listing time from about 3 minutes to about 15 seconds.
+- **Fixed-price and auction listings.** Auctions support starting bids and reserve prices. A scheduled server function closes expired auctions, determines the winning bid, and notifies buyers and sellers.
+- **Stripe Connect seller onboarding** for marketplace payouts.
+- **Messaging, notifications, and reputation.** Buyer–seller message threads, in-app notifications, seller ratings and reviews, and seller badges.
+- **AI support chatbot** that answers buyer and seller questions (authenticated users only).
+- **Admin dashboard** with server-side role checks.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/af78784e-c9cd-4cec-b41f-37176d50b469) and start prompting.
+## Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+| Layer | Tools |
+|---|---|
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, React Router, TanStack Query |
+| Backend | Supabase (PostgreSQL, Auth, Storage, Edge Functions on Deno) |
+| AI | Anthropic Claude API (vision for listing analysis, chat for support) |
+| Payments | Stripe Connect |
+| Hosting | Vercel |
+| Validation | Zod, React Hook Form |
 
-**Use your preferred IDE**
+## Architecture
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```
+React (Vite) client  ──►  Supabase Auth + PostgreSQL (Row Level Security on every table)
+        │
+        └──►  Supabase Edge Functions
+                 ├── analyze-listing-image     → Claude vision → structured listing JSON
+                 ├── chat-support              → authenticated AI support assistant
+                 └── process-expired-auctions  → HMAC-verified scheduled job that settles auctions
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Security
 
-Follow these steps:
+- **Row Level Security** enabled on all 12 tables, with 69 policies defined across 36 migrations.
+- **Secret keys stay server-side.** API keys for Anthropic and Stripe live only in Edge Function environment variables, never in the client.
+- **The scheduled auction job** verifies HMAC-SHA256 signatures with timestamp checks to block replayed or forged requests.
+- **Notification text is sanitized** to prevent XSS.
+- **Edge functions validate auth tokens** and cap request sizes to limit abuse.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Project Structure
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```
+src/
+  pages/           Listings, ListingDetail, CreateListing, Dashboard, Orders, Messages, Admin, ...
+  components/      Navbar, BidDialog, ReviewDialog, SellerRating, SellerBadges, ChatBot, ...
+  hooks/           useAuth, useNotifications
+  integrations/    Supabase client and generated database types
+supabase/
+  functions/       Edge Functions (AI listing analysis, support chat, auction settlement)
+  migrations/      Database schema, RLS policies, and functions
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Running Locally
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+git clone https://github.com/loadout-marketplace/surplus-stack.git
+cd surplus-stack
+npm install
+cp .env.example .env   # add your Supabase URL, publishable key, and Stripe publishable key
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## About
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Built by **Derek Hayduk**, Co-Founder & CEO of Loadout Marketplace.
+Developed with AI-assisted tooling (Lovable, Claude); I designed the product, data model, security policies, and AI features, and handle deployment and operations.
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/af78784e-c9cd-4cec-b41f-37176d50b469) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+[LinkedIn](https://linkedin.com/in/derek-hayduk-purdue) · haydukderek17@gmail.com
