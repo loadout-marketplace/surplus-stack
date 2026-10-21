@@ -72,6 +72,6 @@ npm run dev
 ## About
 
 Built by **Derek Hayduk**, Co-Founder & CEO of Loadout Marketplace.
-I designed the product, data model, security policies, and AI features, and handle deployment and operations.
+Frame structure assisted by AI tools(Claude, Lovable). I designed the product, data model, security policies, and AI features, and handle deployment and operations.
 
 [LinkedIn](https://linkedin.com/in/derek-hayduk-purdue) · haydukderek17@gmail.com
